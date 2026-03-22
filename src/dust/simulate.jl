@@ -1,19 +1,24 @@
 # Simulation interface: run systems and collect trajectories.
 
 """
-    dust_system_simulate(sys, times) -> Array{Float64, 3}
+    dust_system_simulate(sys, times; solver=:dp5) -> Array{Float64, 3}
 
 Simulate the system, recording state at each time in `times`.
 Returns array of shape (n_state, n_particles, n_times).
+
+For continuous (ODE) models, `solver` selects the integration method:
+- `:dp5` — Dormand-Prince 5(4), explicit, for non-stiff systems (default)
+- `:sdirk` — SDIRK4, L-stable implicit, for stiff systems
 """
-function dust_system_simulate(sys::DustSystem, times::AbstractVector{Float64})
+function dust_system_simulate(sys::DustSystem, times::AbstractVector{Float64};
+                              solver::Symbol=:dp5)
     n_times = length(times)
     n_rows = sys.n_state + sys.n_output
     output = zeros(Float64, n_rows, sys.n_particles, n_times)
     model = sys.generator.model
 
     if model.is_continuous
-        return _simulate_continuous(sys, times, output)
+        return _simulate_continuous(sys, times, output, solver)
     else
         return _simulate_discrete(sys, times, output)
     end
@@ -195,12 +200,12 @@ function _make_thread_models(model::M, thread_workspaces::Vector{Dict{Symbol, Ar
     return models
 end
 
-function _simulate_continuous(sys::DustSystem{M, T, P}, times::AbstractVector{T}, output::Array{T, 3}) where {M, T, P}
+function _simulate_continuous(sys::DustSystem{M, T, P}, times::AbstractVector{T}, output::Array{T, 3}, solver::Symbol=:dp5) where {M, T, P}
     np = sys.n_particles
     use_threads = np >= 4 && Threads.nthreads() > 1
 
     if use_threads
-        return _simulate_continuous_threaded(sys, times, output)
+        return _simulate_continuous_threaded(sys, times, output, solver)
     end
 
     model = sys.generator.model
@@ -213,30 +218,59 @@ function _simulate_continuous(sys::DustSystem{M, T, P}, times::AbstractVector{T}
     # Pre-build RHS closure once
     rhs_fn! = (du, u, pars, t) -> _odin_rhs!(model, du, u, pars, t)
 
-    # Lazily initialize DP5 workspace
-    if sys._dp5_workspace === nothing
-        sys._dp5_workspace = DP5Workspace(n_state, T)
-    end
-    ws = sys._dp5_workspace::DP5Workspace{T}
-
-    for p in 1:np
-        @inbounds for j in 1:n_state
-            state_vec[j] = sys.state[j, p]
+    if solver === :sdirk
+        # SDIRK4 path for stiff systems
+        if sys._sdirk_workspace === nothing
+            sys._sdirk_workspace = SDIRKWorkspace(n_state, T)
         end
+        ws = sys._sdirk_workspace::SDIRKWorkspace{T}
 
-        # Use core function directly to avoid keyword-arg and DP5Result allocations
-        _dp5_solve_core!(rhs_fn!, state_vec, (sys.time, last(times)), sys.pars,
-                         times, ws, nothing, T(1e-6), T(1e-6), 100000)
-
-        for ti in 1:length(times)
+        for p in 1:np
             @inbounds for j in 1:n_state
-                output[j, p, ti] = ws.result_matrix[j, ti]
+                state_vec[j] = sys.state[j, p]
             end
-            if n_output > 0
-                sv = @view ws.result_matrix[:, ti]
-                _odin_output!(model, output_buf, sv, sys.pars, times[ti])
-                @inbounds for j in 1:n_output
-                    output[n_state + j, p, ti] = output_buf[j]
+
+            _sdirk_solve_core!(rhs_fn!, state_vec, (sys.time, last(times)), sys.pars,
+                               times, ws, nothing, T(1e-6), T(1e-6), 100000)
+
+            for ti in 1:length(times)
+                @inbounds for j in 1:n_state
+                    output[j, p, ti] = ws.result_matrix[j, ti]
+                end
+                if n_output > 0
+                    sv = @view ws.result_matrix[:, ti]
+                    _odin_output!(model, output_buf, sv, sys.pars, times[ti])
+                    @inbounds for j in 1:n_output
+                        output[n_state + j, p, ti] = output_buf[j]
+                    end
+                end
+            end
+        end
+    else
+        # DP5 path (default)
+        if sys._dp5_workspace === nothing
+            sys._dp5_workspace = DP5Workspace(n_state, T)
+        end
+        ws = sys._dp5_workspace::DP5Workspace{T}
+
+        for p in 1:np
+            @inbounds for j in 1:n_state
+                state_vec[j] = sys.state[j, p]
+            end
+
+            _dp5_solve_core!(rhs_fn!, state_vec, (sys.time, last(times)), sys.pars,
+                             times, ws, nothing, T(1e-6), T(1e-6), 100000)
+
+            for ti in 1:length(times)
+                @inbounds for j in 1:n_state
+                    output[j, p, ti] = ws.result_matrix[j, ti]
+                end
+                if n_output > 0
+                    sv = @view ws.result_matrix[:, ti]
+                    _odin_output!(model, output_buf, sv, sys.pars, times[ti])
+                    @inbounds for j in 1:n_output
+                        output[n_state + j, p, ti] = output_buf[j]
+                    end
                 end
             end
         end
@@ -246,7 +280,7 @@ function _simulate_continuous(sys::DustSystem{M, T, P}, times::AbstractVector{T}
     return output
 end
 
-function _simulate_continuous_threaded(sys::DustSystem{M, T, P}, times::AbstractVector{T}, output::Array{T, 3}) where {M, T, P}
+function _simulate_continuous_threaded(sys::DustSystem{M, T, P}, times::AbstractVector{T}, output::Array{T, 3}, solver::Symbol=:dp5) where {M, T, P}
     model = sys.generator.model
     n_state = sys.n_state
     n_output = sys.n_output
@@ -255,40 +289,78 @@ function _simulate_continuous_threaded(sys::DustSystem{M, T, P}, times::Abstract
 
     # Per-thread resources
     thread_models = _make_thread_models(model, sys._thread_workspaces, nt)
-    thread_dp5 = sys._thread_dp5_workspaces
 
-    # Lazily initialize per-thread DP5 workspaces
-    for tid in 1:nt
-        if thread_dp5[tid] === nothing
-            thread_dp5[tid] = DP5Workspace(n_state, T)
-        end
-    end
-
-    Threads.@threads for p in 1:np
-        tid = Threads.threadid()
-        ws = thread_dp5[tid]::DP5Workspace{T}
-        m = thread_models[tid]
-        state_vec = sys._thread_state_next[tid]
-        obuf = sys._thread_output_buf[tid]
-
-        rhs_fn! = (du, u, pars, t) -> _odin_rhs!(m, du, u, pars, t)
-
-        @inbounds for j in 1:n_state
-            state_vec[j] = sys.state[j, p]
-        end
-
-        _dp5_solve_core!(rhs_fn!, state_vec, (sys.time, last(times)), sys.pars,
-                         times, ws, nothing, T(1e-6), T(1e-6), 100000)
-
-        for ti in 1:length(times)
-            @inbounds for j in 1:n_state
-                output[j, p, ti] = ws.result_matrix[j, ti]
+    if solver === :sdirk
+        thread_ws = sys._thread_sdirk_workspaces
+        for tid in 1:nt
+            if thread_ws[tid] === nothing
+                thread_ws[tid] = SDIRKWorkspace(n_state, T)
             end
-            if n_output > 0
-                sv = @view ws.result_matrix[:, ti]
-                _odin_output!(m, obuf, sv, sys.pars, times[ti])
-                @inbounds for j in 1:n_output
-                    output[n_state + j, p, ti] = obuf[j]
+        end
+
+        Threads.@threads for p in 1:np
+            tid = Threads.threadid()
+            ws = thread_ws[tid]::SDIRKWorkspace{T}
+            m = thread_models[tid]
+            state_vec = sys._thread_state_next[tid]
+            obuf = sys._thread_output_buf[tid]
+
+            rhs_fn! = (du, u, pars, t) -> _odin_rhs!(m, du, u, pars, t)
+
+            @inbounds for j in 1:n_state
+                state_vec[j] = sys.state[j, p]
+            end
+
+            _sdirk_solve_core!(rhs_fn!, state_vec, (sys.time, last(times)), sys.pars,
+                               times, ws, nothing, T(1e-6), T(1e-6), 100000)
+
+            for ti in 1:length(times)
+                @inbounds for j in 1:n_state
+                    output[j, p, ti] = ws.result_matrix[j, ti]
+                end
+                if n_output > 0
+                    sv = @view ws.result_matrix[:, ti]
+                    _odin_output!(m, obuf, sv, sys.pars, times[ti])
+                    @inbounds for j in 1:n_output
+                        output[n_state + j, p, ti] = obuf[j]
+                    end
+                end
+            end
+        end
+    else
+        thread_dp5 = sys._thread_dp5_workspaces
+        for tid in 1:nt
+            if thread_dp5[tid] === nothing
+                thread_dp5[tid] = DP5Workspace(n_state, T)
+            end
+        end
+
+        Threads.@threads for p in 1:np
+            tid = Threads.threadid()
+            ws = thread_dp5[tid]::DP5Workspace{T}
+            m = thread_models[tid]
+            state_vec = sys._thread_state_next[tid]
+            obuf = sys._thread_output_buf[tid]
+
+            rhs_fn! = (du, u, pars, t) -> _odin_rhs!(m, du, u, pars, t)
+
+            @inbounds for j in 1:n_state
+                state_vec[j] = sys.state[j, p]
+            end
+
+            _dp5_solve_core!(rhs_fn!, state_vec, (sys.time, last(times)), sys.pars,
+                             times, ws, nothing, T(1e-6), T(1e-6), 100000)
+
+            for ti in 1:length(times)
+                @inbounds for j in 1:n_state
+                    output[j, p, ti] = ws.result_matrix[j, ti]
+                end
+                if n_output > 0
+                    sv = @view ws.result_matrix[:, ti]
+                    _odin_output!(m, obuf, sv, sys.pars, times[ti])
+                    @inbounds for j in 1:n_output
+                        output[n_state + j, p, ti] = obuf[j]
+                    end
                 end
             end
         end
@@ -299,7 +371,7 @@ function _simulate_continuous_threaded(sys::DustSystem{M, T, P}, times::Abstract
 end
 
 """
-    dust_system_simulate(gen::DustSystemGenerator, pars; times, dt, seed, n_particles, system)
+    dust_system_simulate(gen::DustSystemGenerator, pars; times, dt, seed, n_particles, system, solver)
 
 Convenience: create system (or reuse `system`), set initial state, simulate.
 Pass `system` from a previous call to avoid system creation overhead.
@@ -312,14 +384,15 @@ function dust_system_simulate(
     seed::Union{Nothing, Int}=nothing,
     n_particles::Int=1,
     system::Union{Nothing, DustSystem}=nothing,
+    solver::Symbol=:dp5,
 )
     if system !== nothing && system.n_particles == n_particles
         _reset_system!(system, pars, seed)
         dust_system_set_state_initial!(system)
-        return dust_system_simulate(system, times)
+        return dust_system_simulate(system, times; solver=solver)
     else
         sys = dust_system_create(gen, pars; n_particles=n_particles, dt=dt, seed=seed)
         dust_system_set_state_initial!(sys)
-        return dust_system_simulate(sys, times)
+        return dust_system_simulate(sys, times; solver=solver)
     end
 end
