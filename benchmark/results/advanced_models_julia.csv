@@ -1,0 +1,5 @@
+model,task,julia_ms,threads,notes
+mpox_seir,sim_200ptcl_180d,96.02,4,age-structured stochastic
+malaria_simple,sim_3yr_daily,0.20,1,Ross-Macdonald ODE
+sarscov2_3region,sim_365d,0.25,1,18 state variables
+sarscov2_3region,unfilter_52wk,0.11,1,sub-millisecond smoothing

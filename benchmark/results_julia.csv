@@ -1,0 +1,8 @@
+benchmark,time_ms,min_ms,max_ms,allocs,bytes,threads,notes
+SIR_ODE_365d,0.131,0.128,0.200,116,26901,1,DP5 integrator
+SIR_Stoch_100p,27.17,13.75,52.83,11477,1628160,4,threaded particles
+SIR_Age_ODE_10grp,0.183,0.167,6.403,450,225597,1,10 age groups
+SIR_PF_200p,15.20,7.63,34.14,4414,371855,4,particle filter
+MCMC_500_RW_PF,4732.0,4121.4,5170.6,2223480,186689536,4,RW + particle filter
+SIR_Stoch_1000p_4t,35.42,24.49,63.31,18680,10021088,4,threading benefit
+DP5_zero_alloc_check,NA,NA,NA,NA,9296,1,9296 bytes per simulate (output alloc only)
