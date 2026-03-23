@@ -30,6 +30,7 @@ using Test
     include("monty/test_sample.jl")
     include("monty/test_dsl.jl")
     include("monty/test_turing_bridge.jl")
+    include("monty/test_validation.jl")
     include("categorical/test_categorical.jl")
     include("categorical/test_categorical_advanced.jl")
     include("gpu/test_gpu.jl")
