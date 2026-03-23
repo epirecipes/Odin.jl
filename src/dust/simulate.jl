@@ -202,9 +202,9 @@ function _make_thread_models(model::M, thread_workspaces::Vector{Dict{Symbol, Ar
     return models
 end
 
-function _simulate_continuous(sys::DustSystem{M, T, P}, times::AbstractVector{T}, output::Array{T, 3}, solver::Symbol=:dp5; events=nothing) where {M, T, P}
+function _simulate_continuous(sys::DustSystem{M, T, P}, times::AbstractVector{T}, output::Array{T, 3}, solver::Symbol=:dp5; events::Union{Nothing, EventSet}=nothing) where {M, T, P}
     np = sys.n_particles
-    use_threads = np >= 4 && Threads.nthreads() > 1
+    use_threads = np >= 4 && Threads.nthreads() > 1 && !_has_events(events)
 
     if use_threads
         return _simulate_continuous_threaded(sys, times, output, solver)
@@ -213,15 +213,12 @@ function _simulate_continuous(sys::DustSystem{M, T, P}, times::AbstractVector{T}
     model = sys.generator.model
     n_state = sys.n_state
     n_output = sys.n_output
-    # Reuse pre-allocated buffers from sys (safe: continuous/discrete are exclusive)
     output_buf = sys._thread_output_buf[1]
     state_vec = sys._work_state_next
 
-    # Pre-build RHS closure once
     rhs_fn! = (du, u, pars, t) -> _odin_rhs!(model, du, u, pars, t)
 
     if solver === :sdirk
-        # SDIRK4 path for stiff systems
         if sys._sdirk_workspace === nothing
             sys._sdirk_workspace = SDIRKWorkspace(n_state, T)
         end
@@ -249,7 +246,6 @@ function _simulate_continuous(sys::DustSystem{M, T, P}, times::AbstractVector{T}
             end
         end
     else
-        # DP5 path (default)
         if sys._dp5_workspace === nothing
             sys._dp5_workspace = DP5Workspace(n_state, T)
         end
@@ -260,8 +256,13 @@ function _simulate_continuous(sys::DustSystem{M, T, P}, times::AbstractVector{T}
                 state_vec[j] = sys.state[j, p]
             end
 
-            _dp5_solve_core!(rhs_fn!, state_vec, (sys.time, last(times)), sys.pars,
-                             times, ws, nothing, T(1e-6), T(1e-6), 100000)
+            if _has_events(events)
+                _dp5_solve_events!(rhs_fn!, state_vec, (sys.time, last(times)), sys.pars,
+                                   times, ws, nothing, T(1e-6), T(1e-6), 100000, events)
+            else
+                _dp5_solve_core!(rhs_fn!, state_vec, (sys.time, last(times)), sys.pars,
+                                 times, ws, nothing, T(1e-6), T(1e-6), 100000)
+            end
 
             for ti in 1:length(times)
                 @inbounds for j in 1:n_state
