@@ -28,6 +28,7 @@ include("dust/fast_random.jl")
 include("dust/fast_logpdf.jl")
 include("dust/dp5.jl")
 include("dust/sdirk.jl")
+include("dust/sde.jl")
 include("dust/events.jl")
 include("dust/system.jl")
 include("dust/simulate.jl")
@@ -54,7 +55,9 @@ include("monty/samplers/gibbs.jl")
 include("monty/runners.jl")
 include("monty/sample.jl")
 include("monty/dsl.jl")
+include("monty/model_selection.jl")
 include("monty/turing_bridge.jl")
+include("monty/validation.jl")
 
 # ── Sensitivity analysis ──────────────────────────────────────
 include("dust/sensitivity.jl")
@@ -86,6 +89,7 @@ export DustUnfilter, dust_unfilter_create, dust_unfilter_run!
 export dust_likelihood_monty, dust_likelihood_run!
 export DustODEControl
 export sdirk_solve!, SDIRKWorkspace, SDIRKResult
+export sde_solve!, SDEWorkspace, SDEResult
 export ContinuousEvent, DiscreteEvent, TimedEvent, EventSet, EventRecord
 export dp5_solve_events!
 export dust_sensitivity_forward, dust_sensitivity_adjoint
@@ -110,10 +114,22 @@ export monty_runner_serial, monty_runner_threaded
 export MontySamples, monty_sample, monty_sample_continue
 export @monty_prior
 
+# Validation
+export PosteriorPredictive, PPCResult, ResidualDiagnostics, CalibrationResult, SBCResult
+export posterior_predictive, ppc_check, residual_diagnostics, calibration_check
+export prior_predictive, sbc_check
+
 # Turing/DynamicPPL bridge
 export as_logdensity, to_turing_model, turing_sample
 export dppl_prior, dppl_to_monty_model
 export to_chains, from_chains
+
+# Model selection
+export compute_aic, compute_aicc, compute_bic, compute_dic, compute_waic
+export compute_loo
+export akaike_weights
+export dust_unfilter_run_pointwise!, dust_filter_run_pointwise!
+export ModelComparison, compare_models
 
 # GPU
 export GPUBackend, CPUBackend, MetalBackend, CUDABackend, AMDGPUBackend

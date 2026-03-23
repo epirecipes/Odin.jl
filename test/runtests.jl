@@ -18,6 +18,7 @@ using Test
     include("dsl/test_fitting_workflow.jl")
     include("dust/test_system.jl")
     include("dust/test_simulate.jl")
+    include("dust/test_sde.jl")
     include("dust/test_sdirk.jl")
     include("dust/test_events.jl")
     include("dust/test_filter.jl")
