@@ -1,7 +1,7 @@
 # Simulation interface: run systems and collect trajectories.
 
 """
-    dust_system_simulate(sys, times; solver=:dp5) -> Array{Float64, 3}
+    dust_system_simulate(sys, times; solver=:dp5, events=nothing) -> Array{Float64, 3}
 
 Simulate the system, recording state at each time in `times`.
 Returns array of shape (n_state, n_particles, n_times).
@@ -9,16 +9,18 @@ Returns array of shape (n_state, n_particles, n_times).
 For continuous (ODE) models, `solver` selects the integration method:
 - `:dp5` — Dormand-Prince 5(4), explicit, for non-stiff systems (default)
 - `:sdirk` — SDIRK4, L-stable implicit, for stiff systems
+
+Pass an `EventSet` via `events` to enable discontinuities and callbacks.
 """
 function dust_system_simulate(sys::DustSystem, times::AbstractVector{Float64};
-                              solver::Symbol=:dp5)
+                              solver::Symbol=:dp5, events::Union{Nothing, EventSet}=nothing)
     n_times = length(times)
     n_rows = sys.n_state + sys.n_output
     output = zeros(Float64, n_rows, sys.n_particles, n_times)
     model = sys.generator.model
 
     if model.is_continuous
-        return _simulate_continuous(sys, times, output, solver)
+        return _simulate_continuous(sys, times, output, solver; events=events)
     else
         return _simulate_discrete(sys, times, output)
     end
@@ -200,7 +202,7 @@ function _make_thread_models(model::M, thread_workspaces::Vector{Dict{Symbol, Ar
     return models
 end
 
-function _simulate_continuous(sys::DustSystem{M, T, P}, times::AbstractVector{T}, output::Array{T, 3}, solver::Symbol=:dp5) where {M, T, P}
+function _simulate_continuous(sys::DustSystem{M, T, P}, times::AbstractVector{T}, output::Array{T, 3}, solver::Symbol=:dp5; events=nothing) where {M, T, P}
     np = sys.n_particles
     use_threads = np >= 4 && Threads.nthreads() > 1
 
