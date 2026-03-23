@@ -10,6 +10,10 @@ For continuous (ODE) models, `solver` selects the integration method:
 - `:dp5` — Dormand-Prince 5(4), explicit, for non-stiff systems (default)
 - `:sdirk` — SDIRK4, L-stable implicit, for stiff systems
 
+For SDE models (with `diffusion()` terms), `solver` selects the SDE method:
+- `:euler_maruyama` — Euler-Maruyama, strong order 0.5 (default for SDE)
+- `:milstein` — Milstein, strong order 1.0
+
 Pass an `EventSet` via `events` to enable discontinuities and callbacks.
 """
 function dust_system_simulate(sys::DustSystem, times::AbstractVector{Float64};
@@ -20,7 +24,12 @@ function dust_system_simulate(sys::DustSystem, times::AbstractVector{Float64};
     model = sys.generator.model
 
     if model.is_continuous
-        return _simulate_continuous(sys, times, output, solver; events=events)
+        if model.is_sde
+            sde_solver = solver in (:euler_maruyama, :milstein) ? solver : :euler_maruyama
+            return _simulate_sde(sys, times, output, sde_solver)
+        else
+            return _simulate_continuous(sys, times, output, solver; events=events)
+        end
     else
         return _simulate_discrete(sys, times, output)
     end
@@ -366,6 +375,55 @@ function _simulate_continuous_threaded(sys::DustSystem{M, T, P}, times::Abstract
                     end
                 end
             end
+        end
+    end
+
+    sys.time = last(times)
+    return output
+end
+
+function _simulate_sde(sys::DustSystem{M, T, P}, times::AbstractVector{T}, output::Array{T, 3}, method::Symbol=:euler_maruyama) where {M, T, P}
+    model = sys.generator.model
+    n_state = sys.n_state
+    n_output = sys.n_output
+    np = sys.n_particles
+    dt = sys.dt
+    state_vec = sys._work_state_next
+    output_buf = sys._thread_output_buf[1]
+
+    rhs_fn! = (du, u, pars, t) -> _odin_rhs!(model, du, u, pars, t)
+    diffusion_fn! = (σ_out, u, pars, t) -> _odin_diffusion!(model, σ_out, u, pars, t)
+
+    if sys._sde_workspace === nothing
+        sys._sde_workspace = SDEWorkspace(n_state, T)
+    end
+    ws = sys._sde_workspace::SDEWorkspace{T}
+
+    for p in 1:np
+        @inbounds for j in 1:n_state
+            state_vec[j] = sys.state[j, p]
+        end
+
+        _sde_solve_core!(rhs_fn!, diffusion_fn!, state_vec,
+                         (sys.time, last(times)), sys.pars, dt, times,
+                         ws, sys.rng[p], method)
+
+        for ti in 1:length(times)
+            @inbounds for j in 1:n_state
+                output[j, p, ti] = ws.result_matrix[j, ti]
+            end
+            if n_output > 0
+                sv = @view ws.result_matrix[:, ti]
+                _odin_output!(model, output_buf, sv, sys.pars, times[ti])
+                @inbounds for j in 1:n_output
+                    output[n_state + j, p, ti] = output_buf[j]
+                end
+            end
+        end
+
+        # Update final state in system
+        @inbounds for j in 1:n_state
+            sys.state[j, p] = ws.result_matrix[j, length(times)]
         end
     end
 

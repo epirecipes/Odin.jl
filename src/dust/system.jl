@@ -44,6 +44,8 @@ mutable struct DustSystem{M<:AbstractOdinModel, T<:AbstractFloat, P}
     _thread_dp5_workspaces::Vector{Union{Nothing, DP5Workspace{T}}}  # per-thread ODE workspaces
     _sdirk_workspace::Union{Nothing, SDIRKWorkspace{T}}  # cached stiff ODE solver workspace
     _thread_sdirk_workspaces::Vector{Union{Nothing, SDIRKWorkspace{T}}}  # per-thread stiff ODE workspaces
+    _sde_workspace::Union{Nothing, SDEWorkspace{T}}  # cached SDE solver workspace
+    _thread_sde_workspaces::Vector{Union{Nothing, SDEWorkspace{T}}}  # per-thread SDE workspaces
     # Per-thread work buffers for threaded particle loops
     _thread_state_next::Vector{Vector{T}}
     _thread_output_buf::Vector{Vector{T}}
@@ -124,6 +126,7 @@ function dust_system_create(
     thread_workspaces = [Dict{Symbol, Array}() for _ in 1:nt]
     thread_dp5_workspaces = Union{Nothing, DP5Workspace{Float64}}[nothing for _ in 1:nt]
     thread_sdirk_workspaces = Union{Nothing, SDIRKWorkspace{Float64}}[nothing for _ in 1:nt]
+    thread_sde_workspaces = Union{Nothing, SDEWorkspace{Float64}}[nothing for _ in 1:nt]
 
     sys = DustSystem(
         gen, state, full_pars, time, dt, n_particles, n_state, n_output,
@@ -134,6 +137,8 @@ function dust_system_create(
         thread_dp5_workspaces,
         nothing,  # _sdirk_workspace: lazily initialized for stiff ODE models
         thread_sdirk_workspaces,
+        nothing,  # _sde_workspace: lazily initialized for SDE models
+        thread_sde_workspaces,
         thread_state_next, thread_output_buf, thread_workspaces, nt,
     )
 
