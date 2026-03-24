@@ -275,9 +275,11 @@ function dust_sensitivity_adjoint(
     times::AbstractVector{Float64},
     params_of_interest::Vector{Symbol},
     solver::Symbol=:dp5,
+    adjoint_solver::Union{Symbol,Nothing}=nothing,
     ode_control::DustODEControl=DustODEControl(),
     n_checkpoints::Int=50,
 )
+    adj_solver = something(adjoint_solver, solver)
     model = gen.model
     @assert model.is_continuous "Adjoint sensitivity requires a continuous (ODE) model"
 
@@ -289,8 +291,10 @@ function dust_sensitivity_adjoint(
     n_state = _odin_n_state(model, full_pars)
     n_params = length(params_of_interest)
     n_times = length(times)
+    n_aug = n_state + n_params  # augmented system: [λ; grad_p]
 
     # ── Step 1: Forward solve and store trajectory at data times ──
+    # Include t=0 so we have forward state for the [0, times[1]] interval
     u0 = zeros(Float64, n_state)
     _odin_initial!(model, u0, full_pars, Random.Xoshiro())
 
@@ -298,19 +302,29 @@ function dust_sensitivity_adjoint(
 
     t_start = 0.0
     t_end = last(times)
-    saveat = collect(times)
+    all_saveat = vcat(0.0, collect(times))
+    # Remove duplicate if times[1] == 0
+    unique!(all_saveat)
+    sort!(all_saveat)
+    n_all = length(all_saveat)
 
     if solver === :sdirk
         ws = SDIRKWorkspace(n_state, Float64)
-        _sdirk_solve_core!(rhs_fn!, u0, (t_start, t_end), full_pars, saveat,
+        _sdirk_solve_core!(rhs_fn!, u0, (t_start, t_end), full_pars, all_saveat,
                            ws, nothing, ode_control.atol, ode_control.rtol, ode_control.max_steps)
-        fwd_traj = copy(ws.result_matrix)
+        full_traj = copy(ws.result_matrix)
     else
         ws = DP5Workspace(n_state, Float64)
-        _dp5_solve_core!(rhs_fn!, u0, (t_start, t_end), full_pars, saveat,
+        _dp5_solve_core!(rhs_fn!, u0, (t_start, t_end), full_pars, all_saveat,
                          ws, nothing, ode_control.atol, ode_control.rtol, ode_control.max_steps)
-        fwd_traj = copy(ws.result_matrix)
+        full_traj = copy(ws.result_matrix)
     end
+
+    # Map data times to indices in full_traj
+    # all_saveat = [0.0, times[1], times[2], ...]
+    # If times[1] == 0, offset is 0; otherwise offset is 1
+    offset = all_saveat[1] < times[1] - eps(times[1]) ? 1 : 0
+    fwd_traj = @view full_traj[:, (1+offset):(n_times+offset)]
 
     # Evaluate total loss
     total_loss = 0.0
@@ -319,94 +333,152 @@ function dust_sensitivity_adjoint(
         total_loss += loss_fn(state_t, times[ti])
     end
 
-    # ── Step 2: Backward adjoint solve ──
-    # Adjoint state λ (n_state,) and parameter gradient accumulator
-    grad_p = zeros(Float64, n_params)
+    # ── Step 2: Backward adjoint solve using the same solver ──
+    # Augmented state z = [u_1...u_n_state, λ_1...λ_n_state, g_1...g_n_params]
+    # The forward state u is reconstructed alongside the adjoint to avoid
+    # interpolation error. In reversed time τ = t_hi - t:
+    #   du/dτ = -f(u, t_hi - τ)           (forward ODE, reversed)
+    #   dλ/dτ = +(∂f/∂y)^T λ              (adjoint)
+    #   dg/dτ = +(∂f/∂θ)^T λ              (param gradient accumulator)
 
-    # Work buffers
-    du_buf = zeros(Float64, n_state)
-    du_buf2 = zeros(Float64, n_state)
-    u_pert = zeros(Float64, n_state)
+    n_aug = 2 * n_state + n_params
+
+    # Pre-allocate VJP buffers (shared across all intervals)
+    vjp_state_buf = zeros(Float64, n_state)
+    vjp_params_buf = zeros(Float64, n_params)
+    du_fwd = zeros(Float64, n_state)
 
     eps_jac = 1e-8
 
-    # We solve backward through each interval [times[ti], times[ti-1]]
-    # with jumps in λ at each data time from ∂loss/∂u.
-
-    # Start with λ = 0 at t = T
+    # Start with λ = 0 at t = T, then add terminal condition
     lambda = zeros(Float64, n_state)
+    grad_p = zeros(Float64, n_params)
 
-    # Add terminal condition: ∂loss/∂u at the last time point
     _add_loss_gradient!(lambda, loss_fn, fwd_traj, n_times, times, n_state)
 
-    # Accumulate ∂L/∂p at terminal time
-    _accumulate_param_gradient!(grad_p, lambda, model, full_pars, fwd_traj, n_times,
-                                 times, params_of_interest, n_state, n_params, du_buf, du_buf2, eps_jac)
+    # Store the current interval's t_hi for the RHS closure
+    t_hi_ref = Ref(0.0)
+
+    function adjoint_aug_rhs!(dz, z, _pars, tau)
+        # τ runs from 0 to (t_hi - t_lo); real time t = t_hi - τ
+        t_real = t_hi_ref[] - tau
+
+        # Extract forward state and adjoint from augmented vector
+        u_cur = @view z[1:n_state]
+        lambda_cur = @view z[n_state+1:2*n_state]
+
+        # du/dτ = -f(u, t)
+        _odin_rhs!(model, du_fwd, u_cur, full_pars, t_real)
+        @inbounds for i in 1:n_state
+            dz[i] = -du_fwd[i]
+        end
+
+        # dλ/dτ = +(∂f/∂y)^T * λ
+        fill!(vjp_state_buf, 0.0)
+        compute_vjp_state!(model, vjp_state_buf, u_cur, lambda_cur,
+                          full_pars, t_real)
+        @inbounds for i in 1:n_state
+            dz[n_state + i] = vjp_state_buf[i]
+        end
+
+        # dg/dτ = +(∂f/∂θ)^T * λ
+        fill!(vjp_params_buf, 0.0)
+        compute_vjp_params!(model, vjp_params_buf, u_cur, lambda_cur,
+                           full_pars, t_real, params_of_interest)
+        @inbounds for jp in 1:n_params
+            dz[2*n_state + jp] = vjp_params_buf[jp]
+        end
+        return nothing
+    end
+
+    # Create workspace for the augmented backward system
+    if adj_solver === :sdirk
+        adj_ws = SDIRKWorkspace(n_aug, Float64)
+    else
+        adj_ws = DP5Workspace(n_aug, Float64)
+    end
+    z0 = zeros(Float64, n_aug)
+    adj_saveat = Float64[0.0]  # only need endpoint
 
     # Walk backward through time intervals
     for ti in n_times:-1:2
         t_hi = times[ti]
         t_lo = times[ti - 1]
+        t_hi_ref[] = t_hi
 
-        # Solve adjoint ODE: dλ/dt = -J_u^T * λ backward from t_hi to t_lo
-        # We reverse time: let τ = t_hi - t, so dλ/dτ = +J_u^T * λ
-        u_at_lo = @view fwd_traj[:, ti - 1]
-        u_at_hi = @view fwd_traj[:, ti]
+        # Initial condition: [u(t_hi), λ, 0 (param grad for this interval)]
+        @inbounds for i in 1:n_state
+            z0[i] = fwd_traj[i, ti]          # forward state at t_hi
+            z0[n_state + i] = lambda[i]       # adjoint
+        end
+        @inbounds for jp in 1:n_params
+            z0[2*n_state + jp] = 0.0          # param grad accumulator
+        end
 
-        # Simple integration of adjoint using a few Euler steps
-        # (more robust for moderate accuracy; keeps code simple)
-        n_adj_steps = max(20, Int(ceil((t_hi - t_lo) / 0.1)))
-        dt_adj = (t_hi - t_lo) / n_adj_steps
+        # Integrate from τ=0 to τ=(t_hi - t_lo)
+        tau_span = (0.0, t_hi - t_lo)
+        adj_saveat[1] = t_hi - t_lo
 
-        for step in 1:n_adj_steps
-            t_cur = t_hi - (step - 0.5) * dt_adj
-            # Interpolate u at t_cur (linear between stored points)
-            alpha = (t_cur - t_lo) / (t_hi - t_lo)
-            @inbounds for i in 1:n_state
-                u_pert[i] = u_at_lo[i] * (1.0 - alpha) + u_at_hi[i] * alpha
-            end
+        if adj_solver === :sdirk
+            _sdirk_solve_core!(adjoint_aug_rhs!, z0, tau_span, nothing, adj_saveat,
+                               adj_ws, nothing, ode_control.atol, ode_control.rtol,
+                               ode_control.max_steps)
+            z_end = @view adj_ws.result_matrix[:, 1]
+        else
+            _dp5_solve_core!(adjoint_aug_rhs!, z0, tau_span, nothing, adj_saveat,
+                             adj_ws, nothing, ode_control.atol, ode_control.rtol,
+                             ode_control.max_steps)
+            z_end = @view adj_ws.result_matrix[:, 1]
+        end
 
-            # Compute J_u^T * λ using finite differences
-            _odin_rhs!(model, du_buf, u_pert, full_pars, t_cur)
-            jt_lambda = zeros(Float64, n_state)
-            for j in 1:n_state
-                u_pert[j] += eps_jac
-                _odin_rhs!(model, du_buf2, u_pert, full_pars, t_cur)
-                u_pert[j] -= eps_jac
-                # (J_u)_{i,j} ≈ (du_buf2[i] - du_buf[i]) / eps_jac
-                # (J_u^T * λ)_j = Σ_i J_{i,j} * λ_i
-                for i in 1:n_state
-                    jt_lambda[j] += ((du_buf2[i] - du_buf[i]) / eps_jac) * lambda[i]
-                end
-            end
-
-            # Accumulate λ * ∂f/∂p at this integration point
-            for jp in 1:n_params
-                pname = params_of_interest[jp]
-                pv = Float64(full_pars[pname])
-                h_p = eps_jac * max(abs(pv), 1.0)
-                pars_plus = merge(full_pars, NamedTuple{(pname,)}((pv + h_p,)))
-                if model.has_interpolation
-                    pars_plus = _odin_setup_pars(model, pars_plus)
-                end
-                _odin_rhs!(model, du_buf2, u_pert, pars_plus, t_cur)
-                for i in 1:n_state
-                    grad_p[jp] += lambda[i] * (du_buf2[i] - du_buf[i]) / h_p * dt_adj
-                end
-            end
-
-            # Euler step for λ: λ += dt_adj * J_u^T * λ
-            @inbounds for i in 1:n_state
-                lambda[i] += dt_adj * jt_lambda[i]
-            end
+        # Extract λ and accumulate parameter gradient
+        @inbounds for i in 1:n_state
+            lambda[i] = z_end[n_state + i]
+        end
+        @inbounds for jp in 1:n_params
+            grad_p[jp] += z_end[2*n_state + jp]
         end
 
         # Jump condition at times[ti-1]: add ∂loss/∂u
         _add_loss_gradient!(lambda, loss_fn, fwd_traj, ti - 1, times, n_state)
+    end
 
-        # Accumulate ∂L/∂p at this time point (discrete contribution)
-        _accumulate_param_gradient!(grad_p, lambda, model, full_pars, fwd_traj, ti - 1,
-                                     times, params_of_interest, n_state, n_params, du_buf, du_buf2, eps_jac)
+    # ── Integrate from times[1] back to t=0 (if times[1] > 0) ──
+    if times[1] > eps(1.0)
+        t_hi = times[1]
+        t_lo = 0.0
+        t_hi_ref[] = t_hi
+
+        # Forward state at t_hi from fwd_traj, at t=0 from full_traj column 1
+        @inbounds for i in 1:n_state
+            z0[i] = fwd_traj[i, 1]           # u(times[1])
+            z0[n_state + i] = lambda[i]       # current λ
+        end
+        @inbounds for jp in 1:n_params
+            z0[2*n_state + jp] = 0.0
+        end
+
+        tau_span = (0.0, t_hi - t_lo)
+        adj_saveat[1] = t_hi - t_lo
+
+        if adj_solver === :sdirk
+            _sdirk_solve_core!(adjoint_aug_rhs!, z0, tau_span, nothing, adj_saveat,
+                               adj_ws, nothing, ode_control.atol, ode_control.rtol,
+                               ode_control.max_steps)
+            z_end = @view adj_ws.result_matrix[:, 1]
+        else
+            _dp5_solve_core!(adjoint_aug_rhs!, z0, tau_span, nothing, adj_saveat,
+                             adj_ws, nothing, ode_control.atol, ode_control.rtol,
+                             ode_control.max_steps)
+            z_end = @view adj_ws.result_matrix[:, 1]
+        end
+
+        @inbounds for i in 1:n_state
+            lambda[i] = z_end[n_state + i]
+        end
+        @inbounds for jp in 1:n_params
+            grad_p[jp] += z_end[2*n_state + jp]
+        end
     end
 
     # Handle initial condition dependence on parameters

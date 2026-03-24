@@ -5,6 +5,8 @@ using LinearAlgebra
 using Distributions
 using Interpolations
 using ForwardDiff
+using ReverseDiff
+using Symbolics
 using StatsBase
 using PoissonRandom
 import Catlab
@@ -20,6 +22,7 @@ include("dsl/stages.jl")
 include("dsl/arrays.jl")
 include("dsl/interpolation.jl")
 include("dsl/codegen.jl")
+include("dsl/symbolic.jl")
 include("dsl/macro.jl")
 include("dsl/odin_model.jl")
 
@@ -60,6 +63,7 @@ include("monty/turing_bridge.jl")
 include("monty/validation.jl")
 
 # ── Sensitivity analysis ──────────────────────────────────────
+include("dust/autodiff.jl")
 include("dust/sensitivity.jl")
 
 # ── GPU acceleration ─────────────────────────────────────────

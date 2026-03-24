@@ -1,0 +1,53 @@
+name = "Odin"
+uuid = "7d293b50-6e25-ed8f-90fb-ba27fefc0cc7"
+version = "0.1.0"
+authors = ["Simon Frost"]
+
+[deps]
+AbstractMCMC = "80f14c24-f653-4e6a-9b94-39d6b0f70001"
+AdvancedHMC = "0bf59076-c3b1-5ca4-86bd-e02cd72cde3d"
+Catlab = "134e5e36-593f-5add-ad60-77f754baafbe"
+DifferentialEquations = "0c46a032-eb83-5123-abaf-570d42b7fbaa"
+Distributions = "31c24e10-a181-5473-b8eb-7969acd0382f"
+DynamicPPL = "366bfd00-2699-11ea-058f-f148b4cae6d8"
+ForwardDiff = "f6369f11-7733-5829-9624-2563aa707210"
+Interpolations = "a98d9a8b-a2ab-59e6-89dd-64a1c18fca59"
+LinearAlgebra = "37e2e46d-f89d-539d-b4ee-838fcccc9c8e"
+LogDensityProblems = "6fdf6af0-433a-55f7-b3ed-c6c6e0b8df7c"
+MCMCChains = "c7f686f2-ff18-58e9-bc7b-31028e88f75d"
+PoissonRandom = "e409e4f3-bfea-5376-8464-e040bb5c01ab"
+Random = "9a3f8284-a2c9-5f02-9a11-845980a1fd5c"
+ReverseDiff = "37e2e3b7-166d-5795-8a7a-e32c996b4267"
+StatsBase = "2913bbd2-ae8a-5f71-8c99-4fb6c76f3a91"
+Symbolics = "0c5d862f-8b57-4792-8d23-62f2024744c7"
+
+[weakdeps]
+Metal = "dde4c033-4e86-420c-a63e-0dd931031962"
+
+[extensions]
+OdinMetalExt = "Metal"
+
+[compat]
+AbstractMCMC = "5"
+AdvancedHMC = "0.8"
+Catlab = "0.17"
+DifferentialEquations = "7"
+Distributions = "0.25"
+DynamicPPL = "0.40"
+ForwardDiff = "1"
+Interpolations = "0.16"
+LogDensityProblems = "2"
+MCMCChains = "7"
+Metal = "1"
+PoissonRandom = "0.4"
+ReverseDiff = "1.16.2"
+StatsBase = "0.34"
+Symbolics = "6.58.0"
+julia = "1.10"
+
+[extras]
+Statistics = "10745b16-79ce-11e8-11f9-7d13ad32a3b2"
+Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
+
+[targets]
+test = ["Statistics", "Test"]

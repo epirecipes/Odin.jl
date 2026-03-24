@@ -282,6 +282,13 @@ function generate_system(
     zero_every_body = has_zero_every ?
         _gen_zero_every_body(classification) : nothing
 
+    # Generate symbolic Jacobian if possible (continuous models only)
+    symbolic_jac_code = nothing
+    if is_continuous
+        symbolic_jac_code = _gen_symbolic_jacobian(phases, classification,
+                                                    state_var_set, model_name)
+    end
+
     code = quote
         mutable struct $model_name <: Odin.AbstractOdinModel
             n_state::Int
@@ -385,6 +392,12 @@ function generate_system(
                     $setup_pars_body
                 end
             end
+        else
+            nothing
+        end)
+
+        $(if symbolic_jac_code !== nothing
+            symbolic_jac_code
         else
             nothing
         end)

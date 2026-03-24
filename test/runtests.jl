@@ -16,6 +16,7 @@ using Test
     include("dsl/test_beta_blocks.jl")
     include("dsl/test_orov.jl")
     include("dsl/test_fitting_workflow.jl")
+    include("dsl/test_symbolic.jl")
     include("dust/test_system.jl")
     include("dust/test_simulate.jl")
     include("dust/test_sde.jl")
