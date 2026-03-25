@@ -5,3 +5,5 @@ vignettes/_output/
 BENCHMARK_RESULTS*.md
 benchmark/results*
 benchmark/*.csv
+Manifest.toml
+docs/Manifest.toml
