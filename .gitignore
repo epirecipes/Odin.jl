@@ -1,0 +1,7 @@
+docs/build/
+vignettes/_output/
+.DS_Store
+*.pdf
+BENCHMARK_RESULTS*.md
+benchmark/results*
+benchmark/*.csv
