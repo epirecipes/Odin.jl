@@ -1,0 +1,207 @@
+---
+title: "Multi-Pathogen Composition"
+subtitle: "odin2/dust2 Vignette 29 (R)"
+format:
+  html:
+    toc: true
+    code-fold: false
+  gfm: default
+---
+
+## Introduction
+
+This is the R companion to the Julia multi-pathogen vignette. We build a two-pathogen co-circulation model (influenza SIR + chlamydia SIS) using odin2's DSL, including cross-immunity effects.
+
+## Setup
+
+```{r}
+library(odin2)
+library(dust2)
+```
+
+## Individual Pathogen Models
+
+### Influenza (SIR)
+
+```{r}
+flu <- odin({
+  deriv(S) <- -beta * S * I / N
+  deriv(I) <- beta * S * I / N - gamma * I
+  deriv(R) <- gamma * I
+  initial(S) <- 900
+  initial(I) <- 10
+  initial(R) <- 0
+  beta <- parameter(0.4)
+  gamma <- parameter(0.15)
+  N <- parameter(1000)
+})
+
+sys <- dust_system_create(flu, list(beta = 0.4, gamma = 0.15, N = 1000),
+                          ode_control = dust_ode_control())
+dust_system_set_state_initial(sys)
+times <- seq(0, 200, by = 0.5)
+r_flu <- dust_system_simulate(sys, times)
+```
+
+### Chlamydia (SIS)
+
+```{r}
+chl <- odin({
+  deriv(S) <- -beta * S * I / N + gamma * I
+  deriv(I) <- beta * S * I / N - gamma * I
+  initial(S) <- 900
+  initial(I) <- 10
+  beta <- parameter(0.3)
+  gamma <- parameter(0.05)
+  N <- parameter(1000)
+})
+
+sys <- dust_system_create(chl, list(beta = 0.3, gamma = 0.05, N = 1000),
+                          ode_control = dust_ode_control())
+dust_system_set_state_initial(sys)
+r_chl <- dust_system_simulate(sys, times)
+```
+
+```{r}
+par(mfrow = c(1, 2))
+plot(times, r_flu[1, ], type = "l", col = "blue", lwd = 2,
+     ylim = c(0, 1000), xlab = "Time", ylab = "Population",
+     main = "Flu (SIR)")
+lines(times, r_flu[2, ], col = "red", lwd = 2)
+lines(times, r_flu[3, ], col = "green", lwd = 2)
+legend("right", c("S", "I", "R"), col = c("blue", "red", "green"), lwd = 2)
+
+plot(times, r_chl[1, ], type = "l", col = "blue", lwd = 2,
+     ylim = c(0, 1000), xlab = "Time", ylab = "Population",
+     main = "Chlamydia (SIS)")
+lines(times, r_chl[2, ], col = "red", lwd = 2)
+legend("right", c("S", "I"), col = c("blue", "red"), lwd = 2)
+par(mfrow = c(1, 1))
+```
+
+## Two-Pathogen Co-Circulation
+
+Joint state model tracking all combinations of flu × chlamydia infection status:
+
+```{r}
+two_pathogen <- odin({
+  # SS: susceptible to both
+  # IS: flu-infected, chl-susceptible
+  # SI: flu-susceptible, chl-infected
+  # II: co-infected
+  # RS: flu-recovered, chl-susceptible
+  # RI: flu-recovered, chl-infected
+
+  total_I_flu <- IS + II
+  total_I_chl <- SI + II + RI
+
+  foi_flu <- beta_flu * total_I_flu / N
+  foi_chl <- beta_chl * total_I_chl / N
+
+  deriv(SS) <- -foi_flu * SS - foi_chl * SS + gamma_chl * SI
+  deriv(IS) <- foi_flu * SS - gamma_flu * IS - foi_chl * IS + gamma_chl * II
+  deriv(SI) <- foi_chl * SS - foi_flu * SI - gamma_chl * SI
+  deriv(II) <- foi_flu * SI + foi_chl * IS - gamma_flu * II - gamma_chl * II
+  deriv(RS) <- gamma_flu * IS - foi_chl * RS + gamma_chl * RI
+  deriv(RI) <- gamma_flu * II + foi_chl * RS - gamma_chl * RI
+
+  initial(SS) <- 880
+  initial(IS) <- 5
+  initial(SI) <- 5
+  initial(II) <- 0
+  initial(RS) <- 0
+  initial(RI) <- 0
+
+  beta_flu <- parameter(0.4)
+  gamma_flu <- parameter(0.15)
+  beta_chl <- parameter(0.3)
+  gamma_chl <- parameter(0.05)
+  N <- parameter(1000)
+})
+
+pars <- list(beta_flu = 0.4, gamma_flu = 0.15,
+             beta_chl = 0.3, gamma_chl = 0.05, N = 1000)
+sys <- dust_system_create(two_pathogen, pars, ode_control = dust_ode_control())
+dust_system_set_state_initial(sys)
+times <- seq(0, 300, by = 0.5)
+result <- dust_system_simulate(sys, times)
+```
+
+### Marginal Prevalence
+
+```{r}
+flu_infected <- result[2, ] + result[4, ]
+chl_infected <- result[3, ] + result[4, ] + result[6, ]
+
+plot(times, flu_infected, type = "l", col = "red", lwd = 2,
+     xlab = "Time", ylab = "Infected",
+     main = "Co-Circulation: Marginal Prevalence",
+     ylim = c(0, max(flu_infected, chl_infected)))
+lines(times, chl_infected, col = "blue", lwd = 2)
+legend("topright", c("Flu (SIR)", "Chlamydia (SIS)"),
+       col = c("red", "blue"), lwd = 2)
+```
+
+## Cross-Immunity
+
+```{r}
+two_pathogen_xi <- odin({
+  total_I_flu <- IS + II
+  total_I_chl <- SI + II + RI
+
+  foi_flu <- beta_flu * total_I_flu / N
+  foi_chl <- beta_chl * total_I_chl / N
+
+  deriv(SS) <- -foi_flu * SS - foi_chl * SS + gamma_chl * SI
+  deriv(IS) <- foi_flu * SS - gamma_flu * IS - foi_chl * IS + gamma_chl * II
+  deriv(SI) <- foi_chl * SS - foi_flu * SI - gamma_chl * SI
+  deriv(II) <- foi_flu * SI + foi_chl * IS - gamma_flu * II - gamma_chl * II
+  deriv(RS) <- gamma_flu * IS - sigma * foi_chl * RS + gamma_chl * RI
+  deriv(RI) <- gamma_flu * II + sigma * foi_chl * RS - gamma_chl * RI
+
+  initial(SS) <- 880
+  initial(IS) <- 5
+  initial(SI) <- 5
+  initial(II) <- 0
+  initial(RS) <- 0
+  initial(RI) <- 0
+
+  beta_flu <- parameter(0.4)
+  gamma_flu <- parameter(0.15)
+  beta_chl <- parameter(0.3)
+  gamma_chl <- parameter(0.05)
+  sigma <- parameter(0.5)
+  N <- parameter(1000)
+})
+
+sigmas <- c(1.0, 0.5, 0.1)
+labels <- c("sigma=1 (none)", "sigma=0.5 (partial)", "sigma=0.1 (strong)")
+cols <- c("red", "orange", "green")
+
+plot(NULL, xlim = range(times), ylim = c(0, 200),
+     xlab = "Time", ylab = "Chlamydia infected",
+     main = "Chlamydia Prevalence under Cross-Immunity")
+
+for (k in seq_along(sigmas)) {
+  pars_xi <- list(beta_flu = 0.4, gamma_flu = 0.15,
+                  beta_chl = 0.3, gamma_chl = 0.05,
+                  sigma = sigmas[k], N = 1000)
+  sys_xi <- dust_system_create(two_pathogen_xi, pars_xi,
+                               ode_control = dust_ode_control())
+  dust_system_set_state_initial(sys_xi)
+  r_xi <- dust_system_simulate(sys_xi, times)
+  chl_i <- r_xi[3, ] + r_xi[4, ] + r_xi[6, ]
+  lines(times, chl_i, col = cols[k], lwd = 2)
+}
+legend("topright", labels, col = cols, lwd = 2)
+```
+
+## Summary
+
+| Feature | Julia (Odin.jl) | R (odin2) |
+|---------|-----------------|-----------|
+| Independent pathogens | `compose(flu, chl)` | Separate models |
+| Shared-population model | Manual `@odin` (joint states) | Manual DSL (joint states) |
+| Cross-immunity | Parameter σ in joint model | Parameter σ in joint model |
+
+For pathogens sharing a host population, both Julia and R require explicit construction of the joint state space. The categorical framework helps structure thinking even when `compose()` cannot directly produce the joint model.

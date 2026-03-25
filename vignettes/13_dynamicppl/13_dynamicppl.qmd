@@ -1,0 +1,253 @@
+---
+title: "DynamicPPL Integration"
+subtitle: "Odin.jl Vignette 13"
+format:
+  html:
+    toc: true
+    code-fold: false
+engine: julia
+---
+
+## Introduction
+
+Odin.jl integrates with the [DynamicPPL.jl](https://github.com/TuringLang/DynamicPPL.jl) probabilistic programming framework, enabling richer prior specifications and compatibility with the [Turing.jl](https://turing.ml) ecosystem. This opens up:
+
+- **Hierarchical priors** — parameter-to-parameter dependencies that go beyond independent priors.
+- **MCMCChains diagnostics** — ESS, R̂, and trace plots via a single `to_chains()` call.
+- **LogDensityProblems interface** — interoperability with AdvancedHMC.jl and other sampling packages.
+
+We build on the inference workflow from [Vignette 06](../06_inference/06_inference.qmd), fitting an SIR model to synthetic incidence data.
+
+## Setup
+
+```{julia}
+using Odin
+using DynamicPPL
+using Distributions
+using MCMCChains
+using Plots
+using Statistics
+using LinearAlgebra: diagm
+using Random
+```
+
+### Define the Model
+
+We use a deterministic ODE-based SIR, with the infected compartment named `Inf2` to avoid shadowing Julia's `I` (the `UniformScaling` identity).
+
+```{julia}
+sir = @odin begin
+    deriv(S) = -beta * S * Inf2 / N
+    deriv(Inf2) = beta * S * Inf2 / N - gamma * Inf2
+    deriv(R) = gamma * Inf2
+    initial(S) = N - I0
+    initial(Inf2) = I0
+    initial(R) = 0
+
+    cases = data()
+    cases ~ Poisson(Inf2 + 1e-6)
+
+    beta = parameter(0.5)
+    gamma = parameter(0.1)
+    I0 = parameter(10)
+    N = parameter(1000)
+end
+```
+
+### Generate Synthetic Data
+
+We simulate the ODE to get true infected counts, then generate noisy Poisson observations.
+
+```{julia}
+true_pars = (beta=0.5, gamma=0.1, I0=10.0, N=1000.0)
+times = collect(0.0:1.0:50.0)
+
+result = dust_system_simulate(sir, true_pars; times=times, seed=1)
+true_infected = result[2, 1, 2:end]  # Inf2 compartment
+
+Random.seed!(42)
+observed = [rand(Poisson(max(x, 1e-6))) for x in true_infected]
+
+data = dust_filter_data(
+    [(time=Float64(t), cases=Float64(c)) for (t, c) in zip(times[2:end], observed)]
+)
+
+plot(times[2:end], observed, seriestype=:scatter,
+     xlabel="Time", ylabel="Cases", title="Synthetic Data",
+     label="Observed", markersize=3)
+```
+
+### Deterministic Likelihood
+
+```{julia}
+uf = dust_unfilter_create(sir, data; time_start=0.0)
+pk = monty_packer([:beta, :gamma]; fixed=(I0=10.0, N=1000.0))
+likelihood = dust_likelihood_monty(uf, pk)
+
+ll_true = likelihood([0.5, 0.1])
+println("Log-likelihood at true parameters: ", round(ll_true, digits=2))
+```
+
+## Basic Priors with `dppl_prior`
+
+The `dppl_prior` function converts a DynamicPPL `@model` into a `MontyModel` that slots directly into Odin's inference pipeline.
+
+### DynamicPPL approach
+
+```{julia}
+DynamicPPL.@model function sir_prior()
+    beta ~ Gamma(2.0, 0.25)
+    gamma ~ Gamma(2.0, 0.05)
+end
+
+prior_dppl = dppl_prior(sir_prior())
+```
+
+### Equivalent `@monty_prior` approach
+
+```{julia}
+prior_monty = @monty_prior begin
+    beta ~ Gamma(2.0, 0.25)
+    gamma ~ Gamma(2.0, 0.05)
+end
+```
+
+Both produce a `MontyModel` with the same density. Let's verify:
+
+```{julia}
+θ_test = [0.4, 0.08]
+println("DynamicPPL prior density: ", round(prior_dppl(θ_test), digits=4))
+println("@monty_prior density:    ", round(prior_monty(θ_test), digits=4))
+```
+
+## Hierarchical Priors
+
+DynamicPPL's real power is expressing parameter-to-parameter dependencies. Here we define R₀ = β/γ as a latent quantity and derive β from it:
+
+```{julia}
+DynamicPPL.@model function hierarchical_prior()
+    log_R0 ~ Normal(log(2.5), 0.5)
+    gamma ~ Gamma(2.0, 0.05)
+    beta ~ LogNormal(log_R0 + log(gamma), 0.1)
+end
+
+prior_hier = dppl_prior(hierarchical_prior())
+println("Hierarchical prior parameters: ", prior_hier.parameters)
+```
+
+Note that `log_R0` becomes a sampled parameter alongside `gamma` and `beta`. The likelihood packer only maps `beta` and `gamma` to the model, so we need to adjust the packer to include `log_R0`:
+
+```{julia}
+pk_hier = monty_packer([:log_R0, :gamma, :beta]; fixed=(I0=10.0, N=1000.0))
+likelihood_hier = dust_likelihood_monty(uf, pk_hier)
+posterior_hier = likelihood_hier + prior_hier
+```
+
+This is a key advantage over `@monty_prior`, which only supports independent priors. With DynamicPPL, the joint prior density correctly accounts for the dependency structure.
+
+## Full Model with `to_turing_model`
+
+For simpler cases (independent priors), `to_turing_model` wraps the dust likelihood and priors into a single DynamicPPL model in one step:
+
+```{julia}
+dm = to_turing_model(uf, pk;
+    beta = Gamma(2.0, 0.25),
+    gamma = Gamma(2.0, 0.05),
+)
+```
+
+Then sample with Odin's native samplers via `turing_sample`:
+
+```{julia}
+vcv = diagm([0.005, 0.001])
+sampler = monty_sampler_adaptive(vcv)
+
+samples_dppl = turing_sample(dm, sampler, 3000;
+    initial=reshape([0.4, 0.08], 2, 1), n_chains=1, n_burnin=500, seed=123)
+
+println("Parameter names: ", samples_dppl.parameter_names)
+println("Samples shape: ", size(samples_dppl.pars))
+```
+
+## LogDensityProblems Interface
+
+Every `MontyModel` satisfies the [LogDensityProblems.jl](https://github.com/tpapp/LogDensityProblems.jl) interface, making it compatible with AdvancedHMC.jl and other packages in the ecosystem.
+
+```{julia}
+import LogDensityProblems
+
+posterior_monty = likelihood + prior_dppl
+ld = as_logdensity(posterior_monty)
+
+println("Dimension:    ", LogDensityProblems.dimension(ld))
+println("Capabilities: ", LogDensityProblems.capabilities(typeof(ld)))
+println("Log-density:  ", round(LogDensityProblems.logdensity(ld, [0.5, 0.1]), digits=2))
+```
+
+Because the deterministic likelihood supports automatic differentiation, the wrapper exposes gradients:
+
+```{julia}
+ld_val, ld_grad = LogDensityProblems.logdensity_and_gradient(ld, [0.5, 0.1])
+println("Log-density: ", round(ld_val, digits=2))
+println("Gradient:    ", round.(ld_grad, digits=4))
+```
+
+## MCMCChains Output
+
+The `to_chains` function converts Odin's `MontySamples` into an `MCMCChains.Chains` object for rich diagnostics:
+
+```{julia}
+chains = to_chains(samples_dppl)
+display(chains)
+```
+
+MCMCChains gives us ESS, R̂, and quantile summaries automatically. For multi-chain runs these diagnostics are especially informative.
+
+## Comparison
+
+Let's verify that the DynamicPPL prior and `@monty_prior` produce identical posteriors.
+
+### `@monty_prior` posterior
+
+```{julia}
+posterior_monty_prior = likelihood + prior_monty
+
+samples_monty = monty_sample(posterior_monty_prior, sampler, 3000;
+    initial=reshape([0.4, 0.08], 2, 1), n_chains=1, n_burnin=500, seed=456)
+```
+
+### Compare posteriors
+
+```{julia}
+beta_dppl = samples_dppl.pars[1, :, 1]
+gamma_dppl = samples_dppl.pars[2, :, 1]
+
+beta_monty = samples_monty.pars[1, :, 1]
+gamma_monty = samples_monty.pars[2, :, 1]
+
+println("DynamicPPL — β: ", round(mean(beta_dppl), digits=3),
+        " ± ", round(std(beta_dppl), digits=3))
+println("@monty     — β: ", round(mean(beta_monty), digits=3),
+        " ± ", round(std(beta_monty), digits=3))
+println()
+println("DynamicPPL — γ: ", round(mean(gamma_dppl), digits=3),
+        " ± ", round(std(gamma_dppl), digits=3))
+println("@monty     — γ: ", round(mean(gamma_monty), digits=3),
+        " ± ", round(std(gamma_monty), digits=3))
+```
+
+```{julia}
+p1 = histogram(beta_dppl, bins=30, alpha=0.5, label="DynamicPPL",
+               xlabel="β", ylabel="Density", title="Posterior: β", normalize=true)
+histogram!(p1, beta_monty, bins=30, alpha=0.5, label="@monty_prior", normalize=true)
+vline!(p1, [0.5], label="True", color=:red, linewidth=2)
+
+p2 = histogram(gamma_dppl, bins=30, alpha=0.5, label="DynamicPPL",
+               xlabel="γ", ylabel="Density", title="Posterior: γ", normalize=true)
+histogram!(p2, gamma_monty, bins=30, alpha=0.5, label="@monty_prior", normalize=true)
+vline!(p2, [0.1], label="True", color=:red, linewidth=2)
+
+plot(p1, p2, layout=(1, 2), size=(800, 300))
+```
+
+The posteriors overlap closely, confirming that both prior specifications produce equivalent results. The DynamicPPL route becomes essential when you need hierarchical or correlated prior structures that `@monty_prior` cannot express.

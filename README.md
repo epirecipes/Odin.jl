@@ -469,29 +469,47 @@ Posterior samples from Julia and R are statistically indistinguishable:
 
 ## Vignettes
 
-Progressive tutorials are in `vignettes/` as [Quarto](https://quarto.org/) documents. Each has a matching R version in its `R/` subdirectory.
+Progressive tutorials are in `vignettes/` as [Quarto](https://quarto.org/) documents with pre-rendered Markdown. Each has a matching R version in its `R/` subdirectory.
 
 | # | Title | Description |
 |--:|-------|-------------|
-| 01 | [Basic ODE Model: SIR](vignettes/01_basic_ode/01_basic_ode.qmd) | Introduction to `deriv()` for continuous-time ODE models |
-| 02 | [Stochastic Discrete-Time SIR](vignettes/02_stochastic/02_stochastic.qmd) | Discrete-time models with `update()` and `Binomial` transitions |
-| 03 | [Incidence Tracking with `zero_every`](vignettes/03_observations/03_observations.qmd) | Periodic-reset counters for fitting to case count data |
-| 04 | [Age-Structured SIR with Arrays](vignettes/04_arrays/04_arrays.qmd) | Multi-dimensional state via `dim()`, contact matrices |
-| 05 | [Particle Filter and Likelihood](vignettes/05_particle_filter/05_particle_filter.qmd) | Bootstrap particle filter with systematic resampling |
-| 06 | [Bayesian Inference with MCMC](vignettes/06_inference/06_inference.qmd) | Complete inference pipeline: filter → prior → MCMC sampling |
-| 07 | [Compositional Model Building](vignettes/07_categorical/07_categorical.qmd) | Petri net composition, stratification, and lowering |
-| 08 | [Time-Varying Parameters](vignettes/08_time_varying/08_time_varying.qmd) | Step, linear, and spline interpolation for interventions |
-| 09 | [Advanced SEIR-V Model](vignettes/09_advanced/09_advanced.qmd) | SEIR with vaccination, waning immunity, and time-varying rates |
-| 10 | [Projections](vignettes/10_projections/10_projections.qmd) | Counterfactual scenarios from posterior samples |
-| 11 | [Delay Model](vignettes/11_delay_model/11_delay_model.qmd) | Erlang-distributed delays and gamma-distributed compartments |
-| 12 | [Reactive Policy](vignettes/12_reactive_policy/12_reactive_policy.qmd) | Threshold-based interventions with feedback control |
-| 13 | [DynamicPPL Integration](vignettes/13_dynamicppl/13_dynamicppl.qmd) | Using Turing.jl/DynamicPPL for priors and MCMC |
-| 14 | [SEIR with Delay & Vaccination](vignettes/14_delay_vaccination/14_delay_vaccination.qmd) | Shift-register delays, age structure, spillover FOI |
-| 15 | [Vector-Borne Disease Dynamics](vignettes/15_vector_borne/15_vector_borne.qmd) | Ross-Macdonald malaria with seasonal rainfall forcing |
-| 16 | [Multi-Stream Outbreak Inference](vignettes/16_multi_stream/16_multi_stream.qmd) | Fitting to cases + deaths simultaneously |
-| 17 | [Mpox SEIR](vignettes/17_mpox_seir/17_mpox_seir.qmd) | Age-structured stochastic with vaccination strata |
-| 18 | [Malaria Simple](vignettes/18_malaria_simple/18_malaria_simple.qmd) | Ross-Macdonald with seasonal forcing and ITN |
-| 19 | [SARS-CoV-2 Multi-Region](vignettes/19_sarscov2_multiregion/19_sarscov2_multiregion.qmd) | Coupled 3-region ODE with time-varying Rt |
+| 01 | [Basic ODE Model: SIR](vignettes/01_basic_ode/01_basic_ode.md) | Introduction to `deriv()` for continuous-time ODE models |
+| 02 | [Stochastic Discrete-Time SIR](vignettes/02_stochastic/02_stochastic.md) | Discrete-time models with `update()` and `Binomial` transitions |
+| 03 | [Incidence Tracking with `zero_every`](vignettes/03_observations/03_observations.md) | Periodic-reset counters for fitting to case count data |
+| 04 | [Age-Structured SIR with Arrays](vignettes/04_arrays/04_arrays.md) | Multi-dimensional state via `dim()`, contact matrices |
+| 05 | [Particle Filter and Likelihood](vignettes/05_particle_filter/05_particle_filter.md) | Bootstrap particle filter with systematic resampling |
+| 06 | [Bayesian Inference with MCMC](vignettes/06_inference/06_inference.md) | Complete inference pipeline: filter → prior → MCMC sampling |
+| 07 | [Compositional Model Building](vignettes/07_categorical/07_categorical.md) | Petri net composition, stratification, and lowering |
+| 08 | [Time-Varying Parameters](vignettes/08_time_varying/08_time_varying.md) | Step, linear, and spline interpolation for interventions |
+| 09 | [Advanced SEIR-V Model](vignettes/09_advanced/09_advanced.md) | SEIR with vaccination, waning immunity, and time-varying rates |
+| 10 | [Projections](vignettes/10_projections/10_projections.md) | Counterfactual scenarios from posterior samples |
+| 11 | [Delay Model](vignettes/11_delay_model/11_delay_model.md) | Erlang-distributed delays and gamma-distributed compartments |
+| 12 | [Reactive Policy](vignettes/12_reactive_policy/12_reactive_policy.md) | Threshold-based interventions with feedback control |
+| 13 | [DynamicPPL Integration](vignettes/13_dynamicppl/13_dynamicppl.md) | Using Turing.jl/DynamicPPL for priors and MCMC |
+| 14 | [SEIR with Delay & Vaccination](vignettes/14_delay_vaccination/14_delay_vaccination.md) | Shift-register delays, age structure, spillover FOI |
+| 15 | [Vector-Borne Disease Dynamics](vignettes/15_vector_borne/15_vector_borne.md) | Ross-Macdonald malaria with seasonal rainfall forcing |
+| 16 | [Multi-Stream Outbreak Inference](vignettes/16_multi_stream/16_multi_stream.md) | Fitting to cases + deaths simultaneously |
+| 17 | [Mpox SEIR](vignettes/17_mpox_seir/17_mpox_seir.md) | Age-structured stochastic with vaccination strata |
+| 18 | [Malaria Simple](vignettes/18_malaria_simple/18_malaria_simple.md) | Ross-Macdonald with seasonal forcing and ITN |
+| 19 | [SARS-CoV-2 Multi-Region](vignettes/19_sarscov2_multiregion/19_sarscov2_multiregion.md) | Coupled 3-region ODE with time-varying Rt |
+| 20 | [Yellow Fever SEIRV](vignettes/20_yellowfever/20_yellowfever.md) | Age-structured model with spillover and vaccination |
+| 21 | [SIS with School Closure](vignettes/21_school_closure/21_school_closure.md) | Threshold-based school closure interventions |
+| 22 | [Beta Blocks](vignettes/22_beta_blocks/22_beta_blocks.md) | Piecewise-constant transmission rate estimation |
+| 23 | [Oropouche (OROV)](vignettes/23_orov/23_orov.md) | Vector-borne model with relapse dynamics |
+| 24 | [Yellow Fever with Erlang Delays](vignettes/24_yf_delay/24_yf_delay.md) | SEIRV with Erlang delay compartments |
+| 25 | [Yellow Fever 2-Track Vaccination](vignettes/25_yf_vtrack/25_yf_vtrack.md) | SEIR with dual vaccination tracking |
+| 26 | [Complete Fitting Workflow](vignettes/26_fitting_workflow/26_fitting_workflow.md) | End-to-end inference pipeline with diagnostics |
+| 27 | [Spatial Composition](vignettes/27_spatial_composition/27_spatial_composition.md) | Composing models across spatial patches |
+| 28 | [Age Stratification](vignettes/28_stratification/28_stratification.md) | Stratifying models by age groups |
+| 29 | [Multi-Pathogen Composition](vignettes/29_multi_pathogen/29_multi_pathogen.md) | Composing models for co-circulating pathogens |
+| 30 | [Stiff ODE Models](vignettes/30_stiff_ode/30_stiff_ode.md) | L-stable SDIRK4 solver for stiff systems |
+| 31 | [GPU-Accelerated Particle Filter](vignettes/31_gpu_filter/31_gpu_filter.md) | GPU parallelisation for bootstrap particle filters |
+| 32 | [Advanced MCMC Samplers](vignettes/32_advanced_samplers/32_advanced_samplers.md) | Slice, MALA, and Gibbs sampling |
+| 33 | [Sensitivity Analysis](vignettes/33_sensitivity/33_sensitivity.md) | Adjoint and forward sensitivity for ODE models |
+| 34 | [Event Handling](vignettes/34_events/34_events.md) | Discontinuities and callbacks for interventions |
+| 35 | [Stochastic Differential Equations](vignettes/35_sde/35_sde.md) | SDE models with Euler-Maruyama integration |
+| 36 | [Model Selection](vignettes/36_model_selection/36_model_selection.md) | Model comparison via WAIC, LOO-CV, and Bayes factors |
+| 37 | [Model Validation](vignettes/37_model_validation/37_model_validation.md) | Posterior predictive checks, residuals, and calibration |
 
 ---
 

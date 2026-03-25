@@ -1,0 +1,303 @@
+---
+title: "Counterfactual Projections from Posterior"
+subtitle: "odin2/dust2/monty Vignette 10 (R)"
+format:
+  html:
+    toc: true
+    code-fold: false
+  gfm: default
+---
+
+## Introduction
+
+R companion to the Julia vignette: fitting a stochastic SIR model and running
+counterfactual projections from the posterior distribution.
+
+```{r}
+library(odin2)
+library(dust2)
+library(monty)
+```
+
+## Model Definition
+
+```{r}
+sir <- odin({
+  update(S) <- S - n_SI
+  update(I) <- I + n_SI - n_IR
+  update(R) <- R + n_IR
+  initial(S) <- N - I0
+  initial(I) <- I0
+  initial(R) <- 0
+  initial(incidence, zero_every = 1) <- 0
+  update(incidence) <- incidence + n_SI
+
+  p_SI <- 1 - exp(-beta * I / N * dt)
+  p_IR <- 1 - exp(-gamma * dt)
+  n_SI <- Binomial(S, p_SI)
+  n_IR <- Binomial(I, p_IR)
+
+  cases <- data()
+  cases ~ Poisson(incidence + 1e-6)
+
+  beta <- parameter(0.5)
+  gamma <- parameter(0.1)
+  I0 <- parameter(10)
+  N <- parameter(1000)
+})
+```
+
+## Generate Synthetic Data
+
+```{r}
+true_pars <- list(beta = 0.5, gamma = 0.1, I0 = 10, N = 1000)
+times <- seq(0, 100, by = 1)
+
+sys <- dust_system_create(sir, true_pars, dt = 1, seed = 42)
+dust_system_set_state_initial(sys)
+obs_result <- dust_system_simulate(sys, times)
+observed <- round(obs_result[4, -1])
+
+plot(1:100, observed, pch = 16, cex = 0.7, col = rgb(0, 0, 0, 0.6),
+     xlab = "Day", ylab = "Observed cases",
+     main = "Synthetic epidemic data")
+```
+
+## Set Up Inference
+
+```{r}
+data <- data.frame(time = times[-1], cases = observed)
+
+filter <- dust_filter_create(sir, time_start = 0, data = data,
+                             n_particles = 200, seed = 42)
+
+packer <- monty_packer(c("beta", "gamma"),
+                       fixed = list(I0 = 10, N = 1000))
+
+likelihood <- dust_likelihood_monty(filter, packer)
+
+prior <- monty_dsl({
+  beta ~ Gamma(shape = 2, rate = 4)
+  gamma ~ Gamma(shape = 2, rate = 20)
+})
+
+posterior <- likelihood + prior
+```
+
+## Run MCMC
+
+```{r}
+vcv <- matrix(c(0.0004, 0, 0, 0.00025), 2, 2)
+sampler <- monty_sampler_random_walk(vcv)
+
+initial <- matrix(c(0.5, 0.1), nrow = 2, ncol = 4)
+samples <- monty_sample(posterior, sampler, 500, n_chains = 4,
+                        initial = initial, burnin = 200)
+```
+
+## Examine Posterior
+
+```{r}
+posterior_beta <- as.vector(samples$pars[1, , ])
+posterior_gamma <- as.vector(samples$pars[2, , ])
+
+cat("β: mean =", round(mean(posterior_beta), 3),
+    ", 95% CI = [", round(quantile(posterior_beta, 0.025), 3),
+    ",", round(quantile(posterior_beta, 0.975), 3), "]\n")
+cat("γ: mean =", round(mean(posterior_gamma), 3),
+    ", 95% CI = [", round(quantile(posterior_gamma, 0.025), 3),
+    ",", round(quantile(posterior_gamma, 0.975), 3), "]\n")
+cat("True: β = 0.5, γ = 0.1\n")
+
+par(mfrow = c(1, 2))
+hist(posterior_beta, breaks = 30, main = "Posterior: β",
+     xlab = "β", probability = TRUE)
+abline(v = 0.5, col = "red", lwd = 2)
+hist(posterior_gamma, breaks = 30, main = "Posterior: γ",
+     xlab = "γ", probability = TRUE)
+abline(v = 0.1, col = "red", lwd = 2)
+```
+
+## Define Projection Model
+
+A separate model with time-varying β via `interpolate()` for implementing
+interventions:
+
+```{r}
+sir_proj <- odin({
+  update(S) <- S - n_SI
+  update(I) <- I + n_SI - n_IR
+  update(R) <- R + n_IR
+  initial(S) <- N - I0
+  initial(I) <- I0
+  initial(R) <- 0
+  initial(incidence, zero_every = 1) <- 0
+  update(incidence) <- incidence + n_SI
+
+  beta <- interpolate(beta_time, beta_value, "constant")
+  p_SI <- 1 - exp(-beta * I / N * dt)
+  p_IR <- 1 - exp(-gamma * dt)
+  n_SI <- Binomial(S, p_SI)
+  n_IR <- Binomial(I, p_IR)
+
+  beta_time[] <- parameter()
+  beta_value[] <- parameter()
+  dim(beta_time, beta_value) <- parameter(rank = 1)
+  gamma <- parameter(0.1)
+  I0 <- parameter(10)
+  N <- parameter(1000)
+})
+```
+
+## Run Counterfactual Projections
+
+Three scenarios that diverge at day 50:
+
+```{r}
+n_proj <- 100
+proj_times <- seq(0, 100, by = 1)
+n_times <- length(proj_times)
+
+set.seed(42)
+idx <- sample(length(posterior_beta), n_proj, replace = TRUE)
+
+scenarios <- list(
+  list(name = "Baseline", col = "blue",
+       schedule = function(b) list(t = c(0, 200), v = c(b, b))),
+  list(name = "Mild (-30%)", col = "orange",
+       schedule = function(b) list(t = c(0, 50), v = c(b, b * 0.7))),
+  list(name = "Strong (-60%)", col = "green3",
+       schedule = function(b) list(t = c(0, 50), v = c(b, b * 0.4)))
+)
+
+results <- list()
+
+for (sc in scenarios) {
+  I_traj <- matrix(0, n_proj, n_times)
+  inc_traj <- matrix(0, n_proj, n_times)
+
+  for (j in seq_len(n_proj)) {
+    beta_sch <- sc$schedule(posterior_beta[idx[j]])
+    pars <- list(
+      beta_time = beta_sch$t,
+      beta_value = beta_sch$v,
+      gamma = posterior_gamma[idx[j]],
+      I0 = 10, N = 1000
+    )
+
+    sys <- dust_system_create(sir_proj, pars, dt = 1, seed = j)
+    dust_system_set_state_initial(sys)
+    r <- dust_system_simulate(sys, proj_times)
+
+    I_traj[j, ] <- r[2, ]
+    inc_traj[j, ] <- r[4, ]
+  }
+
+  results[[sc$name]] <- list(I = I_traj, inc = inc_traj)
+}
+```
+
+## Plot Infection Trajectories
+
+```{r}
+par(mfrow = c(1, 1))
+ymax <- max(sapply(results, function(x) quantile(x$I, 0.99)))
+plot(NULL, xlim = c(0, 100), ylim = c(0, ymax),
+     xlab = "Day", ylab = "Infected (I)",
+     main = "Counterfactual Projections: Infected")
+
+for (k in seq_along(scenarios)) {
+  sc <- scenarios[[k]]
+  I_traj <- results[[sc$name]]$I
+  med <- apply(I_traj, 2, median)
+  lo <- apply(I_traj, 2, quantile, 0.025)
+  hi <- apply(I_traj, 2, quantile, 0.975)
+
+  polygon(c(proj_times, rev(proj_times)), c(lo, rev(hi)),
+          col = adjustcolor(sc$col, 0.2), border = NA)
+  lines(proj_times, med, col = sc$col, lwd = 2)
+}
+
+abline(v = 50, lty = 2, col = "gray")
+legend("topright", legend = sapply(scenarios, "[[", "name"),
+       col = sapply(scenarios, "[[", "col"), lwd = 2)
+```
+
+## Plot Daily Incidence
+
+```{r}
+ymax <- max(sapply(results, function(x) quantile(x$inc, 0.99)))
+plot(NULL, xlim = c(0, 100), ylim = c(0, ymax),
+     xlab = "Day", ylab = "Daily incidence",
+     main = "Counterfactual Projections: Daily Incidence")
+
+for (k in seq_along(scenarios)) {
+  sc <- scenarios[[k]]
+  inc_traj <- results[[sc$name]]$inc
+  med <- apply(inc_traj, 2, median)
+  lo <- apply(inc_traj, 2, quantile, 0.025)
+  hi <- apply(inc_traj, 2, quantile, 0.975)
+
+  polygon(c(proj_times, rev(proj_times)), c(lo, rev(hi)),
+          col = adjustcolor(sc$col, 0.2), border = NA)
+  lines(proj_times, med, col = sc$col, lwd = 2)
+}
+
+points(1:100, observed, pch = 16, cex = 0.5, col = rgb(0, 0, 0, 0.4))
+abline(v = 50, lty = 2, col = "gray")
+legend("topright",
+       legend = c(sapply(scenarios, "[[", "name"), "Observed"),
+       col = c(sapply(scenarios, "[[", "col"), "black"),
+       lwd = c(2, 2, 2, NA), pch = c(NA, NA, NA, 16))
+```
+
+## Compare Cumulative Cases
+
+```{r}
+cum_max <- 0
+for (sc in scenarios) {
+  inc <- results[[sc$name]]$inc[, -1]
+  cum_max <- max(cum_max, max(t(apply(inc, 1, cumsum))))
+}
+
+plot(NULL, xlim = c(0, 100), ylim = c(0, cum_max),
+     xlab = "Day", ylab = "Cumulative cases",
+     main = "Cumulative Incidence by Scenario")
+
+for (k in seq_along(scenarios)) {
+  sc <- scenarios[[k]]
+  inc_traj <- results[[sc$name]]$inc[, -1]
+  cum_traj <- t(apply(inc_traj, 1, cumsum))
+
+  days <- 1:100
+  med <- apply(cum_traj, 2, median)
+  lo <- apply(cum_traj, 2, quantile, 0.025)
+  hi <- apply(cum_traj, 2, quantile, 0.975)
+
+  polygon(c(days, rev(days)), c(lo, rev(hi)),
+          col = adjustcolor(sc$col, 0.2), border = NA)
+  lines(days, med, col = sc$col, lwd = 2)
+}
+
+abline(v = 50, lty = 2, col = "gray")
+legend("topleft", legend = sapply(scenarios, "[[", "name"),
+       col = sapply(scenarios, "[[", "col"), lwd = 2)
+```
+
+```{r}
+cat("\nCumulative cases at day 100 (median [95% CI]):\n")
+for (sc in scenarios) {
+  inc_traj <- results[[sc$name]]$inc[, -1]
+  total <- rowSums(inc_traj)
+  cat(sprintf("  %s: %d [%d, %d]\n", sc$name,
+              round(median(total)), round(quantile(total, 0.025)),
+              round(quantile(total, 0.975))))
+}
+```
+
+## Summary
+
+Both Julia and R follow the same workflow for counterfactual projections:
+fit with MCMC → sample posterior → simulate scenarios → compare with credible
+intervals. The same pattern extends to more complex models and richer
+intervention designs.

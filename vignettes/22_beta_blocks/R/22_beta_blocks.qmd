@@ -1,0 +1,286 @@
+---
+title: "Piecewise-Constant Transmission Rate (Beta Blocks)"
+subtitle: "odin2/dust2/monty Vignette 22 (R)"
+format:
+  html:
+    toc: true
+    code-fold: false
+  gfm: default
+---
+
+## Introduction
+
+Many infectious disease outbreaks exhibit time-varying transmission due to
+seasonality, interventions, or behavioural changes. A common approach is to
+model the transmission rate β as a **piecewise-constant** (step) function
+over predefined time intervals — "beta blocks".
+
+This vignette demonstrates fitting a deterministic discrete-time SIR model
+with piecewise-constant β to synthetic Poisson-observed case data using
+odin2/dust2/monty.
+
+```{r}
+library(odin2)
+library(dust2)
+library(monty)
+set.seed(42)
+```
+
+## Model Definition
+
+The model is **deterministic** — `new_inf = S * p_SI` (continuous, not
+Binomial). This makes the likelihood exact with a single particle.
+
+```{r}
+sir_beta_blocks <- odin({
+  # State updates (deterministic)
+  update(S) <- S - new_inf
+  update(I) <- I + new_inf - new_rec
+  initial(S) <- N - I0
+  initial(I) <- I0
+
+  # Incidence resets each integer time step
+  initial(incidence, zero_every = 1) <- 0
+  update(incidence) <- new_inf
+
+  # Deterministic transition probabilities
+  p_SI <- 1 - exp(-beta_t * I / N * dt)
+  p_IR <- 1 - exp(-gamma * dt)
+  new_inf <- S * p_SI
+  new_rec <- I * p_IR
+
+  # Piecewise-constant transmission rate
+  beta_times[] <- parameter()
+  beta_values[] <- parameter()
+  dim(beta_times, beta_values) <- parameter(rank = 1)
+  beta_t <- interpolate(beta_times, beta_values, "constant")
+
+  # Fixed parameters
+  N <- parameter()
+  I0 <- parameter()
+  gamma <- parameter()
+
+  # Data comparison
+  cases <- data()
+  cases ~ Poisson(incidence + 1e-6)
+})
+```
+
+## Simulation Scenario
+
+Four seasonal β blocks over one year (365 days):
+
+| Period | Days | β | Interpretation |
+|--------|------|---|----------------|
+| Winter | 0–89 | 0.4 | Moderate transmission |
+| Spring | 90–179 | 0.2 | Low transmission |
+| Summer | 180–269 | 0.3 | Rising transmission |
+| Autumn | 270–364 | 0.5 | High transmission |
+
+```{r}
+true_pars <- list(
+  beta_times = c(0, 90, 180, 270),
+  beta_values = c(0.4, 0.2, 0.3, 0.5),
+  N = 10000,
+  I0 = 10,
+  gamma = 0.1
+)
+
+times <- seq(0, 365, by = 1)
+
+sys <- dust_system_create(sir_beta_blocks, true_pars, dt = 1, seed = 1)
+dust_system_set_state_initial(sys)
+result <- dust_system_simulate(sys, times)
+```
+
+## Visualising the Simulation
+
+```{r}
+par(mfrow = c(2, 1), mar = c(4, 4, 2, 1))
+
+plot(times, result[1, ], type = "l", col = "blue", lwd = 2,
+     xlab = "Day", ylab = "Population",
+     main = "Deterministic SIR with Beta Blocks",
+     ylim = c(0, max(result[1, ]) * 1.05))
+lines(times, result[2, ], col = "red", lwd = 2)
+abline(v = c(90, 180, 270), lty = 2, col = "gray")
+legend("right", legend = c("S", "I"), col = c("blue", "red"), lwd = 2)
+
+# Transmission rate profile
+beta_profile <- ifelse(times < 90, 0.4,
+                ifelse(times < 180, 0.2,
+                ifelse(times < 270, 0.3, 0.5)))
+plot(times, beta_profile, type = "s", col = "darkgreen", lwd = 2,
+     xlab = "Day", ylab = expression(beta),
+     main = "Transmission Rate")
+```
+
+## Generate Synthetic Case Data
+
+```{r}
+true_incidence <- result[3, -1]  # incidence at times 1..365
+observed_cases <- rpois(length(true_incidence),
+                        pmax(true_incidence, 1e-6))
+
+par(mfrow = c(1, 1))
+barplot(observed_cases, col = adjustcolor("steelblue", 0.6),
+        border = NA, space = 0,
+        xlab = "Day", ylab = "Cases",
+        main = "Synthetic Epidemic Data")
+lines(seq_along(true_incidence), true_incidence, col = "red", lwd = 2)
+abline(v = c(90, 180, 270), lty = 2, col = "gray")
+legend("topright", legend = c("Observed", "True incidence"),
+       fill = c(adjustcolor("steelblue", 0.6), NA),
+       border = c("steelblue", NA),
+       lwd = c(NA, 2), col = c(NA, "red"))
+```
+
+## Inference Setup
+
+### Prepare filter data
+
+```{r}
+data <- data.frame(time = times[-1], cases = observed_cases)
+```
+
+### Parameter packer
+
+The packer maps four scalar β parameters to the `beta_values` array
+expected by the model.
+
+```{r}
+packer <- monty_packer(
+  c("beta1", "beta2", "beta3", "beta4"),
+  fixed = list(
+    N = 10000,
+    I0 = 10,
+    gamma = 0.1,
+    beta_times = c(0, 90, 180, 270)
+  ),
+  process = function(x) {
+    list(beta_values = c(x$beta1, x$beta2, x$beta3, x$beta4))
+  }
+)
+```
+
+### Likelihood
+
+```{r}
+filter <- dust_filter_create(sir_beta_blocks, time_start = 0, data = data,
+                             n_particles = 1, seed = 1)
+likelihood <- dust_likelihood_monty(filter, packer)
+```
+
+### Prior
+
+```{r}
+prior <- monty_dsl({
+  beta1 ~ Gamma(shape = 4, rate = 10)
+  beta2 ~ Gamma(shape = 4, rate = 10)
+  beta3 ~ Gamma(shape = 4, rate = 10)
+  beta4 ~ Gamma(shape = 4, rate = 10)
+})
+```
+
+### Posterior
+
+```{r}
+posterior <- likelihood + prior
+```
+
+### Check likelihood at truth
+
+```{r}
+theta_true <- c(0.4, 0.2, 0.3, 0.5)
+cat("Log-likelihood at true parameters:",
+    monty_model_density(likelihood, theta_true), "\n")
+```
+
+## Run MCMC
+
+```{r}
+vcv <- diag(rep(0.002, 4))
+sampler <- monty_sampler_random_walk(vcv)
+
+samples <- monty_sample(posterior, sampler, 5000,
+                        initial = theta_true, n_chains = 1,
+                        burnin = 500)
+```
+
+## Results
+
+### Parameter Recovery
+
+```{r}
+par_names <- c("beta1 (winter)", "beta2 (spring)",
+               "beta3 (summer)", "beta4 (autumn)")
+for (i in 1:4) {
+  vals <- samples$pars[i, , 1]
+  cat(sprintf("  %s: %.3f [%.3f, %.3f]  (true = %.1f)\n",
+              par_names[i], mean(vals),
+              quantile(vals, 0.025), quantile(vals, 0.975),
+              theta_true[i]))
+}
+```
+
+### Trace Plots
+
+```{r}
+par(mfrow = c(2, 2), mar = c(4, 4, 2, 1))
+for (i in 1:4) {
+  plot(samples$pars[i, , 1], type = "l", col = "steelblue",
+       xlab = "Iteration", ylab = par_names[i],
+       main = paste("Trace:", par_names[i]))
+  abline(h = theta_true[i], col = "red", lwd = 2, lty = 2)
+}
+```
+
+### Posterior Distributions
+
+```{r}
+par(mfrow = c(2, 2), mar = c(4, 4, 2, 1))
+for (i in 1:4) {
+  hist(samples$pars[i, , 1], breaks = 40, probability = TRUE,
+       col = adjustcolor("steelblue", 0.6), border = "white",
+       main = paste("Posterior:", par_names[i]),
+       xlab = par_names[i])
+  abline(v = theta_true[i], col = "red", lwd = 2)
+}
+```
+
+### Fitted Transmission Rate
+
+```{r}
+par(mfrow = c(1, 1))
+n_draw <- 200
+idx <- sample(dim(samples$pars)[2], n_draw, replace = TRUE)
+plot(NULL, xlim = c(0, 365), ylim = c(0, 0.8),
+     xlab = "Day", ylab = expression(beta),
+     main = "Posterior Transmission Rate Profile")
+for (j in 1:n_draw) {
+  b <- samples$pars[, idx[j], 1]
+  profile <- ifelse(times < 90, b[1],
+             ifelse(times < 180, b[2],
+             ifelse(times < 270, b[3], b[4])))
+  lines(times, profile, col = adjustcolor("steelblue", 0.05))
+}
+lines(times, beta_profile, col = "red", lwd = 3, lty = 2)
+legend("topright", legend = c("Posterior draws", "True"),
+       col = c("steelblue", "red"), lwd = c(1, 3), lty = c(1, 2))
+```
+
+## Summary
+
+| Feature | R syntax |
+|---------|----------|
+| Deterministic update | `new_inf <- S * p_SI` |
+| Piecewise-constant β | `interpolate(beta_times, beta_values, "constant")` |
+| Array dimensions | `dim(beta_times, beta_values) <- parameter(rank = 1)` |
+| Poisson observation | `cases ~ Poisson(incidence + 1e-6)` |
+| Exact likelihood | `dust_filter_create(..., n_particles = 1)` |
+| Process function | `process = function(x) list(beta_values = c(...))` |
+| Prior (monty DSL) | `beta1 ~ Gamma(shape = 4, rate = 10)` |
+| MCMC | `monty_sampler_random_walk(vcv)` |
+
+Both the Julia and R versions produce equivalent results using the same
+model structure and inference approach.

@@ -1,0 +1,217 @@
+# Stiff ODE Models: SDIRK4 Solver
+
+
+## Introduction
+
+Many epidemiological models involve **stiff** ODE systems — processes
+with widely separated timescales. For example, a fast immune response
+coupled with slow demographic turnover, or a disease with a very short
+infectious period relative to the observation window. Explicit solvers
+like Dormand-Prince 5(4) (DP5) must take tiny steps to remain stable on
+stiff systems, even when the solution varies smoothly.
+
+Odin.jl provides two built-in ODE solvers:
+
+| Solver     | Method               | Order | Stability    | Best for          |
+|------------|----------------------|-------|--------------|-------------------|
+| DP5        | Dormand-Prince 5(4)  | 5     | A-stable     | Non-stiff systems |
+| **SDIRK4** | Cash / Hairer-Wanner | **4** | **L-stable** | **Stiff systems** |
+
+The SDIRK4 solver is a 5-stage, singly diagonally implicit Runge-Kutta
+method with an embedded 3rd-order error estimator. L-stability means it
+correctly damps stiff transients without artificial oscillation.
+
+## A stiff epidemiological model
+
+Consider an SIR model with extreme rate separation: very fast recovery
+(γ = 1000/day) coupled with a moderate transmission rate (β = 2000/day).
+This creates a stiff system because the infectious period (1/γ = 0.001
+days) is 1000× shorter than the epidemic timescale.
+
+``` julia
+using Odin, Statistics
+
+# Define a stiff SIR model directly as an ODE RHS
+function stiff_sir!(du, u, pars, t)
+    S, I, R = u[1], u[2], u[3]
+    β, γ, N = pars.beta, pars.gamma, pars.N
+    infection = β * S * I / N
+    recovery = γ * I
+    du[1] = -infection
+    du[2] = infection - recovery
+    du[3] = recovery
+end
+
+pars = (beta = 2000.0, gamma = 1000.0, N = 1000.0)
+u0 = [999.0, 1.0, 0.0]
+tspan = (0.0, 0.05)
+saveat = collect(range(0.0, 0.05, length=101))
+```
+
+    101-element Vector{Float64}:
+     0.0
+     0.0005
+     0.001
+     0.0015
+     0.002
+     0.0025
+     0.003
+     0.0035
+     0.004
+     0.0045
+     ⋮
+     0.046
+     0.0465
+     0.047
+     0.0475
+     0.048
+     0.0485
+     0.049
+     0.0495
+     0.05
+
+### Solving with SDIRK4
+
+``` julia
+sol_sdirk = sdirk_solve!(stiff_sir!, u0, tspan, pars, saveat;
+                          abstol=1e-8, reltol=1e-8)
+println("SDIRK4: S(0.05) = $(round(sol_sdirk.u[1, end], digits=4)), ",
+        "I(0.05) = $(round(sol_sdirk.u[2, end], digits=6)), ",
+        "R(0.05) = $(round(sol_sdirk.u[3, end], digits=4))")
+println("Conservation: max |S+I+R - 1000| = ",
+        round(maximum(abs.(sum(sol_sdirk.u, dims=1) .- 1000.0)), sigdigits=3))
+```
+
+    SDIRK4: S(0.05) = 202.8459, I(0.05) = 0.0, R(0.05) = 797.1541
+    Conservation: max |S+I+R - 1000| = 1.36e-12
+
+### Comparison with DP5
+
+``` julia
+using Odin: dp5_solve!
+
+sol_dp5 = dp5_solve!(stiff_sir!, u0, tspan, pars, saveat;
+                      abstol=1e-8, reltol=1e-8)
+println("DP5:    S(0.05) = $(round(sol_dp5.u[1, end], digits=4)), ",
+        "I(0.05) = $(round(sol_dp5.u[2, end], digits=6)), ",
+        "R(0.05) = $(round(sol_dp5.u[3, end], digits=4))")
+
+# Compare solutions
+max_diff = maximum(abs.(sol_sdirk.u .- sol_dp5.u))
+println("Max absolute difference between solvers: $(round(max_diff, sigdigits=3))")
+```
+
+    DP5:    S(0.05) = 202.8459, I(0.05) = 0.0, R(0.05) = 797.1541
+    Max absolute difference between solvers: 1.56e-5
+
+Both solvers reach the same answer, but SDIRK4 can take much larger
+steps on stiff systems because its L-stability prevents the instability
+that forces DP5 to use tiny steps.
+
+## Solver selection in `dust_system_simulate`
+
+When using the odin DSL with `dust_system_simulate`, you can select the
+solver via the `solver` keyword argument:
+
+``` julia
+# Non-stiff model (default DP5)
+output = dust_system_simulate(sys, times)
+
+# Stiff model (use SDIRK4)
+output = dust_system_simulate(sys, times; solver=:sdirk)
+```
+
+## Solver selection in `dust_unfilter_create`
+
+For likelihood computation with `dust_unfilter_create`, pass the solver
+through `DustODEControl`:
+
+``` julia
+# Default (DP5)
+ctrl = DustODEControl(atol=1e-8, rtol=1e-8)
+
+# Stiff solver
+ctrl = DustODEControl(atol=1e-8, rtol=1e-8, solver=:sdirk)
+unfilter = dust_unfilter_create(generator, data; ode_control=ctrl)
+```
+
+## Classic stiff test: Robertson chemical kinetics
+
+The Robertson problem is the standard benchmark for stiff ODE solvers.
+Three chemical species with rate constants spanning 7 orders of
+magnitude:
+
+$$\frac{dy_1}{dt} = -0.04\, y_1 + 10^4\, y_2\, y_3, \quad
+\frac{dy_2}{dt} = 0.04\, y_1 - 10^4\, y_2\, y_3 - 3 \times 10^7\, y_2^2, \quad
+\frac{dy_3}{dt} = 3 \times 10^7\, y_2^2$$
+
+``` julia
+function robertson!(du, u, p, t)
+    du[1] = -0.04 * u[1] + 1e4 * u[2] * u[3]
+    du[2] =  0.04 * u[1] - 1e4 * u[2] * u[3] - 3e7 * u[2]^2
+    du[3] =  3e7 * u[2]^2
+end
+
+u0_rob = [1.0, 0.0, 0.0]
+saveat_rob = [0.0, 1e-5, 1e-4, 1e-3, 1e-2, 1e-1, 1.0, 10.0, 100.0, 1e4, 1e5]
+
+sol_rob = sdirk_solve!(robertson!, u0_rob, (0.0, 1e5), nothing, saveat_rob;
+                        abstol=1e-10, reltol=1e-10, max_steps=500000)
+
+println("Robertson at t=1e5:")
+println("  y₁ = $(round(sol_rob.u[1, end], digits=6))")
+println("  y₂ = $(sol_rob.u[2, end])")
+println("  y₃ = $(round(sol_rob.u[3, end], digits=6))")
+println("  Conservation: $(round(sum(sol_rob.u[:, end]), digits=10))")
+```
+
+    Robertson at t=1e5:
+      y₁ = 0.017866
+      y₂ = 7.274735426224538e-8
+      y₃ = 0.982134
+      Conservation: 1.0
+
+## Jacobian options
+
+The SDIRK4 solver supports three Jacobian computation methods:
+
+### 1. Finite differences (default)
+
+``` julia
+sol = sdirk_solve!(f!, u0, tspan, pars, saveat)
+```
+
+### 2. Automatic differentiation (ForwardDiff.jl)
+
+More accurate for ill-conditioned systems:
+
+``` julia
+sol = sdirk_solve!(f!, u0, tspan, pars, saveat; autodiff=true)
+```
+
+### 3. User-provided analytical Jacobian
+
+Most efficient for large systems where the sparsity pattern is known:
+
+``` julia
+function my_jac!(J, u, pars, t)
+    J[1,1] = -pars.beta * u[2] / pars.N
+    # ... fill in the rest
+end
+sol = sdirk_solve!(f!, u0, tspan, pars, saveat; jac_fn=my_jac!)
+```
+
+The solver also implements **Jacobian reuse**: the Jacobian is only
+recomputed when Newton convergence degrades or after 20 accepted steps,
+whichever comes first. This significantly reduces cost for large
+systems.
+
+## Summary
+
+- Use `solver=:dp5` (default) for non-stiff ODE models
+- Use `solver=:sdirk` for stiff models with widely separated timescales
+- The SDIRK4 solver is L-stable, 4th order, with adaptive step size
+  control
+- Supports finite-difference, ForwardDiff, and user-provided Jacobians
+- Fully integrated with `dust_system_simulate` and
+  `dust_unfilter_create`

@@ -1,0 +1,746 @@
+---
+title: "SARS-CoV-2 Multi-Region: Coupled Epidemics with Shared Parameters (R)"
+subtitle: "odin2/dust2/monty Vignette 19 (R)"
+format:
+  html:
+    code-fold: false
+    toc: true
+  gfm:
+    toc: true
+---
+
+## Introduction
+
+In real epidemics, disease does not respect administrative boundaries.
+SARS-CoV-2 swept through cities before reaching surrounding suburbs and rural
+areas, with each region experiencing waves of different size and timing.
+Understanding these spatial dynamics requires models that capture **region-
+specific transmission** (driven by population density, behaviour, and policy)
+alongside **inter-region coupling** (commuter flows, travel).
+
+This vignette demonstrates how to:
+
+1. Build a **multi-region SEIRD** ODE model with per-region state variables
+2. Use **per-region time-varying Rt** via separate interpolated trajectories
+3. Include weak **inter-region coupling** through pairwise coupling parameters
+4. Simulate heterogeneous epidemic waves across three regions
+5. Generate synthetic weekly case data and fit the model using an **unfilter**
+6. Recover region-specific Rt trajectories and shared reporting parameters via
+   adaptive MCMC
+
+The approach is inspired by the
+[sarscov2-multiregion](https://github.com/mrc-ide/sarscov2-multiregion)
+package, which fits SARS-CoV-2 transmission models to multiple English regions
+simultaneously. Here we build a simplified but instructive version with three
+regions.
+
+```{r}
+library(odin2)
+library(dust2)
+library(monty)
+```
+
+## Regional Setup
+
+We model three regions with different population sizes and epidemic
+trajectories:
+
+| Region | Type | Population | Epidemic character |
+|--------|------|------------|-------------------|
+| 1 | Urban | 5,000,000 | Early, large wave — Rt peaks at 2.5 then drops sharply with lockdown |
+| 2 | Suburban | 3,000,000 | Delayed wave — Rt rises more slowly, peaks at 2.0 |
+| 3 | Rural | 1,000,000 | Small wave — Rt stays low, peaks at 1.5 |
+
+### Rt trajectories
+
+Each region has a piecewise-linear reproduction number that reflects different
+intervention timelines:
+
+```{r}
+n_regions <- 3
+Rt_times <- c(0, 30, 60, 90, 120, 180, 250, 365)
+n_Rt <- length(Rt_times)
+
+# Rt values per region at each time point
+Rt_region1 <- c(2.5, 2.5, 1.2, 0.8, 1.1, 1.3, 1.5, 1.2)  # Urban: early lockdown
+Rt_region2 <- c(1.0, 1.8, 2.0, 1.0, 0.9, 1.2, 1.4, 1.1)  # Suburban: delayed
+Rt_region3 <- c(1.0, 1.2, 1.5, 1.3, 0.9, 1.0, 1.1, 1.0)  # Rural: mild
+
+plot(Rt_times, Rt_region1, type = "b", pch = 16, col = "steelblue", lwd = 2,
+     xlab = "Day", ylab = "Rt", main = "Prescribed Rt Trajectories",
+     ylim = c(0.5, 3.0))
+lines(Rt_times, Rt_region2, type = "b", pch = 15, col = "orange", lwd = 2)
+lines(Rt_times, Rt_region3, type = "b", pch = 17, col = "forestgreen", lwd = 2)
+abline(h = 1, lty = 2, col = "gray")
+legend("topright",
+       legend = c("Region 1 (Urban)", "Region 2 (Suburban)", "Region 3 (Rural)"),
+       col = c("steelblue", "orange", "forestgreen"), pch = c(16, 15, 17), lwd = 2)
+```
+
+### Inter-region coupling
+
+Coupling between regions is captured by pairwise parameters.  The coupling
+strengths are small, representing commuter or travel-based importation:
+
+- Urban ↔ Suburban: `c12 = 0.1` (strongest, commuter flows)
+- Urban ↔ Rural: `c13 = 0.05` (weaker)
+- Suburban ↔ Rural: `c23 = 0.1`
+
+A global scaling parameter `epsilon = 0.05` controls the overall importation
+pressure.
+
+## Model Definition
+
+Since we have three regions with distinct Rt trajectories, we define a separate
+interpolation for each region's Rt.  With only three regions, we expand the
+SEIRD dynamics explicitly per region rather than using arrays.
+
+The **force of infection** in region *i* combines local transmission with a
+small contribution from infectious individuals in connected regions:
+
+$$
+\lambda_i = \beta_i \left( \frac{I_i}{N_i} + \varepsilon \sum_j C_{ij} \frac{I_j}{N_j} \right)
+$$
+
+where $\beta_i = \text{Rt}_i \times \gamma$, $\varepsilon$ is the coupling
+strength, and $C_{ij}$ are the pairwise coupling coefficients.
+
+```{r}
+seird_regions <- odin({
+  # Per-region Rt via interpolation
+  n_Rt_times <- parameter()
+  dim(Rt_t) <- n_Rt_times
+  dim(Rt_v1) <- n_Rt_times
+  dim(Rt_v2) <- n_Rt_times
+  dim(Rt_v3) <- n_Rt_times
+  Rt_t[] <- parameter()
+  Rt_v1[] <- parameter()
+  Rt_v2[] <- parameter()
+  Rt_v3[] <- parameter()
+  Rt_1 <- interpolate(Rt_t, Rt_v1, "linear")
+  Rt_2 <- interpolate(Rt_t, Rt_v2, "linear")
+  Rt_3 <- interpolate(Rt_t, Rt_v3, "linear")
+
+  # Epidemiological parameters
+  gamma <- parameter(0.2)
+  sigma <- parameter(0.333)
+  ifr <- parameter(0.005)
+  rho <- parameter(0.3)
+  epsilon <- parameter(0.05)
+
+  # Population and initial conditions
+  N1 <- parameter(5e6)
+  N2 <- parameter(3e6)
+  N3 <- parameter(1e6)
+  I0_1 <- parameter(100)
+  I0_2 <- parameter(10)
+  I0_3 <- parameter(1)
+
+  # Coupling (symmetric pairwise)
+  c12 <- parameter(0.1)
+  c13 <- parameter(0.05)
+  c23 <- parameter(0.1)
+
+  # Force of infection per region
+  foi_1 <- Rt_1 * gamma * (I1 / N1 + epsilon * (c12 * I2 / N2 + c13 * I3 / N3))
+  foi_2 <- Rt_2 * gamma * (I2 / N2 + epsilon * (c12 * I1 / N1 + c23 * I3 / N3))
+  foi_3 <- Rt_3 * gamma * (I3 / N3 + epsilon * (c13 * I1 / N1 + c23 * I2 / N2))
+
+  # Region 1 (Urban)
+  deriv(S1) <- -foi_1 * S1
+  deriv(E1) <- foi_1 * S1 - sigma * E1
+  deriv(I1) <- sigma * E1 - gamma * I1
+  deriv(R1) <- (1 - ifr) * gamma * I1
+  deriv(D1) <- ifr * gamma * I1
+  deriv(cum1) <- foi_1 * S1
+
+  # Region 2 (Suburban)
+  deriv(S2) <- -foi_2 * S2
+  deriv(E2) <- foi_2 * S2 - sigma * E2
+  deriv(I2) <- sigma * E2 - gamma * I2
+  deriv(R2) <- (1 - ifr) * gamma * I2
+  deriv(D2) <- ifr * gamma * I2
+  deriv(cum2) <- foi_2 * S2
+
+  # Region 3 (Rural)
+  deriv(S3) <- -foi_3 * S3
+  deriv(E3) <- foi_3 * S3 - sigma * E3
+  deriv(I3) <- sigma * E3 - gamma * I3
+  deriv(R3) <- (1 - ifr) * gamma * I3
+  deriv(D3) <- ifr * gamma * I3
+  deriv(cum3) <- foi_3 * S3
+
+  # Initial conditions
+  initial(S1) <- N1 - I0_1
+  initial(E1) <- 0
+  initial(I1) <- I0_1
+  initial(R1) <- 0
+  initial(D1) <- 0
+  initial(cum1) <- 0
+
+  initial(S2) <- N2 - I0_2
+  initial(E2) <- 0
+  initial(I2) <- I0_2
+  initial(R2) <- 0
+  initial(D2) <- 0
+  initial(cum2) <- 0
+
+  initial(S3) <- N3 - I0_3
+  initial(E3) <- 0
+  initial(I3) <- I0_3
+  initial(R3) <- 0
+  initial(D3) <- 0
+  initial(cum3) <- 0
+
+  # Outputs
+  output(daily_cases_1) <- rho * sigma * E1
+  output(daily_cases_2) <- rho * sigma * E2
+  output(daily_cases_3) <- rho * sigma * E3
+  output(sero_1) <- cum1 / N1
+  output(sero_2) <- cum2 / N2
+  output(sero_3) <- cum3 / N3
+
+  # Data comparison
+  cases1 <- data()
+  cases2 <- data()
+  cases3 <- data()
+  cases1 ~ Poisson(rho * sigma * E1 * 7 + 1e-6)
+  cases2 ~ Poisson(rho * sigma * E2 * 7 + 1e-6)
+  cases3 ~ Poisson(rho * sigma * E3 * 7 + 1e-6)
+})
+```
+
+**Key features of this model:**
+
+- **Explicit per-region states**: `S1`, `E1`, `I1`, etc. are written out for
+  each of the three regions, avoiding DSL array edge cases while keeping the
+  dynamics identical
+- **Separate Rt interpolation**: Each region has its own piecewise-linear Rt
+  trajectory, reflecting different intervention timings
+- **Pairwise coupling**: The `c12`, `c13`, `c23` parameters and `epsilon`
+  control importation pressure between regions
+- **Two outputs per region**: `daily_cases_*` (reported case rate) and
+  `sero_*` (cumulative attack rate) for monitoring
+
+## Simulation
+
+### Parameter setup
+
+```{r}
+true_pars <- list(
+  n_Rt_times = n_Rt,
+  Rt_t = Rt_times,
+  Rt_v1 = Rt_region1,
+  Rt_v2 = Rt_region2,
+  Rt_v3 = Rt_region3,
+  epsilon = 0.05,
+  N1 = 5e6,
+  N2 = 3e6,
+  N3 = 1e6,
+  I0_1 = 100,
+  I0_2 = 10,
+  I0_3 = 1,
+  c12 = 0.1,
+  c13 = 0.05,
+  c23 = 0.1,
+  gamma = 0.2,
+  sigma = 1 / 3,
+  ifr = 0.005,
+  rho = 0.3
+)
+
+cat("Infectious period:", 1 / true_pars$gamma, "days\n")
+cat("Latent period:", round(1 / true_pars$sigma, 1), "days\n")
+cat("IFR:", 100 * true_pars$ifr, "%\n")
+cat("Reporting rate:", 100 * true_pars$rho, "%\n")
+```
+
+### Run simulation
+
+```{r}
+sim_times <- seq(0, 365, by = 1)
+
+sys <- dust_system_create(seird_regions, true_pars,
+                          ode_control = dust_ode_control())
+dust_system_set_state_initial(sys)
+result <- dust_system_simulate(sys, sim_times)
+cat("Output dimensions:", dim(result), "\n")
+```
+
+The state vector is ordered as: `S1, E1, I1, R1, D1, cum1, S2, E2, I2, R2,
+D2, cum2, S3, E3, I3, R3, D3, cum3` (18 states), followed by the outputs
+`daily_cases_1, daily_cases_2, daily_cases_3, sero_1, sero_2, sero_3`
+(6 outputs).
+
+### Epidemic dynamics
+
+```{r}
+region_names <- c("Urban (5M)", "Suburban (3M)", "Rural (1M)")
+region_cols <- c("steelblue", "orange", "forestgreen")
+
+# State indices: I1=3, I2=9, I3=15
+I_idx <- c(3, 9, 15)
+
+# Infectious individuals by region
+plot(NULL, xlim = range(sim_times),
+     ylim = c(0, max(result[I_idx, ])),
+     xlab = "Day", ylab = "Infectious (I)",
+     main = "Infectious Individuals by Region")
+for (i in 1:n_regions) {
+  lines(sim_times, result[I_idx[i], ], col = region_cols[i], lwd = 2)
+}
+legend("topright", region_names, col = region_cols, lwd = 2)
+```
+
+```{r}
+# State indices: D1=5, D2=11, D3=17
+D_idx <- c(5, 11, 17)
+
+# Cumulative deaths by region
+plot(NULL, xlim = range(sim_times),
+     ylim = c(0, max(result[D_idx, ])),
+     xlab = "Day", ylab = "Cumulative Deaths",
+     main = "Cumulative Deaths by Region")
+for (i in 1:n_regions) {
+  lines(sim_times, result[D_idx[i], ], col = region_cols[i], lwd = 2)
+}
+legend("topleft", region_names, col = region_cols, lwd = 2)
+```
+
+```{r}
+# Output indices: daily_cases_1=19, daily_cases_2=20, daily_cases_3=21
+cases_idx <- c(19, 20, 21)
+
+# Daily reported cases (output)
+plot(NULL, xlim = range(sim_times),
+     ylim = c(0, max(result[cases_idx, ])),
+     xlab = "Day", ylab = "Daily Reported Cases",
+     main = "Expected Daily Cases by Region")
+for (i in 1:n_regions) {
+  lines(sim_times, result[cases_idx[i], ], col = region_cols[i], lwd = 2)
+}
+legend("topright", region_names, col = region_cols, lwd = 2)
+```
+
+```{r}
+# Output indices: sero_1=22, sero_2=23, sero_3=24
+sero_idx <- c(22, 23, 24)
+
+# Seroprevalence over time
+plot(NULL, xlim = range(sim_times), ylim = c(0, 1),
+     xlab = "Day", ylab = "Seroprevalence",
+     main = "Cumulative Seroprevalence by Region")
+for (i in 1:n_regions) {
+  lines(sim_times, result[sero_idx[i], ], col = region_cols[i], lwd = 2)
+}
+legend("topleft", region_names, col = region_cols, lwd = 2)
+```
+
+The urban region (blue) experiences the earliest and largest wave due to its
+high initial Rt of 2.5.  The suburban region (orange) follows with a delayed
+peak.  The rural region (green) has a much smaller epidemic, partly because its
+Rt stays closer to 1, but inter-region coupling ensures it still experiences
+some transmission even when local Rt is below 1.
+
+## Synthetic Data
+
+We generate weekly reported case counts for each region, matching the Poisson
+comparison in the model.
+
+```{r}
+set.seed(42)
+
+# Weekly observation times
+obs_weeks <- seq(7, 364, by = 7)
+n_weeks <- length(obs_weeks)
+
+# Simulate to get state at weekly intervals
+sys_w <- dust_system_create(seird_regions, true_pars,
+                            ode_control = dust_ode_control())
+dust_system_set_state_initial(sys_w)
+result_weekly <- dust_system_simulate(sys_w, obs_weeks)
+
+# State indices for E (exposed): E1=2, E2=8, E3=14
+E_idx <- c(2, 8, 14)
+
+# Generate Poisson-distributed weekly case counts
+obs_cases <- matrix(0L, n_weeks, n_regions)
+for (w in seq_len(n_weeks)) {
+  for (i in 1:n_regions) {
+    E_i <- result_weekly[E_idx[i], w]
+    expected <- true_pars$rho * true_pars$sigma * E_i * 7
+    obs_cases[w, i] <- rpois(1, max(expected, 1e-10))
+  }
+}
+
+cat("Total observed cases:", sum(obs_cases), "\n")
+cat("Cases per region:", colSums(obs_cases), "\n")
+```
+
+```{r}
+plot(NULL, xlim = range(obs_weeks),
+     ylim = c(0, max(obs_cases) * 1.1),
+     xlab = "Day", ylab = "Weekly Reported Cases",
+     main = "Synthetic Weekly Case Data")
+for (i in 1:n_regions) {
+  points(obs_weeks, obs_cases[, i], pch = 16, cex = 0.7,
+         col = adjustcolor(region_cols[i], 0.7))
+  lines(obs_weeks, obs_cases[, i],
+        col = adjustcolor(region_cols[i], 0.3))
+}
+legend("topright", region_names, col = region_cols, pch = 16)
+```
+
+### Prepare data for the unfilter
+
+```{r}
+data <- data.frame(
+  time = obs_weeks,
+  cases1 = obs_cases[, 1],
+  cases2 = obs_cases[, 2],
+  cases3 = obs_cases[, 3]
+)
+```
+
+## Inference
+
+### Parameters to fit
+
+We fit the **Rt trajectory values** for each region plus the shared **reporting
+rate** and **IFR**, while fixing the epidemiological time scales and coupling
+structure.
+
+| Parameter | Fitted? | Notes |
+|-----------|---------|-------|
+| `Rt_v1[1:8]` | ✓ | Region 1 Rt at 8 time points |
+| `Rt_v2[1:8]` | ✓ | Region 2 Rt at 8 time points |
+| `Rt_v3[1:8]` | ✓ | Region 3 Rt at 8 time points |
+| `rho` | ✓ | Shared reporting rate |
+| `ifr` | ✓ | Shared infection fatality rate |
+| `gamma`, `sigma` | ✗ | Fixed at known values |
+| `epsilon`, `c12`, `c13`, `c23` | ✗ | Fixed — coupling structure assumed known |
+| `N1`, `N2`, `N3`, `I0_*` | ✗ | Fixed population sizes and seeds |
+
+This gives **26 parameters** total: 8 × 3 = 24 Rt values + `rho` + `ifr`.
+
+### Packer and fixed parameters
+
+```{r}
+packer <- monty_packer(
+  c("rho", "ifr"),
+  array = list(Rt_v1 = n_Rt, Rt_v2 = n_Rt, Rt_v3 = n_Rt),
+  fixed = list(
+    n_Rt_times = n_Rt,
+    Rt_t = Rt_times,
+    epsilon = 0.05,
+    N1 = 5e6,
+    N2 = 3e6,
+    N3 = 1e6,
+    I0_1 = 100,
+    I0_2 = 10,
+    I0_3 = 1,
+    c12 = 0.1,
+    c13 = 0.05,
+    c23 = 0.1,
+    gamma = 0.2,
+    sigma = 1 / 3
+  )
+)
+
+cat("Number of fitted parameters:", packer$len, "\n")
+```
+
+### Prior distributions
+
+We place weakly informative priors on each parameter:
+
+```{r}
+# R monty_dsl does not support array priors directly.
+# We build a custom prior density function instead.
+prior_density <- function(theta) {
+  # theta layout: rho, ifr, Rt_v1[1:8], Rt_v2[1:8], Rt_v3[1:8]
+  ll <- dbeta(theta[1], 3, 7, log = TRUE) +    # rho
+        dbeta(theta[2], 2, 398, log = TRUE)     # ifr
+  # Normal(1.5, 0.7) priors on all 24 Rt knots
+  ll <- ll + sum(dnorm(theta[3:26], 1.5, 0.7, log = TRUE))
+  ll
+}
+
+prior <- monty_model(
+  list(
+    density = prior_density,
+    parameters = packer$names(),
+    domain = cbind(
+      c(0, 0, rep(-Inf, 24)),   # lower
+      c(1, 1, rep(Inf, 24))     # upper
+    )
+  )
+)
+```
+
+### Likelihood via unfilter
+
+The unfilter evaluates the ODE at each data time point and computes the
+Poisson log-likelihood of the weekly case counts:
+
+```{r}
+uf <- dust_unfilter_create(seird_regions, time_start = 0, data = data)
+ll <- dust_likelihood_monty(uf, packer)
+posterior <- ll + prior
+
+# Check log-likelihood at true values
+true_theta <- c(true_pars$rho, true_pars$ifr,
+                Rt_region1, Rt_region2, Rt_region3)
+ll_true <- monty_model_density(ll, true_theta)
+cat("Log-likelihood at true parameters:", round(ll_true, 2), "\n")
+```
+
+### Run MCMC
+
+We use an adaptive random walk sampler with a diagonal initial proposal.  The
+adaptation phase adjusts the proposal covariance to achieve efficient mixing
+across all 26 parameters.
+
+```{r}
+n_pars <- packer$len
+vcv_init <- diag(c(
+  0.01, 0.000001,                     # rho, ifr
+  rep(0.01, n_Rt),                    # Rt_v1
+  rep(0.01, n_Rt),                    # Rt_v2
+  rep(0.01, n_Rt)                     # Rt_v3
+))
+
+sampler <- monty_sampler_adaptive(vcv_init)
+
+samples <- monty_sample(posterior, sampler, 3000,
+                        initial = true_theta,
+                        n_chains = 1, burnin = 500)
+```
+
+## Posterior Analysis
+
+### Recovered Rt trajectories
+
+The main output of interest is the posterior distribution of Rt over time for
+each region.  We extract the Rt values at each time point and visualise the
+posterior uncertainty:
+
+```{r}
+# Extract posterior samples (packer ordering: rho, ifr, Rt_v1[1:8], Rt_v2[1:8], Rt_v3[1:8])
+rho_post <- samples$pars[1, , 1]
+ifr_post <- samples$pars[2, , 1]
+Rt1_post <- samples$pars[3:10, , 1]    # 8 × n_samples
+Rt2_post <- samples$pars[11:18, , 1]
+Rt3_post <- samples$pars[19:26, , 1]
+```
+
+```{r}
+rt_ribbon <- function(times, Rt_post, true_vals, col, add = FALSE, ...) {
+  med <- apply(Rt_post, 1, median)
+  lo  <- apply(Rt_post, 1, quantile, 0.025)
+  hi  <- apply(Rt_post, 1, quantile, 0.975)
+  if (!add) {
+    plot(times, med, type = "n",
+         ylim = c(0, max(3.5, max(hi))), ...)
+  }
+  polygon(c(times, rev(times)), c(lo, rev(hi)),
+          col = adjustcolor(col, 0.2), border = NA)
+  lines(times, med, col = col, lwd = 2)
+  points(times, true_vals, pch = 16, col = col, cex = 1.2)
+}
+
+plot(NULL, xlim = range(Rt_times), ylim = c(0, 3.5),
+     xlab = "Day", ylab = "Rt",
+     main = "Posterior Rt Trajectories (median + 95% CrI)")
+
+rt_ribbon(Rt_times, Rt1_post, Rt_region1, "steelblue", add = TRUE)
+rt_ribbon(Rt_times, Rt2_post, Rt_region2, "orange", add = TRUE)
+rt_ribbon(Rt_times, Rt3_post, Rt_region3, "forestgreen", add = TRUE)
+abline(h = 1, lty = 2, col = "gray")
+legend("topright",
+       legend = c("Region 1 (Urban)", "Region 2 (Suburban)", "Region 3 (Rural)"),
+       col = c("steelblue", "orange", "forestgreen"), lwd = 2, pch = 16)
+```
+
+The dots show the true Rt values used to generate the data.  The credible
+intervals should encompass the truth at most time points, demonstrating that
+the MCMC has successfully recovered the heterogeneous regional dynamics.
+
+### Shared parameter posteriors
+
+```{r}
+summarise_param <- function(name, vals, truth) {
+  m  <- signif(mean(vals), 3)
+  lo <- signif(quantile(vals, 0.025), 3)
+  hi <- signif(quantile(vals, 0.975), 3)
+  cat(sprintf("  %s: %s [%s, %s]  (true=%s)\n", name, m, lo, hi, truth))
+}
+
+cat("Shared parameters:\n")
+summarise_param("rho (reporting)", rho_post, 0.3)
+summarise_param("IFR", ifr_post, 0.005)
+```
+
+```{r}
+par(mfrow = c(1, 2), mar = c(4, 4, 3, 1))
+
+hist(rho_post, breaks = 40, probability = TRUE,
+     main = expression("Posterior: " * rho * " (reporting)"),
+     xlab = expression(rho), col = adjustcolor("steelblue", 0.5))
+abline(v = 0.3, col = "red", lwd = 2)
+
+hist(ifr_post, breaks = 40, probability = TRUE,
+     main = "Posterior: IFR",
+     xlab = "IFR", col = adjustcolor("steelblue", 0.5))
+abline(v = 0.005, col = "red", lwd = 2)
+```
+
+### Posterior predictive check
+
+We draw parameter sets from the posterior and simulate forward to compare the
+model predictions against observed data:
+
+```{r}
+n_proj <- 100
+proj_times <- seq(0, 365, by = 1)
+n_t <- length(proj_times)
+I_traj <- array(NA, dim = c(n_proj, n_t, n_regions))
+
+set.seed(10)
+n_total <- dim(samples$pars)[2]
+idx <- sample(n_total, n_proj, replace = TRUE)
+
+for (j in seq_len(n_proj)) {
+  pars_j <- packer$unpack(samples$pars[, idx[j], 1])
+  sys_j <- dust_system_create(seird_regions, pars_j,
+                              ode_control = dust_ode_control())
+  dust_system_set_state_initial(sys_j)
+  r <- dust_system_simulate(sys_j, proj_times)
+  for (i in 1:n_regions) {
+    I_traj[j, , i] <- r[I_idx[i], ]
+  }
+}
+```
+
+```{r}
+par(mfrow = c(1, 1))
+
+plot(NULL, xlim = range(proj_times),
+     ylim = c(0, max(I_traj, na.rm = TRUE) * 1.05),
+     xlab = "Day", ylab = "Infectious (I)",
+     main = "Posterior Predictive: Infectious by Region")
+
+for (i in 1:n_regions) {
+  med <- apply(I_traj[, , i], 2, median)
+  lo  <- apply(I_traj[, , i], 2, quantile, 0.025)
+  hi  <- apply(I_traj[, , i], 2, quantile, 0.975)
+  polygon(c(proj_times, rev(proj_times)), c(lo, rev(hi)),
+          col = adjustcolor(region_cols[i], 0.15), border = NA)
+  lines(proj_times, med, col = region_cols[i], lwd = 2)
+  # True trajectory
+  lines(sim_times, result[I_idx[i], ], col = region_cols[i], lwd = 1.5, lty = 2)
+}
+legend("topright", region_names, col = region_cols, lwd = 2)
+```
+
+### Trace plots
+
+```{r}
+par(mfrow = c(3, 1), mar = c(4, 4, 2, 1))
+
+plot(rho_post, type = "l", col = adjustcolor("black", 0.5),
+     xlab = "Iteration", ylab = expression(rho),
+     main = "Trace: Reporting Rate")
+abline(h = 0.3, col = "red", lwd = 2)
+
+plot(Rt1_post[1, ], type = "l", col = adjustcolor("black", 0.5),
+     xlab = "Iteration", ylab = expression(Rt[1](t == 0)),
+     main = "Trace: Region 1 Rt at t=0")
+abline(h = 2.5, col = "red", lwd = 2)
+
+plot(Rt2_post[3, ], type = "l", col = adjustcolor("black", 0.5),
+     xlab = "Iteration", ylab = expression(Rt[2](t == 60)),
+     main = "Trace: Region 2 Rt at t=60")
+abline(h = 2.0, col = "red", lwd = 2)
+```
+
+## The Role of Coupling
+
+To see the effect of inter-region coupling, we can compare the fit with and
+without the coupling term.  When coupling is present, infections "leak" between
+regions, which means:
+
+- The rural region sees cases even when its local Rt is below 1
+- The timing of peaks is shifted by importation pressure
+- Parameter estimates are subtly different because the coupling redistributes
+  infection across regions
+
+```{r}
+par(mfrow = c(1, 1))
+
+pars_nocoupling <- true_pars
+pars_nocoupling$epsilon <- 0
+
+sys_nc <- dust_system_create(seird_regions, pars_nocoupling,
+                             ode_control = dust_ode_control())
+dust_system_set_state_initial(sys_nc)
+result_nc <- dust_system_simulate(sys_nc, sim_times)
+
+plot(NULL, xlim = range(sim_times),
+     ylim = c(0, max(result[I_idx, ], result_nc[I_idx, ])),
+     xlab = "Day", ylab = "Infectious (I)",
+     main = "Effect of Inter-Region Coupling")
+
+for (i in 1:n_regions) {
+  lines(sim_times, result[I_idx[i], ], col = region_cols[i], lwd = 2)
+  lines(sim_times, result_nc[I_idx[i], ], col = region_cols[i], lwd = 1.5, lty = 2)
+}
+legend("topright",
+       legend = c(paste(region_names, "— coupled"),
+                  paste(region_names, "— isolated")),
+       col = rep(region_cols, 2), lwd = rep(c(2, 1.5), each = 3),
+       lty = rep(1:2, each = 3), cex = 0.8)
+```
+
+## Summary
+
+| Aspect | Detail |
+|--------|--------|
+| **Model** | Multi-region SEIRD with time-varying Rt and inter-region coupling |
+| **Regions** | 3 (Urban, Suburban, Rural) with different populations and Rt |
+| **Time-varying Rt** | Piecewise linear via `interpolate()`, one per region |
+| **Coupling** | Pairwise parameters × coupling strength ε |
+| **Data** | Weekly reported cases per region (Poisson) |
+| **Inference** | Deterministic ODE unfilter + adaptive MCMC |
+| **Fitted parameters** | 24 Rt values + ρ + IFR = 26 total |
+
+### Key takeaways
+
+1. **Expanded per-region states avoid DSL array edge cases.** With a small
+   fixed number of regions, writing `S1`, `E1`, `I1`, etc. explicitly keeps the
+   model straightforward and avoids complex array indexing features.
+
+2. **Separate interpolation per region** allows each area to have its own
+   intervention timeline while sharing the same epidemiological parameters
+   (γ, σ, IFR).
+
+3. **Inter-region coupling** captures importation effects that pure
+   region-specific models miss — especially important for regions with Rt < 1
+   that still experience cases from neighbouring areas.
+
+4. **Joint fitting across regions** enables information sharing: the reporting
+   rate ρ is constrained by data from all three regions simultaneously, giving
+   tighter posterior estimates than fitting each region independently.
+
+5. **The workflow scales naturally**: the same pattern works for additional data
+   streams (deaths, serology) and more complex coupling structures.
+
+| Step | API |
+|------|-----|
+| Define model | `odin({ … })` with per-region states and `interpolate()` |
+| Prepare data | `data.frame(time = …, cases1 = …, …)` |
+| Pack parameters | `monty_packer(c("rho", "ifr"), array = list(Rt_v1 = 8, …), fixed = …)` |
+| Likelihood | `dust_unfilter_create()` → `dust_likelihood_monty()` |
+| Prior | `monty_dsl({ … })` |
+| Posterior | `likelihood + prior` |
+| Sample | `monty_sample(posterior, sampler, n, …)` |

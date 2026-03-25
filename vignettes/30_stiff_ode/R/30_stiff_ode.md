@@ -1,0 +1,161 @@
+# Stiff ODE Models in R
+
+
+## Introduction
+
+Many epidemiological models involve **stiff** ODE systems — processes
+with widely separated timescales. In R, the `deSolve` package provides
+several solvers suitable for stiff systems:
+
+| Solver  | Method                   | Best for                            |
+|---------|--------------------------|-------------------------------------|
+| `lsoda` | Auto-switching Adams/BDF | General purpose (detects stiffness) |
+| `lsode` | BDF (Gear)               | Known stiff systems                 |
+| `radau` | Implicit Runge-Kutta     | Very stiff / DAE systems            |
+
+This vignette mirrors the Julia stiff ODE vignette (vignette 30) using
+R’s `deSolve` package, and shows the equivalent approach with
+`odin2`/`dust2`.
+
+## A stiff epidemiological model
+
+Consider an SIR model with extreme rate separation: very fast recovery
+(γ = 1000/day) coupled with a moderate transmission rate (β = 2000/day).
+
+``` r
+library(deSolve)
+
+stiff_sir <- function(t, state, pars) {
+  with(as.list(c(state, pars)), {
+    infection <- beta * S * I / N
+    recovery <- gamma * I
+    list(c(
+      dS = -infection,
+      dI = infection - recovery,
+      dR = recovery
+    ))
+  })
+}
+
+pars <- c(beta = 2000, gamma = 1000, N = 1000)
+state0 <- c(S = 999, I = 1, R = 0)
+times <- seq(0, 0.05, length.out = 101)
+```
+
+### Solving with `lsoda` (auto stiffness detection)
+
+``` r
+sol_lsoda <- ode(state0, times, stiff_sir, pars, method = "lsoda")
+cat(sprintf("lsoda: S(0.05) = %.4f, I(0.05) = %.6f, R(0.05) = %.4f\n",
+            tail(sol_lsoda[, "S"], 1),
+            tail(sol_lsoda[, "I"], 1),
+            tail(sol_lsoda[, "R"], 1)))
+```
+
+    lsoda: S(0.05) = 202.8458, I(0.05) = 0.000000, R(0.05) = 797.1542
+
+``` r
+cat(sprintf("Conservation: max |S+I+R - 1000| = %.3e\n",
+            max(abs(rowSums(sol_lsoda[, c("S", "I", "R")]) - 1000))))
+```
+
+    Conservation: max |S+I+R - 1000| = 3.411e-13
+
+### Solving with `radau` (implicit Runge-Kutta)
+
+``` r
+sol_radau <- ode(state0, times, stiff_sir, pars, method = "radau",
+                 atol = 1e-8, rtol = 1e-8)
+cat(sprintf("radau: S(0.05) = %.4f, I(0.05) = %.6f, R(0.05) = %.4f\n",
+            tail(sol_radau[, "S"], 1),
+            tail(sol_radau[, "I"], 1),
+            tail(sol_radau[, "R"], 1)))
+```
+
+    radau: S(0.05) = 202.8459, I(0.05) = 0.000000, R(0.05) = 797.1541
+
+### Comparison with explicit solver (`rk4`)
+
+``` r
+sol_rk4 <- ode(state0, times, stiff_sir, pars, method = "rk4")
+cat(sprintf("rk4:   S(0.05) = %.4f, I(0.05) = %.6f, R(0.05) = %.4f\n",
+            tail(sol_rk4[, "S"], 1),
+            tail(sol_rk4[, "I"], 1),
+            tail(sol_rk4[, "R"], 1)))
+```
+
+    rk4:   S(0.05) = 202.8472, I(0.05) = 0.000000, R(0.05) = 797.1528
+
+``` r
+max_diff <- max(abs(sol_lsoda[, -1] - sol_radau[, -1]))
+cat(sprintf("Max difference (lsoda vs radau): %.3e\n", max_diff))
+```
+
+    Max difference (lsoda vs radau): 6.372e-04
+
+Both implicit solvers agree closely. The explicit `rk4` may show
+instability or require much smaller step sizes for this stiff system.
+
+## Stiff ODE with odin2/dust2
+
+In the odin2/dust2 ecosystem, stiff ODE models can be solved using the
+built-in ODE solver. The `dust2` package currently uses a Dormand-Prince
+solver; for very stiff systems, the `deSolve` approach shown above may
+be preferable:
+
+``` r
+sir <- odin2::odin({
+  deriv(S) <- -beta * S * I / N
+  deriv(I) <- beta * S * I / N - gamma * I
+  deriv(R) <- gamma * I
+  initial(S) <- N - I0
+  initial(I) <- I0
+  initial(R) <- 0
+  beta <- parameter(2000)
+  gamma <- parameter(1000)
+  I0 <- parameter(1)
+  N <- parameter(1000)
+})
+```
+
+## Classic stiff test: Robertson chemical kinetics
+
+``` r
+robertson <- function(t, state, pars) {
+  list(c(
+    dy1 = -0.04 * state[1] + 1e4 * state[2] * state[3],
+    dy2 =  0.04 * state[1] - 1e4 * state[2] * state[3] - 3e7 * state[2]^2,
+    dy3 =  3e7 * state[2]^2
+  ))
+}
+
+state0_rob <- c(y1 = 1, y2 = 0, y3 = 0)
+times_rob <- c(0, 1e-5, 1e-4, 1e-3, 1e-2, 1e-1, 1, 10, 100, 1e4, 1e5)
+
+sol_rob <- ode(state0_rob, times_rob, robertson, NULL,
+               method = "lsoda", atol = 1e-10, rtol = 1e-10)
+cat(sprintf("Robertson at t=1e5:\n  y1 = %.6f\n  y2 = %.2e\n  y3 = %.6f\n  Conservation: %.10f\n",
+            tail(sol_rob[, "y1"], 1),
+            tail(sol_rob[, "y2"], 1),
+            tail(sol_rob[, "y3"], 1),
+            sum(tail(sol_rob[, -1], 1))))
+```
+
+    Robertson at t=1e5:
+      y1 = 0.017866
+      y2 = 7.27e-08
+      y3 = 0.982134
+      Conservation: 1.0000000000
+
+## Summary
+
+| Feature | Julia (Odin.jl) | R (deSolve) |
+|----|----|----|
+| Stiff solver | SDIRK4 (L-stable, order 4) | `lsoda` (auto), `radau`, `lsode` |
+| Jacobian | FD, ForwardDiff, analytical | FD, analytical |
+| Adaptive stepping | Yes | Yes |
+| Integration with inference | `dust_unfilter_create(solver=:sdirk)` | `dust2::dust_unfilter_create()` |
+
+- R’s `deSolve` is mature and well-tested for stiff systems
+- `lsoda` automatically detects stiffness and switches methods
+- For odin2/dust2 models, consider `deSolve` for very stiff problems

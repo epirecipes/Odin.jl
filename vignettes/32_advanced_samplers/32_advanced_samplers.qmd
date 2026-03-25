@@ -151,7 +151,7 @@ Combine gradient-based and gradient-free samplers in one Gibbs sweep:
 
 ```{julia}
 mixed_blocks = [[1], [2]]
-mixed_subs = AbstractMontySampler[
+mixed_subs = Odin.AbstractMontySampler[
     monty_sampler_mala(0.5; vcv=reshape([1.0], 1, 1)),
     monty_sampler_slice(w=2.0),
 ]

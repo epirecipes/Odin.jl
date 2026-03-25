@@ -1,0 +1,131 @@
+---
+title: "Advanced Model: SEIR with Vaccination and Waning"
+subtitle: "odin2/dust2 Vignette 09 (R)"
+format:
+  html:
+    toc: true
+    code-fold: false
+  gfm: default
+---
+
+## Introduction
+
+R companion to the Julia advanced model vignette: stochastic SEIR with
+time-varying vaccination, waning immunity, and inference.
+
+```{r}
+library(odin2)
+library(dust2)
+library(monty)
+```
+
+## Model Definition
+
+```{r}
+seir_vax <- odin({
+  n_SE <- Binomial(S, 1 - exp(-beta * I / N * dt))
+  n_EI <- Binomial(E, 1 - exp(-sigma * dt))
+  n_IR <- Binomial(I, 1 - exp(-gamma * dt))
+  n_RS <- Binomial(R, 1 - exp(-omega * dt))
+  n_SV <- Binomial(S, 1 - exp(-nu * dt))
+  n_VS <- Binomial(V, 1 - exp(-omega_v * dt))
+
+  update(S) <- S - n_SE - n_SV + n_RS + n_VS
+  update(E) <- E + n_SE - n_EI
+  update(I) <- I + n_EI - n_IR
+  update(R) <- R + n_IR - n_RS
+  update(V) <- V + n_SV - n_VS
+
+  initial(cases_inc, zero_every = 1) <- 0
+  update(cases_inc) <- cases_inc + n_EI
+
+  initial(S) <- N - E0 - I0
+  initial(E) <- E0
+  initial(I) <- I0
+  initial(R) <- 0
+  initial(V) <- 0
+
+  cases <- data()
+  cases ~ Poisson(cases_inc + 1e-6)
+
+  nu <- interpolate(nu_time, nu_value, "constant")
+  nu_time[] <- parameter()
+  nu_value[] <- parameter()
+  dim(nu_time, nu_value) <- parameter(rank = 1)
+
+  beta <- parameter(0.4)
+  sigma <- parameter(0.2)
+  gamma <- parameter(0.1)
+  omega <- parameter(0.005)
+  omega_v <- parameter(0.01)
+  E0 <- parameter(5)
+  I0 <- parameter(5)
+  N <- parameter(10000)
+})
+```
+
+## Simulation
+
+```{r}
+pars <- list(
+  beta = 0.4, sigma = 0.2, gamma = 0.1,
+  omega = 0.005, omega_v = 0.01,
+  E0 = 5, I0 = 5, N = 10000,
+  nu_time = c(0, 30), nu_value = c(0, 0.005)
+)
+
+sys <- dust_system_create(seir_vax, pars, n_particles = 1, dt = 1, seed = 42)
+dust_system_set_state_initial(sys)
+times <- seq(0, 365, by = 1)
+result <- dust_system_simulate(sys, times)
+
+plot(times, result[1, ], type = "l", col = "blue", lwd = 2,
+     xlab = "Day", ylab = "Population",
+     main = "SEIR-V (single realisation)", ylim = c(0, 10000))
+lines(times, result[2, ], col = "orange", lwd = 1.5)
+lines(times, result[3, ], col = "red", lwd = 2)
+lines(times, result[4, ], col = "green", lwd = 1.5)
+lines(times, result[5, ], col = "purple", lwd = 1.5)
+abline(v = 30, lty = 2, col = "gray")
+legend("right", legend = c("S", "E", "I", "R", "V"),
+       col = c("blue", "orange", "red", "green", "purple"), lwd = 2)
+```
+
+## Comparing Vaccination Scenarios
+
+```{r}
+scenarios <- list(
+  list(label = "No vaccination", nu_t = c(0, 365), nu_v = c(0, 0)),
+  list(label = "ν = 0.002", nu_t = c(0, 30), nu_v = c(0, 0.002)),
+  list(label = "ν = 0.005", nu_t = c(0, 30), nu_v = c(0, 0.005)),
+  list(label = "ν = 0.01",  nu_t = c(0, 30), nu_v = c(0, 0.01))
+)
+
+cols <- c("black", "blue", "red", "green")
+plot(NULL, xlim = c(0, 365), ylim = c(0, 1500),
+     xlab = "Day", ylab = "Mean infected",
+     main = "Impact of Vaccination Rate")
+
+for (k in seq_along(scenarios)) {
+  sc <- scenarios[[k]]
+  I_mean <- rep(0, length(times))
+  for (seed in 1:20) {
+    p <- pars
+    p$nu_time <- sc$nu_t
+    p$nu_value <- sc$nu_v
+    sys <- dust_system_create(seir_vax, p, n_particles = 1, dt = 1, seed = seed)
+    dust_system_set_state_initial(sys)
+    r <- dust_system_simulate(sys, times)
+    I_mean <- I_mean + r[3, ]
+  }
+  I_mean <- I_mean / 20
+  lines(times, I_mean, col = cols[k], lwd = 2)
+}
+legend("topright", legend = sapply(scenarios, "[[", "label"),
+       col = cols, lwd = 2)
+```
+
+## Summary
+
+The R implementation matches the Julia vignette, demonstrating the same SEIR-V
+model with time-varying vaccination, multiple realisations, and scenario comparison.

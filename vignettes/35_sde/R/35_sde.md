@@ -1,0 +1,273 @@
+# Stochastic Differential Equations (SDE) (R)
+
+
+## Introduction
+
+Stochastic differential equations (SDEs) extend ordinary differential
+equations (ODEs) with continuous noise terms, modelling systems subject
+to random fluctuations. In the Itô formulation:
+
+$$dX = f(X, t)\,dt + \sigma(X, t)\,dW$$
+
+where $f$ is the drift (deterministic dynamics), $\sigma$ is the
+diffusion coefficient (noise intensity), and $dW$ is a Wiener process
+increment.
+
+While Julia’s Odin supports SDEs natively via `diffusion()`, in R we
+implement Euler-Maruyama and Milstein schemes manually alongside
+`deSolve` for the deterministic ODE baseline.
+
+## SIR ODE with deSolve
+
+We start with the deterministic SIR model using `deSolve`:
+
+``` r
+library(deSolve)
+set.seed(42)
+
+sir_ode <- function(t, state, pars) {
+  with(as.list(c(state, pars)), {
+    dS <- -beta * S * I / N
+    dI <- beta * S * I / N - gamma * I
+    dR <- gamma * I
+    list(c(dS, dI, dR))
+  })
+}
+
+pars <- c(beta = 0.5, gamma = 0.1, N = 1000)
+state0 <- c(S = 990, I = 10, R = 0)
+times <- seq(0, 80, by = 0.5)
+
+out_ode <- ode(y = state0, times = times, func = sir_ode, parms = pars)
+cat("ODE I peak:", max(out_ode[, "I"]), "\n")
+```
+
+    ODE I peak: 479.9747 
+
+``` r
+cat("ODE peak time:", out_ode[which.max(out_ode[, "I"]), "time"], "\n")
+```
+
+    ODE peak time: 15.5 
+
+## SIR SDE via Euler-Maruyama
+
+The Euler-Maruyama scheme approximates the SDE at each time step:
+
+$$X_{n+1} = X_n + f(X_n)\,\Delta t + \sigma(X_n)\,\sqrt{\Delta t}\,Z_n$$
+
+where $Z_n \sim N(0, 1)$.
+
+``` r
+sir_sde_euler_maruyama <- function(pars, state0, times, dt = 0.01, seed = 42) {
+  set.seed(seed)
+  beta <- pars["beta"]; gamma <- pars["gamma"]
+  N <- pars["N"]; sigma <- pars["sigma"]
+  
+  t_max <- max(times)
+  n_steps <- ceiling(t_max / dt)
+  t_all <- seq(0, by = dt, length.out = n_steps + 1)
+  
+  S <- numeric(n_steps + 1); I <- numeric(n_steps + 1); R <- numeric(n_steps + 1)
+  S[1] <- state0["S"]; I[1] <- state0["I"]; R[1] <- state0["R"]
+  
+  for (k in seq_len(n_steps)) {
+    foi <- beta * S[k] * I[k] / N
+    rec <- gamma * I[k]
+    dW <- rnorm(3) * sqrt(dt)
+    
+    S[k+1] <- S[k] + (-foi) * dt + sigma * sqrt(abs(foi)) * dW[1]
+    I[k+1] <- I[k] + (foi - rec) * dt + sigma * sqrt(abs(foi + rec)) * dW[2]
+    R[k+1] <- R[k] + rec * dt + sigma * sqrt(abs(rec)) * dW[3]
+  }
+  
+  # Interpolate to requested times
+  idx <- findInterval(times, t_all, all.inside = TRUE)
+  data.frame(time = times, S = S[idx], I = I[idx], R = R[idx])
+}
+
+sde_pars <- c(beta = 0.5, gamma = 0.1, N = 1000, sigma = 0.1)
+out_sde <- sir_sde_euler_maruyama(sde_pars, state0, times, dt = 0.01)
+
+cat("SDE I peak:", max(out_sde$I), "\n")
+```
+
+    SDE I peak: 476.0704 
+
+``` r
+cat("SDE peak time:", out_sde$time[which.max(out_sde$I)], "\n")
+```
+
+    SDE peak time: 15.5 
+
+## Comparing ODE vs SDE
+
+``` r
+plot(out_ode[, "time"], out_ode[, "I"], type = "l", lwd = 2, col = "black",
+     xlab = "Time", ylab = "Infected (I)",
+     main = "ODE vs SDE: Infected Compartment")
+lines(out_sde$time, out_sde$I, col = "steelblue", lwd = 1.5)
+legend("topright", legend = c("ODE (deterministic)", "SDE (Euler-Maruyama)"),
+       col = c("black", "steelblue"), lwd = c(2, 1.5))
+```
+
+![](35_sde_files/figure-commonmark/unnamed-chunk-3-1.png)
+
+The SDE trajectory fluctuates around the deterministic ODE solution due
+to the Wiener process noise.
+
+## Ensemble of SDE paths
+
+Running multiple realisations produces an ensemble showing the range of
+stochastic outcomes:
+
+``` r
+n_particles <- 100
+ensemble_I <- matrix(NA, nrow = length(times), ncol = n_particles)
+
+for (p in seq_len(n_particles)) {
+  run <- sir_sde_euler_maruyama(sde_pars, state0, times, dt = 0.01, seed = 100 + p)
+  ensemble_I[, p] <- run$I
+}
+
+I_mean <- rowMeans(ensemble_I)
+I_sd <- apply(ensemble_I, 1, sd)
+
+cat("Mean peak I:", max(I_mean), "\n")
+```
+
+    Mean peak I: 480.5203 
+
+``` r
+cat("Std at peak:", I_sd[which.max(I_mean)], "\n")
+```
+
+    Std at peak: 4.105804 
+
+``` r
+plot(NULL, xlim = range(times), ylim = c(0, max(ensemble_I) * 1.05),
+     xlab = "Time", ylab = "Infected (I)", main = "Ensemble of SDE Trajectories")
+for (p in seq_len(min(n_particles, 50))) {
+  lines(times, ensemble_I[, p], col = adjustcolor("steelblue", alpha.f = 0.15))
+}
+lines(times, I_mean, col = "red", lwd = 2)
+lines(times, I_mean + 2 * I_sd, col = "red", lwd = 1, lty = 2)
+lines(times, I_mean - 2 * I_sd, col = "red", lwd = 1, lty = 2)
+lines(out_ode[, "time"], out_ode[, "I"], col = "black", lwd = 2)
+legend("topright",
+       legend = c("ODE", "SDE mean", "SDE ± 2σ", "SDE paths"),
+       col = c("black", "red", "red", "steelblue"),
+       lty = c(1, 1, 2, 1), lwd = c(2, 2, 1, 1))
+```
+
+![](35_sde_files/figure-commonmark/unnamed-chunk-5-1.png)
+
+## SDE: Milstein scheme
+
+The Milstein scheme achieves strong order 1.0 by including the
+derivative of the diffusion coefficient:
+
+$$X_{n+1} = X_n + f(X_n)\,\Delta t + \sigma(X_n)\,\Delta W + \frac{1}{2}\sigma(X_n)\sigma'(X_n)\left((\Delta W)^2 - \Delta t\right)$$
+
+For our SIR model with diffusion $\sigma_X = \sigma\sqrt{|r|}$ where $r$
+is the transition rate, the derivative is
+$\sigma'_X = \sigma / (2\sqrt{|r|})$.
+
+``` r
+sir_sde_milstein <- function(pars, state0, times, dt = 0.01, seed = 42) {
+  set.seed(seed)
+  beta <- pars["beta"]; gamma <- pars["gamma"]
+  N <- pars["N"]; sigma_coef <- pars["sigma"]
+  
+  t_max <- max(times)
+  n_steps <- ceiling(t_max / dt)
+  t_all <- seq(0, by = dt, length.out = n_steps + 1)
+  
+  S <- numeric(n_steps + 1); I <- numeric(n_steps + 1); R <- numeric(n_steps + 1)
+  S[1] <- state0["S"]; I[1] <- state0["I"]; R[1] <- state0["R"]
+  
+  for (k in seq_len(n_steps)) {
+    foi <- beta * S[k] * I[k] / N
+    rec <- gamma * I[k]
+    dW <- rnorm(3) * sqrt(dt)
+    
+    # Diffusion coefficients
+    diff_S <- sigma_coef * sqrt(abs(foi))
+    diff_I <- sigma_coef * sqrt(abs(foi + rec))
+    diff_R <- sigma_coef * sqrt(abs(rec))
+    
+    # Milstein correction: 0.5 * sigma * sigma' * (dW^2 - dt)
+    # For sigma(r) = sigma_coef * sqrt(|r|), sigma'(r) = sigma_coef / (2*sqrt(|r|))
+    # => sigma * sigma' = sigma_coef^2 / 2
+    mil_corr <- 0.5 * sigma_coef^2 / 2
+    
+    S[k+1] <- S[k] + (-foi) * dt + diff_S * dW[1] + mil_corr * (dW[1]^2 - dt)
+    I[k+1] <- I[k] + (foi - rec) * dt + diff_I * dW[2] + mil_corr * (dW[2]^2 - dt)
+    R[k+1] <- R[k] + rec * dt + diff_R * dW[3] + mil_corr * (dW[3]^2 - dt)
+  }
+  
+  idx <- findInterval(times, t_all, all.inside = TRUE)
+  data.frame(time = times, S = S[idx], I = I[idx], R = R[idx])
+}
+
+out_mil <- sir_sde_milstein(sde_pars, state0, times, dt = 0.01, seed = 42)
+cat("EM final I:       ", tail(out_sde$I, 1), "\n")
+```
+
+    EM final I:        1.404447 
+
+``` r
+cat("Milstein final I: ", tail(out_mil$I, 1), "\n")
+```
+
+    Milstein final I:  1.406117 
+
+The Milstein scheme achieves better strong convergence (individual path
+accuracy) at the same step size, which matters when comparing specific
+realisations. In Julia, Odin provides both solvers natively via the
+`:euler_maruyama` and `:milstein` solver options.
+
+## Effect of noise magnitude
+
+The parameter $\sigma$ controls the noise intensity:
+
+``` r
+for (sigma_val in c(0.01, 0.1, 0.5)) {
+  p <- c(beta = 0.5, gamma = 0.1, N = 1000, sigma = sigma_val)
+  ens <- matrix(NA, nrow = length(times), ncol = 50)
+  for (j in 1:50) {
+    run <- sir_sde_euler_maruyama(p, state0, times, dt = 0.01, seed = 200 + j)
+    ens[, j] <- run$I
+  }
+  I_m <- rowMeans(ens)
+  peak_var <- var(ens[which.max(I_m), ])
+  cat(sprintf("σ = %.2f → variance at peak: %.2f\n", sigma_val, peak_var))
+}
+```
+
+    σ = 0.01 → variance at peak: 0.12
+    σ = 0.10 → variance at peak: 11.51
+    σ = 0.50 → variance at peak: 284.76
+
+Higher $\sigma$ produces wider spread in trajectories.
+
+## Summary
+
+| Feature | R Implementation | Julia/Odin |
+|----|----|----|
+| ODE (deterministic) | `deSolve::ode()` | `deriv(X) = expr` |
+| SDE (Euler-Maruyama) | Manual loop | `diffusion(X) = expr` + `:euler_maruyama` |
+| SDE (Milstein) | Manual loop | `diffusion(X) = expr` + `:milstein` |
+
+Key points:
+
+- R requires manual implementation of SDE solvers, while Odin/Julia
+  provides them natively
+- `deSolve` handles the ODE baseline efficiently
+- The Euler-Maruyama scheme is straightforward to implement (strong
+  order 0.5)
+- The Milstein scheme requires computing the derivative of the diffusion
+  coefficient (strong order 1.0)
+- Multiple realisations give an ensemble view of stochastic uncertainty
+- Julia’s Odin advantage: built-in SDE support with `diffusion()`
+  keyword and automatic solver selection

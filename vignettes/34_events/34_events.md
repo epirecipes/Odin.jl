@@ -1,0 +1,245 @@
+# Event Handling in ODE Models
+
+
+## Introduction
+
+Real epidemiological models frequently involve **discontinuities** —
+sudden changes in state or parameters at specific times or when
+conditions are met. Examples include:
+
+- **Vaccination campaigns** at scheduled times
+- **Reactive interventions** triggered when hospital capacity is
+  exceeded
+- **Seasonal forcing** switching between school term and holiday contact
+  rates
+- **Drug administration** at periodic dosing intervals
+
+Odin.jl supports three types of events:
+
+| Type | Trigger | Example |
+|----|----|----|
+| `TimedEvent` | Pre-scheduled times | Pulse vaccination at t = 100, 200 |
+| `ContinuousEvent` | Zero-crossing of a condition function | Lockdown when ICU \> capacity |
+| `DiscreteEvent` | Boolean check at each accepted step | Treatment if I \> threshold |
+
+Events integrate with the DP5 adaptive ODE solver. Continuous events use
+Brent’s method on the dense output polynomial to locate the exact
+crossing time to machine precision.
+
+## Setup
+
+``` julia
+using Odin
+```
+
+## SIR Model Definition
+
+We define a standard SIR model that will be used throughout this
+vignette:
+
+``` julia
+sir = @odin begin
+    deriv(S) = -beta * S * I / N
+    deriv(I) = beta * S * I / N - gamma * I
+    deriv(R) = gamma * I
+    initial(S) = N - I0
+    initial(I) = I0
+    initial(R) = 0
+    N = parameter(1000)
+    I0 = parameter(10)
+    beta = parameter(0.5)
+    gamma = parameter(0.1)
+end
+
+pars = (N=1000.0, I0=10.0, beta=0.5, gamma=0.1)
+times = collect(0.0:0.5:50.0);
+```
+
+## Baseline: No Events
+
+``` julia
+out_baseline = dust_system_simulate(sir, pars; times=times)
+
+# Extract S, I, R
+S_base = out_baseline[1, 1, :]
+I_base = out_baseline[2, 1, :]
+R_base = out_baseline[3, 1, :]
+println("Peak I (no events): ", round(maximum(I_base), digits=1),
+        " at t = ", times[argmax(I_base)])
+```
+
+    Peak I (no events): 480.0 at t = 15.5
+
+## Timed Events: Vaccination Campaign
+
+A `TimedEvent` fires at pre-specified times. Here we model pulse
+vaccination at t = 3 and t = 6, each vaccinating 20% of remaining
+susceptibles:
+
+``` julia
+vaccination = TimedEvent(
+    [3.0, 6.0],
+    (u, pars, t) -> begin
+        susceptibles = u[1]
+        vaccinated = susceptibles * 0.2
+        u[1] -= vaccinated   # remove from S
+        u[3] += vaccinated   # add to R (immune)
+    end
+)
+
+events_vax = EventSet(timed=[vaccination])
+sys = dust_system_create(sir, pars)
+dust_system_set_state_initial!(sys)
+out_vax = dust_system_simulate(sys, times; events=events_vax)
+
+S_vax = out_vax[1, 1, :]
+I_vax = out_vax[2, 1, :]
+println("Peak I (with vaccination): ", round(maximum(I_vax), digits=1),
+        " at t = ", times[argmax(I_vax)])
+println("Peak reduction: ", round(maximum(I_base) - maximum(I_vax), digits=1))
+```
+
+    Peak I (with vaccination): 234.1 at t = 18.5
+    Peak reduction: 245.8
+
+The vaccination pulses reduce the susceptible pool early in the
+epidemic, substantially lowering the peak number of infected
+individuals.
+
+## Continuous Events: Reactive Intervention
+
+A `ContinuousEvent` triggers when a condition function crosses zero. The
+solver uses Brent’s method on the DP5 dense output to locate the exact
+crossing time.
+
+Here we model a reactive intervention: when infected individuals exceed
+200, emergency treatment is applied (transferring 30% of I to R):
+
+``` julia
+intervention = ContinuousEvent(
+    (u, pars, t) -> u[2] - 200.0,     # trigger when I crosses 200
+    (u, pars, t) -> begin
+        treated = u[2] * 0.3
+        u[2] -= treated
+        u[3] += treated
+    end;
+    direction = :up,       # only trigger on upcrossing
+    rootfind = true         # use Brent's method for exact timing
+)
+
+events_react = EventSet(continuous=[intervention])
+sys2 = dust_system_create(sir, pars)
+dust_system_set_state_initial!(sys2)
+out_react = dust_system_simulate(sys2, times; events=events_react)
+
+I_react = out_react[2, 1, :]
+println("Peak I (reactive): ", round(maximum(I_react), digits=1))
+println("Peak I (baseline):  ", round(maximum(I_base), digits=1))
+```
+
+    Peak I (reactive): 199.3
+    Peak I (baseline):  480.0
+
+## Discrete Events: Step-Based Monitoring
+
+A `DiscreteEvent` is checked at every accepted solver step. It’s useful
+for conditions that don’t require precise timing:
+
+``` julia
+monitor = DiscreteEvent(
+    (u, pars, t) -> u[2] > 300.0,   # check at each step
+    (u, pars, t) -> begin
+        treated = u[2] * 0.05        # mild treatment
+        u[2] -= treated
+        u[3] += treated
+    end
+)
+
+events_disc = EventSet(discrete=[monitor])
+sys3 = dust_system_create(sir, pars)
+dust_system_set_state_initial!(sys3)
+out_disc = dust_system_simulate(sys3, times; events=events_disc)
+
+I_disc = out_disc[2, 1, :]
+println("Peak I (discrete monitoring): ", round(maximum(I_disc), digits=1))
+```
+
+    Peak I (discrete monitoring): 415.0
+
+## Combined Events
+
+Multiple event types can be combined in a single `EventSet`:
+
+``` julia
+# Scheduled vaccination + reactive treatment
+combined_events = EventSet(
+    timed = [
+        TimedEvent([3.0], (u, p, t) -> begin
+            v = u[1] * 0.15; u[1] -= v; u[3] += v
+        end)
+    ],
+    continuous = [
+        ContinuousEvent(
+            (u, p, t) -> u[2] - 250.0,
+            (u, p, t) -> begin
+                tr = u[2] * 0.2; u[2] -= tr; u[3] += tr
+            end;
+            direction = :up
+        )
+    ]
+)
+
+sys4 = dust_system_create(sir, pars)
+dust_system_set_state_initial!(sys4)
+out_combined = dust_system_simulate(sys4, times; events=combined_events)
+
+println("Peak I (combined):  ", round(maximum(out_combined[2,1,:]), digits=1))
+println("Peak I (baseline):  ", round(maximum(I_base), digits=1))
+```
+
+    Peak I (combined):  245.6
+    Peak I (baseline):  480.0
+
+## Root Finding Accuracy
+
+The continuous event detector uses Brent’s method on the DP5 dense
+output polynomial. This achieves near-machine-precision event timing:
+
+``` julia
+# Simple test: du/dt = 1, u(0) = 0. Event at u = 17.3 (exact time = 17.3)
+f! = (du, u, pars, t) -> (du[1] = 1.0)
+
+exact_event = ContinuousEvent(
+    (u, pars, t) -> u[1] - 17.3,
+    (u, pars, t) -> nothing;   # no-op
+    direction = :up
+)
+
+result, log = dp5_solve_events!(
+    f!, [0.0], (0.0, 30.0), nothing, collect(0.0:1.0:30.0);
+    events = EventSet(continuous=[exact_event])
+)
+
+event_time = log[1].time
+error = abs(event_time - 17.3)
+println("Event time: ", event_time)
+println("Error:      ", error)
+println("Tolerance:  < 1e-10? ", error < 1e-10)
+```
+
+    Event time: 17.300000000000004
+    Error:      3.552713678800501e-15
+    Tolerance:  < 1e-10? true
+
+## Summary
+
+| Feature           | Mechanism                     | Precision           |
+|-------------------|-------------------------------|---------------------|
+| Timed events      | Step to exact event time      | Machine precision   |
+| Continuous events | Brent’s method + dense output | \< 1e-10            |
+| Discrete events   | Check at accepted steps       | Step-size dependent |
+
+Events are fully compatible with the `dust_system_simulate` interface
+and work with both single-particle and multi-particle simulations. The
+zero-allocation DP5 core path is preserved for simulations without
+events.
