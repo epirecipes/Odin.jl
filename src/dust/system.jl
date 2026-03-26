@@ -1,4 +1,5 @@
 # Dust system types and interface — the core runtime engine.
+using DifferentialEquations: ODEProblem as _ODEProblem_sys, solve as _solve_sys, Tsit5 as _Tsit5_sys
 
 """
     DustSystemGenerator
@@ -270,13 +271,13 @@ function _run_continuous!(sys::DustSystem{M, T, P}, target_time::T) where {M, T,
     model = sys.generator.model
     for p in 1:sys.n_particles
         state_vec = sys.state[:, p]
-        prob = OrdinaryDiffEq.ODEProblem(
+        prob = _ODEProblem_sys(
             (du, u, pars, t) -> _odin_rhs!(model, du, u, pars, t),
             state_vec,
             (sys.time, target_time),
             sys.pars,
         )
-        sol = OrdinaryDiffEq.solve(prob, OrdinaryDiffEq.Tsit5(); save_everystep=false)
+        sol = _solve_sys(prob, _Tsit5_sys(); save_everystep=false)
         sys.state[:, p] .= sol.u[end]
     end
     sys.time = target_time

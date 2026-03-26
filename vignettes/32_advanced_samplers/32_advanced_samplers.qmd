@@ -46,12 +46,12 @@ function banana_gradient(x; b=0.1)
     return [dx1, dx2]
 end
 
-banana_no_grad = monty_model(
+banana_no_grad = DensityModel(
     banana_density;
     parameters=["x", "y"],
 )
 
-banana_with_grad = monty_model(
+banana_with_grad = DensityModel(
     banana_density;
     parameters=["x", "y"],
     gradient=banana_gradient,
@@ -67,7 +67,7 @@ target_mean = [0.0, 0.0]
 target_cov = [1.0 0.95; 0.95 1.0]
 target_dist = MvNormal(target_mean, target_cov)
 
-gauss_model = monty_model(
+gauss_model = DensityModel(
     x -> logpdf(target_dist, x);
     parameters=["x", "y"],
     gradient=x -> -inv(target_cov) * (x .- target_mean),
@@ -80,10 +80,10 @@ The slice sampler uses Neal's stepping-out and shrinking procedure. It requires
 no gradient and no tuning of proposal variance — only the bracket width `w`:
 
 ```{julia}
-slice = monty_sampler_slice(w=2.0, max_steps=20)
+sl = slice(w=2.0, max_steps=20)
 initial = zeros(Float64, 2, 4)
 
-samples_slice = monty_sample(banana_no_grad, slice, 5000;
+samples_slice = sample(banana_no_grad, sl, 5000;
     n_chains=4, initial=initial, n_burnin=1000, seed=42)
 
 println("Slice sampler on banana target:")
@@ -97,15 +97,15 @@ MALA uses gradient information for smarter proposals. It's simpler than HMC
 (one gradient evaluation per step) but still makes directed moves:
 
 ```{julia}
-mala = monty_sampler_mala(0.3)
+ml = mala(0.3)
 initial = zeros(Float64, 2, 4)
 
-samples_mala = monty_sample(banana_with_grad, mala, 5000;
+samples_ml = sample(banana_with_grad, ml, 5000;
     n_chains=4, initial=initial, n_burnin=1000, seed=42)
 
 println("MALA on banana target:")
-println("  Mean: ", round.(mean(samples_mala.pars[:, :, :], dims=(2, 3))[:, 1, 1], digits=2))
-println("  Acceptance rate: ", round.(samples_mala.details[:acceptance_rate], digits=3))
+println("  Mean: ", round.(mean(samples_ml.pars[:, :, :], dims=(2, 3))[:, 1, 1], digits=2))
+println("  Acceptance rate: ", round.(samples_ml.details[:acceptance_rate], digits=3))
 ```
 
 ### MALA with preconditioning
@@ -114,13 +114,13 @@ A mass matrix can improve MALA on poorly scaled targets:
 
 ```{julia}
 M = [1.0 0.0; 0.0 4.0]
-mala_precond = monty_sampler_mala(0.2; vcv=M)
+ml_precond = mala(0.2; vcv=M)
 
-samples_mala_p = monty_sample(banana_with_grad, mala_precond, 5000;
+samples_ml_p = sample(banana_with_grad, ml_precond, 5000;
     n_chains=4, initial=zeros(Float64, 2, 4), n_burnin=1000, seed=42)
 
 println("Preconditioned MALA acceptance: ",
-    round.(samples_mala_p.details[:acceptance_rate], digits=3))
+    round.(samples_ml_p.details[:acceptance_rate], digits=3))
 ```
 
 ## Gibbs sampler
@@ -133,12 +133,12 @@ different sub-sampler — useful for hierarchical models or mixed parameter type
 ```{julia}
 blocks = [[1], [2]]
 sub_samplers = [
-    monty_sampler_slice(w=2.0),
-    monty_sampler_slice(w=2.0),
+    slice(w=2.0),
+    slice(w=2.0),
 ]
-gibbs_slice = monty_sampler_gibbs(blocks, sub_samplers)
+gibbs_slice = gibbs(blocks, sub_samplers)
 
-samples_gibbs = monty_sample(banana_no_grad, gibbs_slice, 5000;
+samples_gibbs = sample(banana_no_grad, gibbs_slice, 5000;
     n_chains=4, initial=zeros(Float64, 2, 4), n_burnin=1000, seed=42)
 
 println("Gibbs (slice blocks) on banana:")
@@ -152,12 +152,12 @@ Combine gradient-based and gradient-free samplers in one Gibbs sweep:
 ```{julia}
 mixed_blocks = [[1], [2]]
 mixed_subs = Odin.AbstractMontySampler[
-    monty_sampler_mala(0.5; vcv=reshape([1.0], 1, 1)),
-    monty_sampler_slice(w=2.0),
+    mala(0.5; vcv=reshape([1.0], 1, 1)),
+    slice(w=2.0),
 ]
-gibbs_mixed = monty_sampler_gibbs(mixed_blocks, mixed_subs)
+gibbs_mixed = gibbs(mixed_blocks, mixed_subs)
 
-samples_mixed = monty_sample(banana_with_grad, gibbs_mixed, 5000;
+samples_mixed = sample(banana_with_grad, gibbs_mixed, 5000;
     n_chains=4, initial=zeros(Float64, 2, 4), n_burnin=1000, seed=42)
 
 println("Gibbs (MALA + Slice) on banana:")
@@ -191,23 +191,23 @@ function simple_ess(chain::AbstractVector{Float64})
 end
 
 # Random Walk
-rw = monty_sampler_random_walk(Matrix{Float64}(0.5I, 2, 2))
-t_rw = @elapsed s_rw = monty_sample(gauss_model, rw, n_steps;
+rw = random_walk(Matrix{Float64}(0.5I, 2, 2))
+t_rw = @elapsed s_rw = sample(gauss_model, rw, n_steps;
     n_chains=4, initial=initial, n_burnin=n_burnin, seed=42)
 
 # Slice
-sl = monty_sampler_slice(w=1.5)
-t_sl = @elapsed s_sl = monty_sample(gauss_model, sl, n_steps;
+sl = slice(w=1.5)
+t_sl = @elapsed s_sl = sample(gauss_model, sl, n_steps;
     n_chains=4, initial=initial, n_burnin=n_burnin, seed=42)
 
 # MALA
-ml = monty_sampler_mala(0.5)
-t_ml = @elapsed s_ml = monty_sample(gauss_model, ml, n_steps;
+ml = mala(0.5)
+t_ml = @elapsed s_ml = sample(gauss_model, ml, n_steps;
     n_chains=4, initial=initial, n_burnin=n_burnin, seed=42)
 
 # HMC
-hm = monty_sampler_hmc(0.1, 10)
-t_hm = @elapsed s_hm = monty_sample(gauss_model, hm, n_steps;
+hm = hmc(0.1, 10)
+t_hm = @elapsed s_hm = sample(gauss_model, hm, n_steps;
     n_chains=4, initial=initial, n_burnin=n_burnin, seed=42)
 
 for (name, samp, t) in [("RW", s_rw, t_rw), ("Slice", s_sl, t_sl),
@@ -243,15 +243,15 @@ library(dust2)
 # Define target
 m <- monty_model_function(
   function(x) -0.5 * (x[1]^2 + (x[2] - 0.1 * x[1]^2 + 10)^2),
-  packer = monty_packer(c("x", "y"))
+  packer = Packer(c("x", "y"))
 )
 
 # Random walk baseline
-sampler_rw <- monty_sampler_random_walk(vcv = diag(2) * 0.5)
-samples_rw <- monty_sample(m, sampler_rw, 5000, n_chains = 4)
+sampler_rw <- random_walk(vcv = diag(2) * 0.5)
+samples_rw <- sample(m, sampler_rw, 5000, n_chains = 4)
 
 # HMC (requires gradient)
-sampler_hmc <- monty_sampler_hmc(epsilon = 0.1, n_integration_steps = 10)
+sampler_hmc <- hmc(epsilon = 0.1, n_integration_steps = 10)
 # Note: R monty does not yet include slice, MALA, or Gibbs —
 # these are new in Odin.jl's Monty module.
 ```

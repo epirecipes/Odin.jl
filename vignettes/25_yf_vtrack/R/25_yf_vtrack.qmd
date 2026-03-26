@@ -266,10 +266,10 @@ pars <- list(
 n_particles <- 10
 sim_times <- seq(0, t_end, by = 1)
 
-sys <- dust_system_create(yf_vtrack, pars, n_particles = n_particles,
+sys <- System(yf_vtrack, pars, n_particles = n_particles,
                           dt = 1, seed = 42)
 dust_system_set_state_initial(sys)
-result <- dust_system_simulate(sys, sim_times)
+result <- simulate(sys, sim_times)
 cat("Result dimensions:", dim(result), "\n")
 ```
 
@@ -435,10 +435,10 @@ pars_novacc$S_0 <- S_0_nv
 pars_novacc$E_0 <- E_0_nv
 pars_novacc$R_0 <- R_0_nv
 
-sys_nv <- dust_system_create(yf_vtrack, pars_novacc, n_particles = n_particles,
+sys_nv <- System(yf_vtrack, pars_novacc, n_particles = n_particles,
                              dt = 1, seed = 42)
 dust_system_set_state_initial(sys_nv)
-result_nv <- dust_system_simulate(sys_nv, sim_times)
+result_nv <- simulate(sys_nv, sim_times)
 
 I_vacc <- apply(apply(result[idx_I, , , drop = FALSE], c(2, 3), sum), 2, mean)
 I_novacc <- apply(apply(result_nv[idx_I, , , drop = FALSE], c(2, 3), sum), 2, mean)
@@ -463,6 +463,6 @@ legend("topright", legend = c("No vaccination", "With vaccination"),
 | Step | API |
 |------|-----|
 | Define model | `odin({ ... })` with 2D arrays `c(N_age, 2)` |
-| Create system | `dust_system_create(gen, pars, n_particles, dt, seed)` |
-| Simulate | `dust_system_simulate(sys, times)` |
+| Create system | `System(gen, pars, n_particles, dt, seed)` |
+| Simulate | `simulate(sys, times)` |
 | Scenario comparison | Re-run with modified `vacc_rate` |

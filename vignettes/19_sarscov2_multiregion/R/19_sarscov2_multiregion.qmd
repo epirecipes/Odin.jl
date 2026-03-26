@@ -260,10 +260,10 @@ cat("Reporting rate:", 100 * true_pars$rho, "%\n")
 ```{r}
 sim_times <- seq(0, 365, by = 1)
 
-sys <- dust_system_create(seird_regions, true_pars,
+sys <- System(seird_regions, true_pars,
                           ode_control = dust_ode_control())
 dust_system_set_state_initial(sys)
-result <- dust_system_simulate(sys, sim_times)
+result <- simulate(sys, sim_times)
 cat("Output dimensions:", dim(result), "\n")
 ```
 
@@ -355,10 +355,10 @@ obs_weeks <- seq(7, 364, by = 7)
 n_weeks <- length(obs_weeks)
 
 # Simulate to get state at weekly intervals
-sys_w <- dust_system_create(seird_regions, true_pars,
+sys_w <- System(seird_regions, true_pars,
                             ode_control = dust_ode_control())
 dust_system_set_state_initial(sys_w)
-result_weekly <- dust_system_simulate(sys_w, obs_weeks)
+result_weekly <- simulate(sys_w, obs_weeks)
 
 # State indices for E (exposed): E1=2, E2=8, E3=14
 E_idx <- c(2, 8, 14)
@@ -426,7 +426,7 @@ This gives **26 parameters** total: 8 × 3 = 24 Rt values + `rho` + `ifr`.
 ### Packer and fixed parameters
 
 ```{r}
-packer <- monty_packer(
+packer <- Packer(
   c("rho", "ifr"),
   array = list(Rt_v1 = n_Rt, Rt_v2 = n_Rt, Rt_v3 = n_Rt),
   fixed = list(
@@ -466,7 +466,7 @@ prior_density <- function(theta) {
   ll
 }
 
-prior <- monty_model(
+prior <- DensityModel(
   list(
     density = prior_density,
     parameters = packer$names(),
@@ -484,8 +484,8 @@ The unfilter evaluates the ODE at each data time point and computes the
 Poisson log-likelihood of the weekly case counts:
 
 ```{r}
-uf <- dust_unfilter_create(seird_regions, time_start = 0, data = data)
-ll <- dust_likelihood_monty(uf, packer)
+uf <- Likelihood(seird_regions, time_start = 0, data = data)
+ll <- as_model(uf, packer)
 posterior <- ll + prior
 
 # Check log-likelihood at true values
@@ -510,9 +510,9 @@ vcv_init <- diag(c(
   rep(0.01, n_Rt)                     # Rt_v3
 ))
 
-sampler <- monty_sampler_adaptive(vcv_init)
+sampler <- adaptive_mh(vcv_init)
 
-samples <- monty_sample(posterior, sampler, 3000,
+samples <- sample(posterior, sampler, 3000,
                         initial = true_theta,
                         n_chains = 1, burnin = 500)
 ```
@@ -612,10 +612,10 @@ idx <- sample(n_total, n_proj, replace = TRUE)
 
 for (j in seq_len(n_proj)) {
   pars_j <- packer$unpack(samples$pars[, idx[j], 1])
-  sys_j <- dust_system_create(seird_regions, pars_j,
+  sys_j <- System(seird_regions, pars_j,
                               ode_control = dust_ode_control())
   dust_system_set_state_initial(sys_j)
-  r <- dust_system_simulate(sys_j, proj_times)
+  r <- simulate(sys_j, proj_times)
   for (i in 1:n_regions) {
     I_traj[j, , i] <- r[I_idx[i], ]
   }
@@ -681,10 +681,10 @@ par(mfrow = c(1, 1))
 pars_nocoupling <- true_pars
 pars_nocoupling$epsilon <- 0
 
-sys_nc <- dust_system_create(seird_regions, pars_nocoupling,
+sys_nc <- System(seird_regions, pars_nocoupling,
                              ode_control = dust_ode_control())
 dust_system_set_state_initial(sys_nc)
-result_nc <- dust_system_simulate(sys_nc, sim_times)
+result_nc <- simulate(sys_nc, sim_times)
 
 plot(NULL, xlim = range(sim_times),
      ylim = c(0, max(result[I_idx, ], result_nc[I_idx, ])),
@@ -739,8 +739,8 @@ legend("topright",
 |------|-----|
 | Define model | `odin({ … })` with per-region states and `interpolate()` |
 | Prepare data | `data.frame(time = …, cases1 = …, …)` |
-| Pack parameters | `monty_packer(c("rho", "ifr"), array = list(Rt_v1 = 8, …), fixed = …)` |
-| Likelihood | `dust_unfilter_create()` → `dust_likelihood_monty()` |
+| Pack parameters | `Packer(c("rho", "ifr"), array = list(Rt_v1 = 8, …), fixed = …)` |
+| Likelihood | `Likelihood()` → `as_model()` |
 | Prior | `monty_dsl({ … })` |
 | Posterior | `likelihood + prior` |
-| Sample | `monty_sample(posterior, sampler, n, …)` |
+| Sample | `sample(posterior, sampler, n, …)` |

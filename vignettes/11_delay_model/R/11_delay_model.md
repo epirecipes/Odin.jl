@@ -143,9 +143,9 @@ for (idx in seq_along(k_values)) {
   i_end <- 1 + k + k     # last I state index
 
   for (seed in 1:n_runs) {
-    sys <- dust_system_create(seir_delay, pars, dt = 1, seed = seed)
+    sys <- System(seir_delay, pars, dt = 1, seed = seed)
     dust_system_set_state_initial(sys)
-    r <- dust_system_simulate(sys, times)
+    r <- simulate(sys, times)
     I_mean <- I_mean + colSums(r[i_start:i_end, , drop = FALSE])
   }
   I_mean <- I_mean / n_runs
@@ -173,9 +173,9 @@ for (idx in seq_along(k_values)) {
        main = paste("k =", k))
 
   for (seed in 1:20) {
-    sys <- dust_system_create(seir_delay, pars, dt = 1, seed = seed)
+    sys <- System(seir_delay, pars, dt = 1, seed = seed)
     dust_system_set_state_initial(sys)
-    r <- dust_system_simulate(sys, times)
+    r <- simulate(sys, times)
     I_total <- colSums(r[i_start:i_end, , drop = FALSE])
     lines(times, I_total, col = adjustcolor(cols[idx], alpha.f = 0.3))
   }
@@ -193,9 +193,9 @@ true_pars <- list(beta = 0.8, sigma = 0.2, gamma = 0.1,
                   k_E = 4, k_I = 4, I0 = 5, N = 10000)
 
 obs_times <- seq(0, 100, by = 1)
-sys_true <- dust_system_create(seir_delay, true_pars, dt = 1, seed = 1)
+sys_true <- System(seir_delay, true_pars, dt = 1, seed = 1)
 dust_system_set_state_initial(sys_true)
-true_result <- dust_system_simulate(sys_true, obs_times)
+true_result <- simulate(sys_true, obs_times)
 
 # Incidence is the last state: 1 (S) + k_E + k_I + 1 (R) + 1 = 11
 inc_idx <- 3 + 4 + 4
@@ -213,13 +213,13 @@ barplot(obs_cases, names.arg = 1:length(obs_cases),
 ``` r
 data <- data.frame(time = obs_times[-1], cases = obs_cases)
 
-filter <- dust_filter_create(seir_delay, time_start = 0, data = data,
+filter <- Likelihood(seir_delay, time_start = 0, data = data,
                              n_particles = 100, seed = 42)
 
-packer <- monty_packer(c("beta", "sigma", "gamma"),
+packer <- Packer(c("beta", "sigma", "gamma"),
                        fixed = list(k_E = 4, k_I = 4, I0 = 5, N = 10000))
 
-likelihood <- dust_likelihood_monty(filter, packer)
+likelihood <- as_model(filter, packer)
 
 prior <- monty_dsl({
   beta ~ Gamma(shape = 4, rate = 5)
@@ -234,9 +234,9 @@ posterior <- likelihood + prior
 
 ``` r
 vcv <- matrix(c(0.005, 0, 0, 0, 0.002, 0, 0, 0, 0.001), 3, 3)
-sampler <- monty_sampler_random_walk(vcv)
+sampler <- random_walk(vcv)
 
-samples <- monty_sample(posterior, sampler, 3000,
+samples <- sample(posterior, sampler, 3000,
                         initial = c(0.6, 0.15, 0.08))
 ```
 

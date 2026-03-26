@@ -73,11 +73,11 @@ user-specified proposal covariance:
 ``` r
 banana_model <- monty_model_function(
   function(x, y) banana_density(c(x, y)),
-  packer = monty_packer(c("x", "y"))
+  packer = Packer(c("x", "y"))
 )
 
-sampler_rw <- monty_sampler_random_walk(vcv = diag(2) * 0.5)
-samples_rw <- monty_sample(banana_model, sampler_rw, 5000, n_chains = 4,
+sampler_rw <- random_walk(vcv = diag(2) * 0.5)
+samples_rw <- sample(banana_model, sampler_rw, 5000, n_chains = 4,
                            initial = matrix(0, 2, 4))
 ```
 
@@ -109,7 +109,7 @@ HMC uses gradient information for more efficient exploration. It
 requires a model with a gradient method:
 
 ``` r
-banana_model_grad <- monty_model(
+banana_model_grad <- DensityModel(
   list(
     parameters = c("x", "y"),
     density = function(x) banana_density(x),
@@ -120,8 +120,8 @@ banana_model_grad <- monty_model(
                          has_gradient = TRUE)
 )
 
-sampler_hmc <- monty_sampler_hmc(epsilon = 0.05, n_integration_steps = 20)
-samples_hmc <- monty_sample(banana_model_grad, sampler_hmc, 5000,
+sampler_hmc <- hmc(epsilon = 0.05, n_integration_steps = 20)
+samples_hmc <- sample(banana_model_grad, sampler_hmc, 5000,
                             n_chains = 4,
                             initial = matrix(0, 2, 4))
 ```
@@ -277,10 +277,10 @@ n_burnin <- 1000
 
 gauss_model_rw <- monty_model_function(
   function(x, y) gauss_density(c(x, y)),
-  packer = monty_packer(c("x", "y"))
+  packer = Packer(c("x", "y"))
 )
 
-gauss_model_hmc <- monty_model(
+gauss_model_hmc <- DensityModel(
   list(
     parameters = c("x", "y"),
     density = function(x) gauss_density(x),
@@ -295,8 +295,8 @@ results <- list()
 
 # Random walk (monty)
 t_rw <- system.time({
-  s_rw <- monty_sample(gauss_model_rw,
-                       monty_sampler_random_walk(vcv = diag(2) * 0.5),
+  s_rw <- sample(gauss_model_rw,
+                       random_walk(vcv = diag(2) * 0.5),
                        n_steps, n_chains = 1,
                        initial = matrix(0, 2, 1))
 })["elapsed"]
@@ -306,8 +306,8 @@ results$RW <- c(ess = min(ess_rw), time = t_rw)
 
 # HMC (monty)
 t_hmc <- system.time({
-  s_hmc <- monty_sample(gauss_model_hmc,
-                        monty_sampler_hmc(epsilon = 0.2,
+  s_hmc <- sample(gauss_model_hmc,
+                        hmc(epsilon = 0.2,
                                           n_integration_steps = 10),
                         n_steps, n_chains = 1,
                         initial = matrix(0, 2, 1))

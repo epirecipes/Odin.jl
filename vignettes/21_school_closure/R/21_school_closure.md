@@ -126,9 +126,9 @@ pars <- list(
 ``` r
 times <- seq(0, 200, by = 1)
 
-sys <- dust_system_create(sis, pars, n_particles = 20, dt = 1, seed = 42)
+sys <- System(sis, pars, n_particles = 20, dt = 1, seed = 42)
 dust_system_set_state_initial(sys)
-result <- dust_system_simulate(sys, times)
+result <- simulate(sys, times)
 
 dim(result)  # n_state × n_particles × n_times
 ```
@@ -182,13 +182,13 @@ lines(times, mean_inc, col = "darkgreen", lwd = 2)
 ``` r
 pars_no_closure <- modifyList(pars, list(schools_modifier = 0.0))
 
-sys1 <- dust_system_create(sis, pars, n_particles = 20, dt = 1, seed = 1)
+sys1 <- System(sis, pars, n_particles = 20, dt = 1, seed = 1)
 dust_system_set_state_initial(sys1)
-r_closure <- dust_system_simulate(sys1, times)
+r_closure <- simulate(sys1, times)
 
-sys2 <- dust_system_create(sis, pars_no_closure, n_particles = 20, dt = 1, seed = 1)
+sys2 <- System(sis, pars_no_closure, n_particles = 20, dt = 1, seed = 1)
 dust_system_set_state_initial(sys2)
-r_no_closure <- dust_system_simulate(sys2, times)
+r_no_closure <- simulate(sys2, times)
 
 par(mfrow = c(2, 1), mar = c(4, 4, 2, 1))
 
@@ -217,9 +217,9 @@ legend("topright", c("With closure (60%)", "No closure effect"),
 
 ``` r
 set.seed(42)
-sys_truth <- dust_system_create(sis, pars, n_particles = 1, dt = 1, seed = 101)
+sys_truth <- System(sis, pars, n_particles = 1, dt = 1, seed = 101)
 dust_system_set_state_initial(sys_truth)
-truth <- dust_system_simulate(sys_truth, times)
+truth <- simulate(sys_truth, times)
 
 true_incidence <- truth[3, -1]
 observed_cases <- rpois(length(true_incidence), pmax(true_incidence, 1e-6))
@@ -237,7 +237,7 @@ lines(seq_along(observed_cases), true_incidence, col = "red", lwd = 2)
 ``` r
 data <- data.frame(time = times[-1], cases = observed_cases)
 
-filter <- dust_filter_create(sis, time_start = 0, data = data,
+filter <- Likelihood(sis, time_start = 0, data = data,
                              n_particles = 100, seed = 42)
 
 ll <- dust_likelihood_run(filter, pars)
@@ -268,13 +268,13 @@ legend("topright", expression("True " * beta[0]), lty = 2, col = "red")
 ## Bayesian Inference
 
 ``` r
-packer <- monty_packer(c("beta0", "gamma"),
+packer <- Packer(c("beta0", "gamma"),
                        fixed = list(N = 1000, I0 = 10,
                                     schools_time = schools_time,
                                     schools_open = schools_open,
                                     schools_modifier = 0.6))
 
-likelihood <- dust_likelihood_monty(filter, packer)
+likelihood <- as_model(filter, packer)
 
 prior <- monty_dsl({
   beta0 ~ Gamma(shape = 2, rate = 10)
@@ -286,9 +286,9 @@ posterior <- likelihood + prior
 
 ``` r
 vcv <- matrix(c(0.002, 0, 0, 0.001), 2, 2)
-sampler <- monty_sampler_random_walk(vcv)
+sampler <- random_walk(vcv)
 
-samples <- monty_sample(posterior, sampler, 2000, initial = c(0.15, 0.08))
+samples <- sample(posterior, sampler, 2000, initial = c(0.15, 0.08))
 ```
 
     ⡀⠀ Sampling  ■                                |   0% ETA: 31s
@@ -361,9 +361,9 @@ abline(h = 0.1, col = "red")
 ``` r
 bench::mark(
   simulation = {
-    s <- dust_system_create(sis, pars, n_particles = 20, dt = 1, seed = 1)
+    s <- System(sis, pars, n_particles = 20, dt = 1, seed = 1)
     dust_system_set_state_initial(s)
-    dust_system_simulate(s, times)
+    simulate(s, times)
   },
   filter = dust_likelihood_run(filter, pars),
   check = FALSE, min_iterations = 10

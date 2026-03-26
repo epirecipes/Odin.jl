@@ -16,7 +16,7 @@ using Odin
             gamma = parameter(0.1)
         end
 
-        @test gen isa DustSystemGenerator
+        @test gen isa OdinModel
         @test gen.model.n_state == 3
         @test gen.model.is_continuous == true
         @test Set(gen.model.state_names) == Set([:S, :I, :R])
@@ -40,7 +40,7 @@ using Odin
             gamma = parameter(0.1)
         end
 
-        @test gen isa DustSystemGenerator
+        @test gen isa OdinModel
         @test gen.model.n_state == 3
         @test gen.model.is_continuous == false
     end

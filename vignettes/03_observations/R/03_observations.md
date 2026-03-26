@@ -91,9 +91,9 @@ sir_inc <- odin({
 pars <- list(beta = 0.5, gamma = 0.1, I0 = 10, N = 1000)
 times <- seq(0, 100, by = 1)
 
-sys <- dust_system_create(sir_inc, pars, n_particles = 5, dt = 1, seed = 42)
+sys <- System(sir_inc, pars, n_particles = 5, dt = 1, seed = 42)
 dust_system_set_state_initial(sys)
-result <- dust_system_simulate(sys, times)
+result <- simulate(sys, times)
 ```
 
 ## Visualising Incidence

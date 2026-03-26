@@ -31,7 +31,7 @@ evaluation:
 
 ```julia
 # Create GPU filter
-gpu_filt = gpu_dust_filter_create(gen, data;
+gpu_filt = gpu_Likelihood(gen, data;
     time_start = 0.0,
     n_particles = 10_000,
     dt = 0.25,
@@ -48,10 +48,10 @@ ll = gpu_dust_filter_run!(gpu_filt, pars)
 Wrap the GPU filter as a [`MontyModel`](@ref) for MCMC:
 
 ```julia
-packer = monty_packer([:beta, :gamma]; fixed=(N=1000.0, I0=10.0))
-likelihood = gpu_dust_likelihood_monty(gpu_filt, packer)
+packer = Packer([:beta, :gamma]; fixed=(N=1000.0, I0=10.0))
+likelihood = gpu_as_model(gpu_filt, packer)
 posterior = likelihood + prior
-samples = monty_sample(posterior, sampler, 5000)
+samples = sample(posterior, sampler, 5000)
 ```
 
 ## GPU Simulation

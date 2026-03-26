@@ -49,10 +49,10 @@ pars = (
     gamma = 0.1, I0 = 10.0, N = 1000.0,
 )
 
-sys = dust_system_create(sir_step, pars; dt = 1.0)
-dust_system_set_state_initial!(sys)
+sys = System(sir_step, pars; dt = 1.0)
+reset!(sys)
 times = collect(0.0:0.5:120.0)
-result = dust_system_simulate(sys, times)
+result = simulate(sys, times)
 
 plot(times, result[1, 1, :], label="S", lw=2, color=:blue)
 plot!(times, result[2, 1, :], label="I", lw=2, color=:red)
@@ -90,9 +90,9 @@ pars_linear = (
     gamma = 0.1, I0 = 10.0, N = 1000.0,
 )
 
-sys_l = dust_system_create(sir_linear, pars_linear; dt = 1.0)
-dust_system_set_state_initial!(sys_l)
-result_l = dust_system_simulate(sys_l, times)
+sys_l = System(sir_linear, pars_linear; dt = 1.0)
+reset!(sys_l)
+result_l = simulate(sys_l, times)
 
 plot(times, result_l[2, 1, :], label="I (linear β)", lw=2, color=:red)
 xlabel!("Time")
@@ -127,9 +127,9 @@ pars_spline = (
     gamma = 0.1, I0 = 10.0, N = 1000.0,
 )
 
-sys_s = dust_system_create(sir_spline, pars_spline; dt = 1.0)
-dust_system_set_state_initial!(sys_s)
-result_s = dust_system_simulate(sys_s, times)
+sys_s = System(sir_spline, pars_spline; dt = 1.0)
+reset!(sys_s)
+result_s = simulate(sys_s, times)
 
 plot(times, result_s[2, 1, :], label="I (spline β)", lw=2, color=:purple)
 xlabel!("Time")
@@ -184,9 +184,9 @@ p = plot(xlabel="Time", ylabel="Infected",
          title="Stochastic SIR with Time-Varying β (5 realisations)")
 
 for seed in 1:5
-    sys_st = dust_system_create(sir_stoch, pars_stoch; dt=1.0, seed=seed)
-    dust_system_set_state_initial!(sys_st)
-    r = dust_system_simulate(sys_st, collect(0.0:1.0:100.0))
+    sys_st = System(sir_stoch, pars_stoch; dt=1.0, seed=seed)
+    reset!(sys_st)
+    r = simulate(sys_st, collect(0.0:1.0:100.0))
     plot!(p, 0.0:1.0:100.0, r[2, 1, :], alpha=0.6, lw=1.5, label=nothing)
 end
 vline!(p, [30.0, 60.0], ls=:dash, color=:gray, label="β changes")

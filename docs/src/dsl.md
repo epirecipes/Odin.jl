@@ -10,7 +10,7 @@ gen = @odin begin
 end
 ```
 
-The macro returns a `DustSystemGenerator` that can create runnable `DustSystem` instances.
+The macro returns a `OdinModel` that can create runnable `DustSystem` instances.
 
 ## Continuous Models (ODEs)
 

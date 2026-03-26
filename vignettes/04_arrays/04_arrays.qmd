@@ -64,7 +64,7 @@ pars = (
 )
 
 times = collect(0.0:0.5:200.0)
-result = dust_system_simulate(sir_age, pars; times=times)
+result = simulate(sir_age, pars; times=times)
 println("State shape: ", size(result))
 ```
 

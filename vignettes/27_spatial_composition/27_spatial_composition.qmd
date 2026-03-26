@@ -29,7 +29,7 @@ using Plots
 We start with the standard SIR Petri net. Each patch will be a copy of this:
 
 ```{julia}
-sir_base = sir_net(; S0=990.0, I0=10.0, R0=0.0)
+sir_base = SIR(; S0=990.0, I0=10.0, R0=0.0)
 println("Species: ", species_names(sir_base))
 println("Transitions: ", transition_names(sir_base))
 println("Stoichiometry:")
@@ -98,31 +98,31 @@ println("Transitions: ", transition_names(sir_spatial_ring))
 We seed the infection in patch 1 only:
 
 ```{julia}
-sir_ring_gen = lower(sir_spatial_ring; mode=:ode, frequency_dependent=true, N=:N,
+sir_ring_gen = compile(sir_spatial_ring; mode=:ode, frequency_dependent=true, N=:N,
                      params=Dict(:beta => 0.3, :gamma => 0.1, :mu => 0.01, :N => 1000.0))
 
-sys = dust_system_create(sir_ring_gen, (beta=0.3, gamma=0.1, mu=0.01, N=1000.0))
+sys = System(sir_ring_gen, (beta=0.3, gamma=0.1, mu=0.01, N=1000.0))
 
 # Seed infection only in patch 1
-state = dust_system_state(sys)
+st = state(sys)
 sn = species_names(sir_spatial_ring)
 for (i, name) in enumerate(sn)
     if name == :S_p1
-        state[i] = 320.0
+        st[i] = 320.0
     elseif name == :I_p1
-        state[i] = 10.0
+        st[i] = 10.0
     elseif name in (:S_p2, :S_p3)
-        state[i] = 330.0
+        st[i] = 330.0
     elseif name in (:I_p2, :I_p3)
-        state[i] = 0.0
+        st[i] = 0.0
     else
-        state[i] = 0.0
+        st[i] = 0.0
     end
 end
-dust_system_set_state!(sys, state)
+Odin.dust_system_set_state!(sys, st)
 
 times = collect(0.0:0.5:300.0)
-result = dust_system_simulate(sys, times)
+result = simulate(sys, times)
 
 p = plot(title="Ring Topology — Infected by Patch",
          xlabel="Time (days)", ylabel="Infected", linewidth=2)
@@ -159,29 +159,29 @@ println("Spatial star — $(nspecies(sir_spatial_star)) species, $(ntransitions(
 ```
 
 ```{julia}
-sir_star_gen = lower(sir_spatial_star; mode=:ode, frequency_dependent=true, N=:N,
+sir_star_gen = compile(sir_spatial_star; mode=:ode, frequency_dependent=true, N=:N,
                      params=Dict(:beta => 0.3, :gamma => 0.1, :mu => 0.01, :N => 1000.0))
 
-sys_star = dust_system_create(sir_star_gen, (beta=0.3, gamma=0.1, mu=0.01, N=1000.0))
+sys_star = System(sir_star_gen, (beta=0.3, gamma=0.1, mu=0.01, N=1000.0))
 
-state_star = dust_system_state(sys_star)
+st_star = state(sys_star)
 sn_star = species_names(sir_spatial_star)
 for (i, name) in enumerate(sn_star)
     if name == :S_p1
-        state_star[i] = 320.0
+        st_star[i] = 320.0
     elseif name == :I_p1
-        state_star[i] = 10.0
+        st_star[i] = 10.0
     elseif name in (:S_p2, :S_p3)
-        state_star[i] = 330.0
+        st_star[i] = 330.0
     elseif name in (:I_p2, :I_p3)
-        state_star[i] = 0.0
+        st_star[i] = 0.0
     else
-        state_star[i] = 0.0
+        st_star[i] = 0.0
     end
 end
-dust_system_set_state!(sys_star, state_star)
+Odin.dust_system_set_state!(sys_star, st_star)
 
-result_star = dust_system_simulate(sys_star, times)
+result_star = simulate(sys_star, times)
 
 p = plot(title="Star Topology — Infected by Patch",
          xlabel="Time (days)", ylabel="Infected", linewidth=2)
@@ -267,9 +267,9 @@ manual_sir3 = @odin begin
     initial(R_p3) = 0.0
 end
 
-sys_manual = dust_system_create(manual_sir3, (beta=0.3, gamma=0.1, mu=0.01, N=1000.0))
-dust_system_set_state_initial!(sys_manual)
-result_manual = dust_system_simulate(sys_manual, times)
+sys_manual = System(manual_sir3, (beta=0.3, gamma=0.1, mu=0.01, N=1000.0))
+reset!(sys_manual)
+result_manual = simulate(sys_manual, times)
 
 println("Population conservation check:")
 for label in ["Composed", "Manual"]
@@ -284,29 +284,29 @@ end
 The same network lowers to a stochastic model:
 
 ```{julia}
-sir_ring_stoch = lower(sir_spatial_ring; mode=:discrete, frequency_dependent=true, N=:N,
+sir_ring_stoch = compile(sir_spatial_ring; mode=:discrete, frequency_dependent=true, N=:N,
                        params=Dict(:beta => 0.3, :gamma => 0.1, :mu => 0.01, :N => 1000.0))
 
-sys_s = dust_system_create(sir_ring_stoch,
+sys_s = System(sir_ring_stoch,
                            (beta=0.3, gamma=0.1, mu=0.01, N=1000.0);
                            n_particles=20, dt=0.25, seed=42)
 
-state_s = dust_system_state(sys_s)
+st_s = state(sys_s)
 for (i, name) in enumerate(sn)
     if name == :S_p1
-        state_s[i, :] .= 320.0
+        st_s[i, :] .= 320.0
     elseif name == :I_p1
-        state_s[i, :] .= 10.0
+        st_s[i, :] .= 10.0
     elseif name in (:S_p2, :S_p3)
-        state_s[i, :] .= 330.0
+        st_s[i, :] .= 330.0
     else
-        state_s[i, :] .= 0.0
+        st_s[i, :] .= 0.0
     end
 end
-dust_system_set_state!(sys_s, state_s)
+Odin.dust_system_set_state!(sys_s, st_s)
 
 times_s = collect(0.0:1.0:300.0)
-result_s = dust_system_simulate(sys_s, times_s)
+result_s = simulate(sys_s, times_s)
 
 p = plot(title="Stochastic Ring — Infected by Patch",
          xlabel="Time", ylabel="Infected")

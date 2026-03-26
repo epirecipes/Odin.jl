@@ -74,7 +74,7 @@ end
 pars = (beta=0.5, gamma=0.1, I0=10.0, N=1000.0)
 times = collect(0.0:1.0:100.0)
 
-jl_result = dust_system_simulate(sir_ode, pars; times=times, seed=1)
+jl_result = simulate(sir_ode, pars; times=times, seed=1)
 jl_S = jl_result[1, 1, :]
 jl_I = jl_result[2, 1, :]
 jl_R = jl_result[3, 1, :]
@@ -97,10 +97,10 @@ sir <- odin2::odin({
     N <- parameter(1000)
 })
 
-sys_r <- dust2::dust_system_create(sir, list(beta=0.5, gamma=0.1, I0=10, N=1000), seed=1L)
+sys_r <- dust2::System(sir, list(beta=0.5, gamma=0.1, I0=10, N=1000), seed=1L)
 dust2::dust_system_set_state_initial(sys_r)
 times_r <- seq(0, 100, by=1)
-r_result <- dust2::dust_system_simulate(sys_r, times_r)
+r_result <- dust2::simulate(sys_r, times_r)
 """
 
 r_S = rcopy(R"r_result[1, ]")
@@ -121,16 +121,16 @@ println()
 
 # Benchmark
 print("  Julia ODE simulate: ")
-jl_ode_bench = @benchmark dust_system_simulate($sir_ode, $pars; times=$times, seed=1) samples=50
+jl_ode_bench = @benchmark simulate($sir_ode, $pars; times=$times, seed=1) samples=50
 jl_ode_ms = median(jl_ode_bench.times) / 1e6
 @printf("%.3f ms (median)\n", jl_ode_ms)
 
 R"""
 library(microbenchmark)
 r_ode_bench <- microbenchmark::microbenchmark({
-    sys <- dust2::dust_system_create(sir, list(beta=0.5, gamma=0.1, I0=10, N=1000), seed=1L)
+    sys <- dust2::System(sir, list(beta=0.5, gamma=0.1, I0=10, N=1000), seed=1L)
     dust2::dust_system_set_state_initial(sys)
-    dust2::dust_system_simulate(sys, times_r)
+    dust2::simulate(sys, times_r)
 }, times=50)
 r_ode_ms <- median(r_ode_bench$time) / 1e6
 """
@@ -166,7 +166,7 @@ end
 stimes = collect(0.0:1.0:100.0)
 n_particles = 1000
 
-jl_stoch = dust_system_simulate(sir_stoch, pars; times=stimes, n_particles=n_particles, dt=1.0, seed=42)
+jl_stoch = simulate(sir_stoch, pars; times=stimes, n_particles=n_particles, dt=1.0, seed=42)
 jl_mean_I = mean(jl_stoch[2, :, :], dims=1)[1, :]
 jl_var_I = var(jl_stoch[2, :, :], dims=1)[1, :]
 
@@ -188,10 +188,10 @@ sir_stoch_r <- odin2::odin({
     N <- parameter(1000)
 })
 
-sys_stoch_r <- dust2::dust_system_create(sir_stoch_r, list(beta=0.5, gamma=0.1, I0=10, N=1000),
+sys_stoch_r <- dust2::System(sir_stoch_r, list(beta=0.5, gamma=0.1, I0=10, N=1000),
                                           n_particles=1000L, dt=1, seed=42L)
 dust2::dust_system_set_state_initial(sys_stoch_r)
-r_stoch <- dust2::dust_system_simulate(sys_stoch_r, seq(0, 100, by=1))
+r_stoch <- dust2::simulate(sys_stoch_r, seq(0, 100, by=1))
 r_mean_I <- apply(r_stoch[2, , ], 2, mean)
 r_var_I <- apply(r_stoch[2, , ], 2, var)
 """
@@ -211,16 +211,16 @@ println()
 
 # Benchmark
 print("  Julia stochastic (1000 particles): ")
-jl_stoch_bench = @benchmark dust_system_simulate($sir_stoch, $pars; times=$stimes, n_particles=1000, dt=1.0, seed=42) samples=30
+jl_stoch_bench = @benchmark simulate($sir_stoch, $pars; times=$stimes, n_particles=1000, dt=1.0, seed=42) samples=30
 jl_stoch_ms = median(jl_stoch_bench.times) / 1e6
 @printf("%.3f ms\n", jl_stoch_ms)
 
 R"""
 r_stoch_bench <- microbenchmark::microbenchmark({
-    sys <- dust2::dust_system_create(sir_stoch_r, list(beta=0.5, gamma=0.1, I0=10, N=1000),
+    sys <- dust2::System(sir_stoch_r, list(beta=0.5, gamma=0.1, I0=10, N=1000),
                                      n_particles=1000L, dt=1, seed=42L)
     dust2::dust_system_set_state_initial(sys)
-    dust2::dust_system_simulate(sys, seq(0, 100, by=1))
+    dust2::simulate(sys, seq(0, 100, by=1))
 }, times=30)
 r_stoch_ms <- median(r_stoch_bench$time) / 1e6
 """
@@ -260,14 +260,14 @@ end
 
 # Generate data
 Random.seed!(1)
-sys_data = dust_system_create(sir_obs, pars; n_particles=1, dt=1.0, seed=1)
-dust_system_set_state_initial!(sys_data)
-sim = dust_system_simulate(sys_data, collect(0.0:1.0:50.0))
+sys_data = System(sir_obs, pars; n_particles=1, dt=1.0, seed=1)
+reset!(sys_data)
+sim = simulate(sys_data, collect(0.0:1.0:50.0))
 incidence_data = sim[4, 1, 2:end]
 obs_data = [rand(Poisson(max(x, 1.0))) for x in incidence_data]
 
 data_records = [(time=Float64(t), cases=Float64(c)) for (t, c) in zip(1:50, obs_data)]
-fdata = dust_filter_data(data_records; time_field=:time)
+fdata = ObservedData(data_records; time_field=:time)
 
 # Save shared data
 shared_csv_path = joinpath(@__DIR__, "shared_data_comparison.csv")
@@ -278,8 +278,8 @@ n_pf_runs = 100
 n_pf_particles = 200
 jl_lls = zeros(n_pf_runs)
 for i in 1:n_pf_runs
-    pf = dust_filter_create(sir_obs, fdata; n_particles=n_pf_particles, dt=1.0, seed=i)
-    jl_lls[i] = dust_likelihood_run!(pf, pars)
+    pf = Likelihood(sir_obs, fdata; n_particles=n_pf_particles, dt=1.0, seed=i)
+    jl_lls[i] = loglik(pf, pars)
 end
 
 # R particle filter
@@ -310,7 +310,7 @@ data_r <- data.frame(time=shared_data$time, cases=shared_data$cases)
 
 r_lls <- numeric(100)
 for (i in 1:100) {
-    pf_r <- dust2::dust_filter_create(sir_obs_r, time_start=0, data=data_r,
+    pf_r <- dust2::Likelihood(sir_obs_r, time_start=0, data=data_r,
                                        n_particles=200L, dt=1, seed=i)
     r_lls[i] <- dust2::dust_likelihood_run(pf_r, list(beta=0.5, gamma=0.1, I0=10, N=1000))
 }
@@ -329,14 +329,14 @@ println()
 
 # Benchmark PF
 print("  Julia PF (200 particles, 50 steps): ")
-pf_jl = dust_filter_create(sir_obs, fdata; n_particles=n_pf_particles, dt=1.0, seed=42)
-jl_pf_bench = @benchmark dust_likelihood_run!($pf_jl, $pars) samples=50
+pf_jl = Likelihood(sir_obs, fdata; n_particles=n_pf_particles, dt=1.0, seed=42)
+jl_pf_bench = @benchmark loglik($pf_jl, $pars) samples=50
 jl_pf_ms = median(jl_pf_bench.times) / 1e6
 @printf("%.3f ms\n", jl_pf_ms)
 
 R"""
 r_pf_bench <- microbenchmark::microbenchmark({
-    pf <- dust2::dust_filter_create(sir_obs_r, time_start=0, data=data_r,
+    pf <- dust2::Likelihood(sir_obs_r, time_start=0, data=data_r,
                                      n_particles=200L, dt=1, seed=42L)
     dust2::dust_likelihood_run(pf, list(beta=0.5, gamma=0.1, I0=10, N=1000))
 }, times=50)
@@ -369,8 +369,8 @@ sir_ode_obs = @odin begin
     N = parameter(1000.0)
 end
 
-uf_jl = dust_unfilter_create(sir_ode_obs, fdata; time_start=0.0)
-jl_uf_ll = dust_unfilter_run!(uf_jl, pars)
+uf_jl = Likelihood(sir_ode_obs, fdata; time_start=0.0)
+jl_uf_ll = loglik(uf_jl, pars)
 
 R"""
 sir_ode_obs_r <- odin2::odin({
@@ -388,7 +388,7 @@ sir_ode_obs_r <- odin2::odin({
     N <- parameter(1000)
 })
 
-uf_r <- dust2::dust_unfilter_create(sir_ode_obs_r, time_start=0, data=data_r)
+uf_r <- dust2::Likelihood(sir_ode_obs_r, time_start=0, data=data_r)
 r_uf_ll <- dust2::dust_likelihood_run(uf_r, list(beta=0.5, gamma=0.1, I0=10, N=1000))
 """
 r_uf_ll = rcopy(R"r_uf_ll")
@@ -400,13 +400,13 @@ println()
 
 # Benchmark
 print("  Julia unfilter: ")
-jl_uf_bench = @benchmark dust_unfilter_run!($uf_jl, $pars) samples=100
+jl_uf_bench = @benchmark loglik($uf_jl, $pars) samples=100
 jl_uf_ms = median(jl_uf_bench.times) / 1e6
 @printf("%.3f ms\n", jl_uf_ms)
 
 R"""
 r_uf_bench <- microbenchmark::microbenchmark({
-    uf <- dust2::dust_unfilter_create(sir_ode_obs_r, time_start=0, data=data_r)
+    uf <- dust2::Likelihood(sir_ode_obs_r, time_start=0, data=data_r)
     dust2::dust_likelihood_run(uf, list(beta=0.5, gamma=0.1, I0=10, N=1000))
 }, times=100)
 r_uf_ms <- median(r_uf_bench$time) / 1e6
@@ -423,9 +423,9 @@ println("━" ^ 72)
 println("  5. MCMC: Random walk on deterministic SIR")
 println("━" ^ 72)
 
-pk = monty_packer([:beta, :gamma]; fixed=(I0=10.0, N=1000.0))
-ll_jl = dust_likelihood_monty(uf_jl, pk)
-prior_jl = @monty_prior begin
+pk = Packer([:beta, :gamma]; fixed=(I0=10.0, N=1000.0))
+ll_jl = as_model(uf_jl, pk)
+prior_jl = @prior begin
     beta ~ Gamma(2.0, 0.25)
     gamma ~ Gamma(2.0, 0.05)
 end
@@ -434,19 +434,19 @@ posterior_jl = ll_jl + prior_jl
 n_mcmc = 5000
 n_burnin = 1000
 vcv = diagm([0.005, 0.001])
-sampler_rw = monty_sampler_random_walk(vcv)
+sampler_rw = random_walk(vcv)
 
 print("  Julia MCMC (5000 steps, RW): ")
 t0 = time()
-samples_jl = monty_sample(posterior_jl, sampler_rw, n_mcmc;
+samples_jl = sample(posterior_jl, sampler_rw, n_mcmc;
     initial=reshape([0.4, 0.08], 2, 1), n_chains=1, n_burnin=n_burnin, seed=42)
 jl_mcmc_ms = (time() - t0) * 1000
 @printf("%.1f ms\n", jl_mcmc_ms)
 
 R"""
-uf_r2 <- dust2::dust_unfilter_create(sir_ode_obs_r, time_start=0, data=data_r)
-pk_r <- monty::monty_packer(c("beta", "gamma"), fixed=list(I0=10, N=1000))
-ll_r <- dust2::dust_likelihood_monty(uf_r2, pk_r)
+uf_r2 <- dust2::Likelihood(sir_ode_obs_r, time_start=0, data=data_r)
+pk_r <- monty::Packer(c("beta", "gamma"), fixed=list(I0=10, N=1000))
+ll_r <- dust2::as_model(uf_r2, pk_r)
 prior_r <- monty::monty_dsl({
     beta ~ Gamma(shape=2, rate=4)
     gamma ~ Gamma(shape=2, rate=20)
@@ -454,10 +454,10 @@ prior_r <- monty::monty_dsl({
 posterior_r <- ll_r + prior_r
 
 vcv_r <- matrix(c(0.005, 0, 0, 0.001), 2, 2)
-sampler_r <- monty::monty_sampler_random_walk(vcv_r)
+sampler_r <- monty::random_walk(vcv_r)
 
 r_t0 <- proc.time()
-samples_r <- monty::monty_sample(posterior_r, sampler_r, 5000L,
+samples_r <- monty::sample(posterior_r, sampler_r, 5000L,
     initial=c(0.4, 0.08), n_chains=1L, burnin=1000L)
 r_mcmc_time <- (proc.time() - r_t0)[["elapsed"]] * 1000
 
@@ -498,20 +498,20 @@ println("━" ^ 72)
 println("  6. ADAPTIVE MCMC: Spencer 2021 accelerated shaping")
 println("━" ^ 72)
 
-sampler_adapt = monty_sampler_adaptive(vcv)
+sampler_adapt = adaptive_mh(vcv)
 
 print("  Julia Adaptive MCMC (5000 steps): ")
 t0 = time()
-samples_adapt_jl = monty_sample(posterior_jl, sampler_adapt, n_mcmc;
+samples_adapt_jl = sample(posterior_jl, sampler_adapt, n_mcmc;
     initial=repeat([0.4, 0.08], 1, 4), n_chains=4, n_burnin=n_burnin, seed=42)
 jl_adapt_ms = (time() - t0) * 1000
 @printf("%.1f ms\n", jl_adapt_ms)
 
 R"""
-sampler_adapt_r <- monty::monty_sampler_adaptive(vcv_r)
+sampler_adapt_r <- monty::adaptive_mh(vcv_r)
 
 r_t0 <- proc.time()
-samples_adapt_r <- monty::monty_sample(posterior_r, sampler_adapt_r, 5000L,
+samples_adapt_r <- monty::sample(posterior_r, sampler_adapt_r, 5000L,
     initial=c(0.4, 0.08), n_chains=4L, burnin=1000L)
 r_adapt_time <- (proc.time() - r_t0)[["elapsed"]] * 1000
 
@@ -549,9 +549,9 @@ println("  7. NUTS SAMPLER (Julia only — not available in R monty)")
 println("━" ^ 72)
 
 print("  Julia NUTS (1000 steps): ")
-sampler_nuts = monty_sampler_nuts()
+sampler_nuts = nuts()
 t0 = time()
-samples_nuts = monty_sample(posterior_jl, sampler_nuts, 1000;
+samples_nuts = sample(posterior_jl, sampler_nuts, 1000;
     initial=repeat([0.4, 0.08], 1, 4), n_chains=4, n_burnin=500, seed=42)
 jl_nuts_ms = (time() - t0) * 1000
 @printf("%.1f ms\n", jl_nuts_ms)
@@ -576,26 +576,26 @@ println("━" ^ 72)
 println("  8. PARTICLE FILTER MCMC: Stochastic SIR")
 println("━" ^ 72)
 
-pf_jl2 = dust_filter_create(sir_obs, fdata; n_particles=500, dt=1.0, seed=42)
-ll_pf_jl = dust_likelihood_monty(pf_jl2, pk)
+pf_jl2 = Likelihood(sir_obs, fdata; n_particles=500, dt=1.0, seed=42)
+ll_pf_jl = as_model(pf_jl2, pk)
 posterior_pf_jl = ll_pf_jl + prior_jl
 
 print("  Julia PF-MCMC (10000 steps, 4 chains): ")
 t0 = time()
-samples_pf_jl = monty_sample(posterior_pf_jl, sampler_rw, 10000;
+samples_pf_jl = sample(posterior_pf_jl, sampler_rw, 10000;
     initial=repeat([0.4, 0.08], 1, 4), n_chains=4, n_burnin=2000, seed=42)
 jl_pfmcmc_ms = (time() - t0) * 1000
 @printf("%.1f ms\n", jl_pfmcmc_ms)
 
 R"""
-pf_r2 <- dust2::dust_filter_create(sir_obs_r, time_start=0, data=data_r,
+pf_r2 <- dust2::Likelihood(sir_obs_r, time_start=0, data=data_r,
                                     n_particles=500L, dt=1, seed=42L)
-ll_pf_r <- dust2::dust_likelihood_monty(pf_r2, pk_r)
+ll_pf_r <- dust2::as_model(pf_r2, pk_r)
 posterior_pf_r <- ll_pf_r + prior_r
 
-sampler_rw_r <- monty::monty_sampler_random_walk(vcv_r)
+sampler_rw_r <- monty::random_walk(vcv_r)
 r_t0 <- proc.time()
-samples_pf_r <- monty::monty_sample(posterior_pf_r, sampler_rw_r, 10000L,
+samples_pf_r <- monty::sample(posterior_pf_r, sampler_rw_r, 10000L,
     initial=c(0.4, 0.08), n_chains=4L, burnin=2000L)
 r_pfmcmc_time <- (proc.time() - r_t0)[["elapsed"]] * 1000
 

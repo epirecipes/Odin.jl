@@ -19,7 +19,7 @@
         @test gen.model.is_continuous == true
 
         pars = (beta=0.3, gamma=0.1, I0=10.0, N=1000.0)
-        sys = dust_system_create(gen, pars; dt=1.0)
+        sys = System(gen, pars; dt=1.0)
 
         # n_output should be 2 (total + prevalence)
         @test sys.n_output == 2
@@ -28,9 +28,9 @@
         # State names should be just S, I, R (3 state vars)
         @test sys.n_state == 3
 
-        dust_system_set_state_initial!(sys)
+        reset!(sys)
         times = collect(0.0:1.0:100.0)
-        result = dust_system_simulate(sys, times)
+        result = simulate(sys, times)
 
         # Result should have 5 rows: 3 state + 2 output
         @test size(result, 1) == 5
@@ -59,14 +59,14 @@
         end
 
         pars = (beta=0.3, gamma=0.1, I0=10.0, N=1000.0)
-        sys = dust_system_create(gen, pars; dt=1.0)
+        sys = System(gen, pars; dt=1.0)
 
         @test sys.n_output == 1
         @test sys.output_names == [:foi]
 
-        dust_system_set_state_initial!(sys)
+        reset!(sys)
         times = collect(0.0:1.0:50.0)
-        result = dust_system_simulate(sys, times)
+        result = simulate(sys, times)
 
         # 3 state + 1 output = 4 rows
         @test size(result, 1) == 4
@@ -90,14 +90,14 @@
         end
 
         pars = (beta=0.3, gamma=0.1, I0=10.0, N=1000.0)
-        sys = dust_system_create(gen, pars; dt=1.0)
+        sys = System(gen, pars; dt=1.0)
 
         @test sys.n_output == 0
         @test sys.output_names == Symbol[]
 
-        dust_system_set_state_initial!(sys)
+        reset!(sys)
         times = collect(0.0:1.0:10.0)
-        result = dust_system_simulate(sys, times)
+        result = simulate(sys, times)
 
         # Only 3 state rows, no output
         @test size(result, 1) == 3
@@ -123,14 +123,14 @@
         end
 
         pars = (beta=0.3, gamma=0.1, I0=10.0, N=1000.0)
-        sys = dust_system_create(gen, pars; dt=1.0, seed=42)
+        sys = System(gen, pars; dt=1.0, seed=42)
 
         @test sys.n_output == 1
         @test sys.output_names == [:total]
 
-        dust_system_set_state_initial!(sys)
+        reset!(sys)
         times = collect(0.0:1.0:50.0)
-        result = dust_system_simulate(sys, times)
+        result = simulate(sys, times)
 
         # 3 state + 1 output = 4 rows
         @test size(result, 1) == 4
@@ -169,15 +169,15 @@
 
         pars = (n_age=3, S0=[330.0, 330.0, 330.0],
                 I0=[3.0, 3.0, 4.0], beta=0.3, gamma=0.1, N=1000.0)
-        sys = dust_system_create(gen, pars; dt=1.0)
+        sys = System(gen, pars; dt=1.0)
 
         # 3*3 = 9 state vars, 2 scalar outputs
         @test sys.n_state == 9
         @test sys.n_output == 2
 
-        dust_system_set_state_initial!(sys)
+        reset!(sys)
         times = collect(0.0:1.0:50.0)
-        result = dust_system_simulate(sys, times)
+        result = simulate(sys, times)
 
         @test size(result, 1) == 11  # 9 + 2
 

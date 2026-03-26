@@ -31,22 +31,22 @@
                 beta=[0.3, 0.2, 0.15], gamma=0.1, N=1000.0)
 
         # Dynamic n_state
-        sys = Odin.dust_system_create(sir_age, pars; seed=42)
+        sys = Odin.System(sir_age, pars; seed=42)
         @test sys.n_state == 9
         @test length(sys.state_names) == 9
         @test sys.state_names[1] == Symbol("S[1]")
         @test sys.state_names[4] == Symbol("I[1]")
 
         # Initial conditions
-        Odin.dust_system_set_state_initial!(sys)
-        s0 = Odin.dust_system_state(sys)
+        Odin.reset!(sys)
+        s0 = Odin.state(sys)
         @test s0[1:3, 1] ≈ [490.0, 300.0, 200.0]
         @test s0[4:6, 1] ≈ [5.0, 3.0, 2.0]
         @test s0[7:9, 1] ≈ [0.0, 0.0, 0.0]
 
         # Simulate and check conservation
         times = collect(0.0:10.0:100.0)
-        result = Odin.dust_system_simulate(sir_age, pars; times=times, seed=42)
+        result = Odin.simulate(sir_age, pars; times=times, seed=42)
         for t in 1:length(times)
             @test sum(result[:, 1, t]) ≈ 1000.0 atol=1e-6
         end
@@ -95,7 +95,7 @@
         pars = (n_age=2.0, S0=[600.0, 390.0], I0=[5.0, 5.0],
                 beta=[0.3, 0.2], gamma=0.1, N=1000.0)
         times = collect(0.0:5.0:50.0)
-        result = Odin.dust_system_simulate(sir_stoch, pars; times=times, dt=1.0,
+        result = Odin.simulate(sir_stoch, pars; times=times, dt=1.0,
                                            seed=42, n_particles=5)
         @test size(result) == (6, 5, length(times))
 
@@ -127,7 +127,7 @@
         end
 
         pars = (n=4.0, x0=[10.0, 20.0, 30.0, 40.0], rate=0.1)
-        result = Odin.dust_system_simulate(model, pars; times=[0.0, 10.0], seed=1)
+        result = Odin.simulate(model, pars; times=[0.0, 10.0], seed=1)
         # Each x[i] should decay exponentially: x0[i] * exp(-k*t)
         for i in 1:4
             expected = pars.x0[i] * exp(-0.1 * 10.0)
@@ -144,10 +144,10 @@
         end
 
         pars = NamedTuple()
-        sys = Odin.dust_system_create(model, pars; seed=1)
+        sys = Odin.System(model, pars; seed=1)
         @test sys.n_state == 3
-        Odin.dust_system_set_state_initial!(sys)
-        s = Odin.dust_system_state(sys)
+        Odin.reset!(sys)
+        s = Odin.state(sys)
         @test s[:, 1] ≈ [10.0, 20.0, 30.0]
     end
 
@@ -167,7 +167,7 @@
         end
 
         pars = (n=2.0, S0=[100.0, 200.0], gamma=0.1)
-        result = Odin.dust_system_simulate(model, pars; times=[0.0, 10.0], seed=1)
+        result = Odin.simulate(model, pars; times=[0.0, 10.0], seed=1)
         # S[1] + S[2] should equal total at all times
         @test result[1, 1, 2] + result[2, 1, 2] ≈ result[3, 1, 2] rtol=1e-4
     end

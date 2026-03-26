@@ -18,13 +18,13 @@ The design follows the pattern of [AlgebraicPetri.jl](https://github.com/Algebra
 Several standard epidemiological models are provided:
 
 ```julia
-net = sir_net()       # S → I → R
-net = seir_net()      # S → E → I → R
-net = sis_net()       # S → I → S
-net = sirs_net()      # S → I → R → S
-net = seirs_net()     # S → E → I → R → S
-net = sir_vax_net()   # SIR with vaccinated compartments
-net = two_strain_sir_net()  # Two-strain SIR
+net = SIR()       # S → I → R
+net = SEIR()      # S → E → I → R
+net = SIS()       # S → I → S
+net = SIRS()      # S → I → R → S
+net = SEIRS()     # S → E → I → R → S
+net = SIRVax()   # SIR with vaccinated compartments
+net = two_strain_SIR()  # Two-strain SIR
 ```
 
 ## Building Custom Networks
@@ -85,7 +85,7 @@ Replicate a model across multiple groups with optional inter-group coupling:
 
 ```julia
 # Base SIR model
-base = sir_net()
+base = SIR()
 
 # 3-age-group stratification
 strat = stratify(base, 3;
@@ -109,9 +109,9 @@ expr = lower_expr(net; model_type=:ode)
 gen = lower(net; model_type=:ode)
 
 # Simulate
-sys = dust_system_create(gen, (beta=0.5, gamma=0.1))
-dust_system_set_state_initial!(sys)
-result = dust_system_simulate(sys, 0:0.1:100)
+sys = System(gen, (beta=0.5, gamma=0.1))
+reset!(sys)
+result = simulate(sys, 0:0.1:100)
 ```
 
 ### Model Types

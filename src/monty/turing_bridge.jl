@@ -145,6 +145,8 @@ function _build_dppl_model(likelihood_obj, packer::MontyPacker, priors::Dict{Sym
             dust_likelihood_run!(likelihood_obj, pars)
         elseif likelihood_obj isa DustUnfilter
             dust_unfilter_run!(likelihood_obj, pars)
+        elseif likelihood_obj isa Likelihood
+            loglik(likelihood_obj, pars)
         else
             error("Unsupported likelihood type: $(typeof(likelihood_obj))")
         end

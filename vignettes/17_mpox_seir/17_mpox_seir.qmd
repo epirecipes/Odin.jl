@@ -263,7 +263,7 @@ true_pars = (
 
 ```{julia}
 sim_times = collect(0.0:1.0:180.0)
-sim_result = dust_system_simulate(mpox_seir, true_pars;
+sim_result = simulate(mpox_seir, true_pars;
     times=sim_times, dt=0.25, seed=42, n_particles=1)
 
 println("Result shape: ", size(sim_result),
@@ -366,7 +366,7 @@ p_data
 ### Prepare filter data
 
 ```{julia}
-filter_data = dust_filter_data([
+filter_data = ObservedData([
     (time=Float64(t), cases_data=Float64(c))
     for (t, c) in zip(obs_times, obs_cases)
 ])
@@ -380,7 +380,7 @@ We use a bootstrap particle filter with 200 particles to estimate the
 likelihood of the observed daily case counts given the stochastic model:
 
 ```{julia}
-filter = dust_filter_create(mpox_seir, filter_data;
+filter = Likelihood(mpox_seir, filter_data;
     n_particles=100, dt=0.25, seed=42)
 ```
 
@@ -391,7 +391,7 @@ efficacy), and $\alpha_{\text{cases}}$ (overdispersion) — keeping all others
 fixed at their true values:
 
 ```{julia}
-packer = monty_packer([:beta, :ve1, :alpha_cases];
+packer = Packer([:beta, :ve1, :alpha_cases];
     fixed=(
         n_age   = Float64(n_age),
         n_vax   = Float64(n_vax),
@@ -405,7 +405,7 @@ packer = monty_packer([:beta, :ve1, :alpha_cases];
         ve2     = 0.85,
     ))
 
-likelihood = dust_likelihood_monty(filter, packer)
+likelihood = as_model(filter, packer)
 ```
 
 ### Evaluate at truth
@@ -418,7 +418,7 @@ println("Log-likelihood at true parameters: ", round(ll_true, digits=2))
 ### Priors
 
 ```{julia}
-prior = @monty_prior begin
+prior = @prior begin
     beta        ~ Gamma(2.0, 0.05)      # mean 0.1, moderate uncertainty
     ve1         ~ Beta(5.0, 5.0)         # mean 0.5, concentrated on [0.2, 0.8]
     alpha_cases ~ Exponential(0.1)       # mean 0.1
@@ -433,10 +433,10 @@ We use an adaptive random-walk Metropolis sampler with 4 chains:
 
 ```{julia}
 vcv = diagm([0.0005, 0.005, 0.0005])
-sampler = monty_sampler_adaptive(vcv)
+sampler = adaptive_mh(vcv)
 
 initial = repeat([0.1, 0.5, 0.1], 1, 4)  # 3 × 4 matrix (n_pars × n_chains)
-samples = monty_sample(posterior, sampler, 1000;
+samples = sample(posterior, sampler, 1000;
     initial=initial, n_chains=4, n_burnin=200, seed=42)
 ```
 
@@ -544,7 +544,7 @@ for k in 1:n_proj
         ve1=ve1_post[idx[k]],
         alpha_cases=alpha_post[idx[k]],
     )
-    r = dust_system_simulate(mpox_seir, pars;
+    r = simulate(mpox_seir, pars;
         times=proj_times, dt=0.25, seed=k)
     I_traj[k, :] = r[out_offset + 1, 1, :]
     D_traj[k, :] = r[out_offset + 3, 1, :]
@@ -611,10 +611,10 @@ plot(p_fI, p_fD, layout=(2, 1), size=(800, 600))
 | Step | API |
 |------|-----|
 | Define model | `@odin begin … end` with 2D arrays |
-| Simulate | `dust_system_simulate(gen, pars; times, dt, seed)` |
-| Prepare data | `dust_filter_data([(time=…, cases_data=…), …])` |
-| Particle filter | `dust_filter_create(gen, data; n_particles)` |
-| Likelihood | `dust_likelihood_monty(filter, packer)` |
-| Prior | `@monty_prior begin … end` |
+| Simulate | `simulate(gen, pars; times, dt, seed)` |
+| Prepare data | `ObservedData([(time=…, cases_data=…), …])` |
+| Particle filter | `Likelihood(gen, data; n_particles)` |
+| Likelihood | `as_model(filter, packer)` |
+| Prior | `@prior begin … end` |
 | Posterior | `likelihood + prior` |
-| Sample | `monty_sample(posterior, sampler, n_steps; …)` |
+| Sample | `sample(posterior, sampler, n_steps; …)` |

@@ -116,18 +116,18 @@ mpox_pars = (
 )
 
 # Benchmark simulation (200 particles, 180 days)
-sys = dust_system_create(mpox, mpox_pars; n_particles=200, dt=0.25, seed=42)
-dust_system_set_state_initial!(sys)
+sys = System(mpox, mpox_pars; n_particles=200, dt=0.25, seed=42)
+reset!(sys)
 sim_times = collect(0.0:1.0:180.0)
 
 # Warmup
-dust_system_simulate(sys, sim_times)
+simulate(sys, sim_times)
 
 # Benchmark
 _reset_sys = Odin._reset_system!
 b_mpox_sim = @benchmark begin
     $_reset_sys($sys, $mpox_pars, 42)
-    dust_system_simulate($sys, $sim_times)
+    simulate($sys, $sim_times)
 end samples=20 evals=1
 t_mpox_sim = median(b_mpox_sim).time / 1e6
 println(@sprintf("  Simulation (200 ptcl, 180 days): %.1f ms", t_mpox_sim))
@@ -198,9 +198,9 @@ malaria_pars = (
 sim_times_malaria = collect(0.0:1.0:1095.0)  # 3 years daily
 
 # Warmup
-dust_system_simulate(malaria, malaria_pars; times=sim_times_malaria, seed=1)
+simulate(malaria, malaria_pars; times=sim_times_malaria, seed=1)
 
-b_malaria_sim = @benchmark dust_system_simulate($malaria, $malaria_pars;
+b_malaria_sim = @benchmark simulate($malaria, $malaria_pars;
     times=$sim_times_malaria, seed=1) samples=50 evals=1
 t_malaria_sim = median(b_malaria_sim).time / 1e6
 println(@sprintf("  Simulation (3 years daily): %.2f ms", t_malaria_sim))
@@ -309,9 +309,9 @@ covid_pars = (
 sim_times_covid = collect(0.0:1.0:365.0)
 
 # Warmup
-dust_system_simulate(covid, covid_pars; times=sim_times_covid, seed=1)
+simulate(covid, covid_pars; times=sim_times_covid, seed=1)
 
-b_covid_sim = @benchmark dust_system_simulate($covid, $covid_pars;
+b_covid_sim = @benchmark simulate($covid, $covid_pars;
     times=$sim_times_covid, seed=1) samples=50 evals=1
 t_covid_sim = median(b_covid_sim).time / 1e6
 println(@sprintf("  Simulation (365 days, 18 states): %.2f ms", t_covid_sim))
@@ -320,7 +320,7 @@ results["covid_sim_julia_ms"] = t_covid_sim
 # Unfilter benchmark
 # Generate synthetic data
 Random.seed!(42)
-sim = dust_system_simulate(covid, covid_pars; times=collect(0.0:7.0:364.0), seed=42)
+sim = simulate(covid, covid_pars; times=collect(0.0:7.0:364.0), seed=42)
 println("  Sim shape: ", size(sim))
 n_times = size(sim)[end]  # times is last dimension
 n_weeks = n_times - 1  # exclude t=0
@@ -334,13 +334,13 @@ for w in 1:n_weeks
         cases3 = Float64(rand(Poisson(0.3 * (1/3) * max(sim[14, 1, w+1], 0) * 7 + 1e-6))),
     ))
 end
-fdata = dust_filter_data(fdata_vec)
+fdata = ObservedData(fdata_vec)
 
-uf_covid = dust_unfilter_create(covid, fdata; time_start=0.0)
+uf_covid = Likelihood(covid, fdata; time_start=0.0)
 # Warmup
-Odin.dust_unfilter_run!(uf_covid, covid_pars)
+Odin.loglik(uf_covid, covid_pars)
 
-b_covid_uf = @benchmark Odin.dust_unfilter_run!($uf_covid, $covid_pars) samples=100 evals=1
+b_covid_uf = @benchmark Odin.loglik($uf_covid, $covid_pars) samples=100 evals=1
 t_covid_uf = median(b_covid_uf).time / 1e6
 println(@sprintf("  Unfilter (52 weeks, 18 states): %.3f ms", t_covid_uf))
 results["covid_unfilter_julia_ms"] = t_covid_uf

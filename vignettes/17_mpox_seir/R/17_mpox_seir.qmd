@@ -254,9 +254,9 @@ true_pars <- list(
 ```{r}
 sim_times <- seq(0, 180, by = 1)
 
-sys <- dust_system_create(mpox_seir, true_pars, dt = 0.25, seed = 42)
+sys <- System(mpox_seir, true_pars, dt = 0.25, seed = 42)
 dust_system_set_state_initial(sys)
-sim_result <- dust_system_simulate(sys, sim_times)
+sim_result <- simulate(sys, sim_times)
 
 cat("Result shape:", dim(sim_result),
     " (n_state × n_times)\n")
@@ -369,7 +369,7 @@ We use a bootstrap particle filter with 200 particles to estimate the
 likelihood of the observed daily case counts given the stochastic model:
 
 ```{r}
-filter <- dust_filter_create(mpox_seir, time_start = 0,
+filter <- Likelihood(mpox_seir, time_start = 0,
                              data = filter_data,
                              n_particles = 50, dt = 0.25, seed = 42)
 ```
@@ -381,7 +381,7 @@ efficacy), and $\alpha_{\text{cases}}$ (overdispersion) — keeping all others
 fixed at their true values:
 
 ```{r}
-packer <- monty_packer(
+packer <- Packer(
   c("beta", "ve1", "alpha_cases"),
   fixed = list(
     n_age   = n_age,
@@ -396,7 +396,7 @@ packer <- monty_packer(
     ve2     = 0.85
   ))
 
-likelihood <- dust_likelihood_monty(filter, packer)
+likelihood <- as_model(filter, packer)
 ```
 
 ### Evaluate at truth
@@ -428,10 +428,10 @@ tractable rendering time:
 
 ```{r}
 vcv <- diag(c(0.0005, 0.005, 0.0005))
-sampler <- monty_sampler_random_walk(vcv = vcv)
+sampler <- random_walk(vcv = vcv)
 
 initial <- matrix(c(0.1, 0.5, 0.1), nrow = 3, ncol = 1)
-samples <- monty_sample(posterior, sampler, 1000,
+samples <- sample(posterior, sampler, 1000,
                         initial = initial, n_chains = 1,
                         burnin = 200)
 ```
@@ -541,9 +541,9 @@ for (k in seq_len(n_proj)) {
     ve1         = ve1_post[idx[k]],
     alpha_cases = alpha_post[idx[k]]
   )
-  proj_sys <- dust_system_create(mpox_seir, pars, dt = 0.25, seed = k)
+  proj_sys <- System(mpox_seir, pars, dt = 0.25, seed = k)
   dust_system_set_state_initial(proj_sys)
-  r <- dust_system_simulate(proj_sys, proj_times)
+  r <- simulate(proj_sys, proj_times)
   I_traj[k, ] <- colSums(r[(2*ns + 1):(3*ns), ])
   D_traj[k, ] <- colSums(r[(4*ns + 1):(5*ns), ])
 }
@@ -617,10 +617,10 @@ legend("topleft", c("Posterior 95% CI", "Truth"),
 | Step | API |
 |------|-----|
 | Define model | `odin({ … })` with 2D arrays |
-| Simulate | `dust_system_create()` → `dust_system_simulate()` |
+| Simulate | `System()` → `simulate()` |
 | Prepare data | `data.frame(time = …, cases_data = …)` |
-| Particle filter | `dust_filter_create(gen, time_start, data, n_particles)` |
-| Likelihood | `dust_likelihood_monty(filter, packer)` |
+| Particle filter | `Likelihood(gen, time_start, data, n_particles)` |
+| Likelihood | `as_model(filter, packer)` |
 | Prior | `monty_dsl({ … })` |
 | Posterior | `likelihood + prior` |
-| Sample | `monty_sample(posterior, sampler, n_steps, …)` |
+| Sample | `sample(posterior, sampler, n_steps, …)` |

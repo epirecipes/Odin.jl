@@ -226,7 +226,7 @@ using Statistics
     idx_R2 = (8 * N_age + 1):(9 * N_age)   # R vaccinated
 
     @testset "compiles and runs" begin
-        result = dust_system_simulate(yf_vtrack, pars;
+        result = simulate(yf_vtrack, pars;
             times=times, dt=1.0, seed=42, n_particles=5)
         # 45 state vars (4 compartments × 5 ages × 2 tracks + 5 C) + 3 outputs = 48
         @test size(result, 1) == 48
@@ -236,9 +236,9 @@ using Statistics
     end
 
     @testset "2D array state dimensions" begin
-        sys = Odin.dust_system_create(yf_vtrack, pars; dt=1.0, seed=1)
-        Odin.dust_system_set_state_initial!(sys)
-        s = Odin.dust_system_state(sys)
+        sys = Odin.System(yf_vtrack, pars; dt=1.0, seed=1)
+        Odin.reset!(sys)
+        s = Odin.state(sys)
 
         # S should have 2*N_age elements (N_age per track, column-major)
         @test length(s[idx_S, 1]) == 2 * N_age
@@ -249,9 +249,9 @@ using Statistics
     end
 
     @testset "initial conditions correct" begin
-        sys = Odin.dust_system_create(yf_vtrack, pars; dt=1.0, seed=1)
-        Odin.dust_system_set_state_initial!(sys)
-        s = Odin.dust_system_state(sys)
+        sys = Odin.System(yf_vtrack, pars; dt=1.0, seed=1)
+        Odin.reset!(sys)
+        s = Odin.state(sys)
 
         # S track 1 (unvaccinated)
         @test s[idx_S1, 1] ≈ S_0[:, 1]
@@ -271,12 +271,12 @@ using Statistics
         short_times = collect(0.0:1.0:50.0)
 
         # With vaccination
-        result_vacc = dust_system_simulate(yf_vtrack, pars;
+        result_vacc = simulate(yf_vtrack, pars;
             times=short_times, dt=1.0, seed=42, n_particles=20)
 
         # Without vaccination
         pars_novacc = merge(pars, (vacc_rate = zeros(N_age),))
-        result_novacc = dust_system_simulate(yf_vtrack, pars_novacc;
+        result_novacc = simulate(yf_vtrack, pars_novacc;
             times=short_times, dt=1.0, seed=42, n_particles=20)
 
         # With vaccination, S track 2 (vaccinated) should increase
@@ -292,7 +292,7 @@ using Statistics
     end
 
     @testset "FOI uses both tracks" begin
-        result = dust_system_simulate(yf_vtrack, pars;
+        result = simulate(yf_vtrack, pars;
             times=times, dt=1.0, seed=42, n_particles=5)
         foi = result[out_offset + 1, :, :]
 
@@ -309,7 +309,7 @@ using Statistics
     end
 
     @testset "no negative populations" begin
-        result = dust_system_simulate(yf_vtrack, pars;
+        result = simulate(yf_vtrack, pars;
             times=times, dt=1.0, seed=42, n_particles=10)
         for idx in [idx_S, idx_E, idx_I, idx_R]
             @test all(result[idx, :, :] .>= 0.0)
@@ -317,7 +317,7 @@ using Statistics
     end
 
     @testset "population approximately conserved" begin
-        result = dust_system_simulate(yf_vtrack, pars;
+        result = simulate(yf_vtrack, pars;
             times=times, dt=1.0, seed=42, n_particles=5)
         for p in 1:5, t in 1:length(times)
             pop_t = sum(result[idx_S, p, t]) + sum(result[idx_E, p, t]) +
@@ -327,7 +327,7 @@ using Statistics
     end
 
     @testset "stochastic particles diverge" begin
-        result = dust_system_simulate(yf_vtrack, pars;
+        result = simulate(yf_vtrack, pars;
             times=times, dt=1.0, seed=42, n_particles=10)
         mid = div(length(times), 2)
         C_mid = [sum(result[idx_C, p, mid]) for p in 1:10]
@@ -339,23 +339,23 @@ using Statistics
     @testset "particle filter convergence" begin
         # Generate synthetic data
         syn_times = collect(7.0:7.0:100.0)
-        syn_result = dust_system_simulate(yf_vtrack, pars;
+        syn_result = simulate(yf_vtrack, pars;
             times=syn_times, dt=1.0, seed=123, n_particles=1)
         syn_cases = [max(1.0, sum(syn_result[idx_C, 1, t])) for t in 1:length(syn_times)]
         data_vec = [(time=syn_times[i], cases=syn_cases[i]) for i in 1:length(syn_times)]
-        fdata = Odin.dust_filter_data(data_vec)
+        fdata = Odin.ObservedData(data_vec)
 
         # Run particle filter
-        filter = dust_filter_create(yf_vtrack, fdata;
+        filter = Likelihood(yf_vtrack, fdata;
             n_particles=50, dt=1.0, seed=42)
-        ll = dust_likelihood_run!(filter, pars)
+        ll = loglik(filter, pars)
 
         @test isfinite(ll)
         @test ll < 0  # log-likelihood should be negative
 
         # Worse parameters should give worse log-likelihood
         pars_bad = merge(pars, (t_infectious = 50.0,))
-        ll_bad = dust_likelihood_run!(filter, pars_bad)
+        ll_bad = loglik(filter, pars_bad)
         @test isfinite(ll_bad)
         @test ll > ll_bad
     end

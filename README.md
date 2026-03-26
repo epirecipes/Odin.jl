@@ -77,9 +77,9 @@ sir = @odin begin
 end
 
 # 2. Create a dust system and simulate
-sys = dust_system_create(sir, (N=1000, I0=10, beta=0.3, gamma=0.1))
-dust_system_set_state_initial!(sys)
-result = dust_system_simulate(sys, 0.0:1.0:100.0)
+sys = System(sir, (N=1000, I0=10, beta=0.3, gamma=0.1))
+reset!(sys)
+result = simulate(sys, 0.0:1.0:100.0)
 
 # 3. Plot (using any plotting package)
 using Plots
@@ -232,30 +232,30 @@ end
 
 ```julia
 # ODE model — single trajectory
-sys = dust_system_create(sir_ode, (N=1000, I0=10, beta=0.3, gamma=0.1))
-dust_system_set_state_initial!(sys)
-result = dust_system_simulate(sys, 0.0:1.0:365.0)
+sys = System(sir_ode, (N=1000, I0=10, beta=0.3, gamma=0.1))
+reset!(sys)
+result = simulate(sys, 0.0:1.0:365.0)
 
 # Stochastic model — multiple particles
-sys = dust_system_create(sir_stoch, (N=1000, I0=10, beta=0.5, gamma=0.1);
+sys = System(sir_stoch, (N=1000, I0=10, beta=0.5, gamma=0.1);
                          n_particles=100, dt=0.25, seed=42)
-dust_system_set_state_initial!(sys)
-result = dust_system_simulate(sys, 0.0:1.0:365.0)
+reset!(sys)
+result = simulate(sys, 0.0:1.0:365.0)
 ```
 
 ### State Management
 
 ```julia
-dust_system_set_state_initial!(sys)           # Reset to initial conditions
-dust_system_set_state!(sys, state_matrix)     # Set state directly (n_state × n_particles)
-state = dust_system_state(sys)                # Get current state
-dust_system_run_to_time!(sys, 100.0)          # Advance without recording
+reset!(sys)           # Reset to initial conditions
+Odin.dust_system_set_state!(sys, state_matrix) # Set state directly (n_state × n_particles)
+st = state(sys)                   # Get current state
+run_to!(sys, 100.0)          # Advance without recording
 ```
 
 ### Data Comparison
 
 ```julia
-ll = dust_system_compare_data(sys, (cases=15,))  # Log-likelihood per particle
+ll = Odin.dust_system_compare_data(sys, (cases=15,))  # Log-likelihood per particle
 ```
 
 ---
@@ -269,7 +269,7 @@ Odin.jl provides a complete Bayesian inference pipeline: particle filter → lik
 For **stochastic models**, use a bootstrap particle filter:
 
 ```julia
-filter = dust_filter_create(sir_stoch;
+filter = Likelihood(sir_stoch;
     data    = data,          # Vector of NamedTuples with :time and observed fields
     time_start   = 0,
     n_particles  = 200,
@@ -280,7 +280,7 @@ filter = dust_filter_create(sir_stoch;
 For **deterministic ODE models**, use the unfilter:
 
 ```julia
-unfilter = dust_unfilter_create(sir_ode;
+unfilter = Likelihood(sir_ode;
     data       = data,
     time_start = 0)
 ```
@@ -290,55 +290,55 @@ unfilter = dust_unfilter_create(sir_ode;
 Convert the dust likelihood into a `MontyModel` for MCMC:
 
 ```julia
-packer = monty_packer([:beta, :gamma])
-ll = dust_likelihood_monty(filter, packer; fixed=(N=1000, I0=10))
+packer = Packer([:beta, :gamma])
+ll = as_model(filter, packer; fixed=(N=1000, I0=10))
 ```
 
 ### Step 3: Define Priors
 
 ```julia
-prior = @monty_prior begin
+prior = @prior begin
     beta ~ Exponential(0.5)
     gamma ~ Exponential(0.3)
 end
 ```
 
-The `@monty_prior` macro automatically generates gradients for HMC.
+The `@prior` macro automatically generates gradients for HMC.
 
 ### Step 4: Combine and Sample
 
 ```julia
-posterior = monty_model_combine(ll, prior)
+posterior = Odin.monty_model_combine(ll, prior)
 
-sampler = monty_sampler_random_walk(; vcv=diagm([0.01, 0.01]))
+sampler = random_walk(; vcv=diagm([0.01, 0.01]))
 
-samples = monty_sample(posterior, sampler, 5000;
+samples = sample(posterior, sampler, 5000;
                        initial=[0.5, 0.1],
                        n_chains=4,
-                       runner=monty_runner_serial())
+                       runner=Serial())
 ```
 
 ### Available Samplers
 
 | Sampler | Constructor | Use case |
 |---------|-------------|----------|
-| **Random walk MH** | `monty_sampler_random_walk(; vcv, boundaries)` | General purpose; supports `:reflect`/`:reject`/`:ignore` boundaries |
-| **HMC** | `monty_sampler_hmc(ε, L; vcv)` | Models with gradients (via `@monty_prior` or ForwardDiff) |
-| **NUTS** | `monty_sampler_nuts(; max_depth)` | Adaptive HMC — no tuning needed, best for smooth posteriors |
-| **Adaptive** | `monty_sampler_adaptive(; target_acceptance, initial_vcv)` | Auto-tuning proposal (Spencer 2021 accelerated shaping) |
-| **Parallel tempering** | `monty_sampler_parallel_tempering(temps, sampler)` | Multi-modal posteriors via replica exchange |
+| **Random walk MH** | `random_walk(; vcv, boundaries)` | General purpose; supports `:reflect`/`:reject`/`:ignore` boundaries |
+| **HMC** | `hmc(ε, L; vcv)` | Models with gradients (via `@prior` or ForwardDiff) |
+| **NUTS** | `nuts(; max_depth)` | Adaptive HMC — no tuning needed, best for smooth posteriors |
+| **Adaptive** | `adaptive_mh(; target_acceptance, initial_vcv)` | Auto-tuning proposal (Spencer 2021 accelerated shaping) |
+| **Parallel tempering** | `parallel_tempering(temps, sampler)` | Multi-modal posteriors via replica exchange |
 
 ### Runners
 
 ```julia
-monty_runner_serial()      # Sequential chains
-monty_runner_threaded()    # Parallel chains via Julia threads
+Serial()      # Sequential chains
+Threaded()    # Parallel chains via Julia threads
 ```
 
 ### Continuing Sampling
 
 ```julia
-more_samples = monty_sample_continue(samples, 5000)
+more_samples = sample_continue(samples, 5000)
 ```
 
 ---
@@ -376,29 +376,29 @@ C = [2.0 0.5; 0.5 1.0]
 sir_age = stratify(sir, [:young, :old]; contact=C)
 ```
 
-### Lower to a Simulatable Model
+### Compile to a Simulatable Model
 
 Compile the Petri net into an `@odin`-compatible model:
 
 ```julia
-gen = lower(sir_age; mode=:ode, frequency_dependent=true, N=:N,
+gen = compile(sir_age; mode=:ode, frequency_dependent=true, N=:N,
             params=Dict(:beta => 0.3, :gamma => 0.1, :N => 1000.0))
-sys = dust_system_create(gen, (beta=0.3, gamma=0.1, N=1000.0))
-dust_system_set_state_initial!(sys)
-result = dust_system_simulate(sys, 0.0:1.0:365.0)
+sys = System(gen, (beta=0.3, gamma=0.1, N=1000.0))
+reset!(sys)
+result = simulate(sys, 0.0:1.0:365.0)
 ```
 
 ### Pre-Built Networks
 
 | Function | Model |
 |----------|-------|
-| `sir_net()` | SIR (susceptible → infected → recovered) |
-| `seir_net()` | SEIR (with exposed compartment) |
-| `sis_net()` | SIS (no recovered; re-susceptibility) |
-| `sirs_net()` | SIRS (with waning immunity) |
-| `seirs_net()` | SEIRS (exposed + waning) |
-| `sir_vax_net()` | SIR with vaccination |
-| `two_strain_sir_net()` | Two-strain SIR |
+| `SIR()` | SIR (susceptible → infected → recovered) |
+| `SEIR()` | SEIR (with exposed compartment) |
+| `SIS()` | SIS (no recovered; re-susceptibility) |
+| `SIRS()` | SIRS (with waning immunity) |
+| `SEIRS()` | SEIRS (exposed + waning) |
+| `SIRVax()` | SIR with vaccination |
+| `two_strain_SIR()` | Two-strain SIR |
 
 ---
 
@@ -519,52 +519,52 @@ Progressive tutorials are in `vignettes/` as [Quarto](https://quarto.org/) docum
 
 | Symbol | Description |
 |--------|-------------|
-| `@odin` | Compile a model definition block into a `DustSystemGenerator` |
+| `@odin` | Compile a model definition block into a `OdinModel` |
 
 ### Dust Runtime — System
 
 | Function | Description |
 |----------|-------------|
-| `dust_system_create(gen, pars; n_particles, dt, seed)` | Create a simulation system |
-| `dust_system_set_state_initial!(sys)` | Reset to initial conditions |
-| `dust_system_set_state!(sys, state)` | Set state matrix directly |
-| `dust_system_state(sys)` | Get current state (`n_state × n_particles`) |
-| `dust_system_simulate(sys, times)` | Run simulation, recording at each time |
-| `dust_system_run_to_time!(sys, t)` | Advance to time `t` without recording |
-| `dust_system_compare_data(sys, data)` | Compute log-likelihood against data |
+| `System(gen, pars; n_particles, dt, seed)` | Create a simulation system |
+| `reset!(sys)` | Reset to initial conditions |
+| `Odin.dust_system_set_state!(sys, state)` | Set state matrix directly |
+| `state(sys)` | Get current state (`n_state × n_particles`) |
+| `simulate(sys, times)` | Run simulation, recording at each time |
+| `run_to!(sys, t)` | Advance to time `t` without recording |
+| `Odin.dust_system_compare_data(sys, data)` | Compute log-likelihood against data |
 
 ### Dust Runtime — Filtering
 
 | Function | Description |
 |----------|-------------|
-| `dust_filter_create(gen; data, time_start, n_particles, dt, seed)` | Bootstrap particle filter |
-| `dust_unfilter_create(gen; data, time_start)` | Deterministic (ODE-based) likelihood |
-| `dust_likelihood_run!(filter, pars)` | Run filter, return log-likelihood |
-| `dust_likelihood_monty(filter, packer; fixed)` | Convert to `MontyModel` for MCMC |
+| `Likelihood(gen; data, time_start, n_particles, dt, seed)` | Bootstrap particle filter |
+| `Likelihood(gen; data, time_start)` | Deterministic (ODE-based) likelihood |
+| `loglik(filter, pars)` | Run filter, return log-likelihood |
+| `as_model(filter, packer; fixed)` | Convert to `MontyModel` for MCMC |
 
 ### Monty Inference — Models & Packers
 
 | Function | Description |
 |----------|-------------|
-| `monty_model(density; parameters, gradient, domain)` | Wrap a density function as a model |
-| `monty_model_combine(m1, m2)` | Sum two models (e.g., likelihood + prior) |
-| `monty_packer(names; fixed)` | Map named parameters ↔ flat vectors |
-| `monty_packer_grouped(names, groups; fixed)` | Grouped parameter packing |
-| `@monty_prior` | DSL for prior specification with automatic gradients |
+| `DensityModel(density; parameters, gradient, domain)` | Wrap a density function as a model |
+| `Odin.monty_model_combine(m1, m2)` | Sum two models (e.g., likelihood + prior) |
+| `Packer(names; fixed)` | Map named parameters ↔ flat vectors |
+| `GroupedPacker(names, groups; fixed)` | Grouped parameter packing |
+| `@prior` | DSL for prior specification with automatic gradients |
 
 ### Monty Inference — Samplers & Sampling
 
 | Function | Description |
 |----------|-------------|
-| `monty_sampler_random_walk(; vcv, boundaries)` | Random walk Metropolis–Hastings |
-| `monty_sampler_hmc(ε, L; vcv)` | Hamiltonian Monte Carlo |
-| `monty_sampler_nuts(; max_depth)` | No-U-Turn Sampler (adaptive HMC via AdvancedHMC.jl) |
-| `monty_sampler_adaptive(; target_acceptance, initial_vcv)` | Adaptive MCMC (Spencer 2021) |
-| `monty_sampler_parallel_tempering(temps, sampler)` | Parallel tempering / replica exchange |
-| `monty_runner_serial()` | Sequential multi-chain runner |
-| `monty_runner_threaded()` | Threaded multi-chain runner |
-| `monty_sample(model, sampler, n_steps; initial, n_chains, runner)` | Run MCMC |
-| `monty_sample_continue(samples, n_steps)` | Continue from previous samples |
+| `random_walk(; vcv, boundaries)` | Random walk Metropolis–Hastings |
+| `hmc(ε, L; vcv)` | Hamiltonian Monte Carlo |
+| `nuts(; max_depth)` | No-U-Turn Sampler (adaptive HMC via AdvancedHMC.jl) |
+| `adaptive_mh(; target_acceptance, initial_vcv)` | Adaptive MCMC (Spencer 2021) |
+| `parallel_tempering(temps, sampler)` | Parallel tempering / replica exchange |
+| `Serial()` | Sequential multi-chain runner |
+| `Threaded()` | Threaded multi-chain runner |
+| `sample(model, sampler, n_steps; initial, n_chains, runner)` | Run MCMC |
+| `sample_continue(samples, n_steps)` | Continue from previous samples |
 
 ### DynamicPPL / Turing Integration
 
@@ -572,9 +572,9 @@ Progressive tutorials are in `vignettes/` as [Quarto](https://quarto.org/) docum
 |----------|-------------|
 | `to_turing_model(gen, data; priors...)` | Create a DynamicPPL `@model` from an Odin system |
 | `dppl_prior(block)` | Define priors using DynamicPPL syntax |
-| `dppl_to_monty_model(turing_model)` | Convert DynamicPPL model → `MontyModel` |
+| `dppl_to_DensityModel(turing_model)` | Convert DynamicPPL model → `MontyModel` |
 | `turing_sample(model, sampler, n; kwargs...)` | Sample using Turing.jl's MCMC infrastructure |
-| `to_chains(samples)` | Convert `MontySamples` → `MCMCChains.Chains` |
+| `to_chains(samples)` | Convert `Samples` → `MCMCChains.Chains` |
 | `@odin_model` | Convenience macro combining `@odin` + priors in one block |
 
 ### Categorical Extension
@@ -585,8 +585,8 @@ Progressive tutorials are in `vignettes/` as [Quarto](https://quarto.org/) docum
 | `compose(net1, net2, ...)` | Merge networks on shared species |
 | `compose_with_interface(nets, shared)` | Explicit interface composition |
 | `stratify(net, groups; contact)` | Stratify across groups with contact matrix |
-| `lower(net; mode, params, ...)` | Compile Petri net → `DustSystemGenerator` |
-| `sir_net()`, `seir_net()`, `sis_net()`, ... | Pre-built epidemic networks |
+| `compile(net; mode, params, ...)` | Compile Petri net → `OdinModel` |
+| `SIR()`, `SEIR()`, `SIS()`, ... | Pre-built epidemic networks |
 
 ---
 
@@ -595,20 +595,20 @@ Progressive tutorials are in `vignettes/` as [Quarto](https://quarto.org/) docum
 | Concept | R (odin2 / dust2 / monty) | Julia (Odin.jl) |
 |---------|---------------------------|------------------|
 | Model definition | `odin({ ... })` | `@odin begin ... end` |
-| System creation | `dust_system_create(gen, pars)` | `dust_system_create(gen, pars)` |
-| Set initial state | `dust_system_set_state_initial(sys)` | `dust_system_set_state_initial!(sys)` |
-| Simulate | `dust_system_simulate(sys, times)` | `dust_system_simulate(sys, times)` |
-| Particle filter | `dust_filter_create(gen, ...)` | `dust_filter_create(gen; ...)` |
-| Deterministic LL | `dust_unfilter_create(gen, ...)` | `dust_unfilter_create(gen; ...)` |
-| Monty bridge | `dust_likelihood_monty(filter, packer)` | `dust_likelihood_monty(filter, packer)` |
-| Packer | `monty_packer(c("beta", "gamma"))` | `monty_packer([:beta, :gamma])` |
-| Prior | `monty_dsl({ beta ~ Exp(0.5) })` | `@monty_prior begin beta ~ Exponential(0.5) end` |
-| MCMC | `monty_sample(model, sampler, n)` | `monty_sample(model, sampler, n)` |
-| Random walk | `monty_sampler_random_walk(vcv=V)` | `monty_sampler_random_walk(; vcv=V)` |
-| HMC | `monty_sampler_hmc(eps, L)` | `monty_sampler_hmc(ε, L)` |
-| NUTS | *(not available)* | `monty_sampler_nuts()` |
+| System creation | `dust_system_create(gen, pars)` | `System(gen, pars)` |
+| Set initial state | `dust_system_set_state_initial(sys)` | `reset!(sys)` |
+| Simulate | `dust_system_simulate(sys, times)` | `simulate(sys, times)` |
+| Particle filter | `dust_filter_create(gen, ...)` | `Likelihood(gen; ...)` |
+| Deterministic LL | `dust_unfilter_create(gen, ...)` | `Likelihood(gen; ...)` |
+| Monty bridge | `dust_likelihood_monty(filter, packer)` | `as_model(filter, packer)` |
+| Packer | `monty_packer(c("beta", "gamma"))` | `Packer([:beta, :gamma])` |
+| Prior | `monty_dsl({ beta ~ Exp(0.5) })` | `@prior begin beta ~ Exponential(0.5) end` |
+| MCMC | `monty_sample(model, sampler, n)` | `sample(model, sampler, n)` |
+| Random walk | `monty_sampler_random_walk(vcv=V)` | `random_walk(; vcv=V)` |
+| HMC | `monty_sampler_hmc(eps, L)` | `hmc(ε, L)` |
+| NUTS | *(not available)* | `nuts()` |
 | DynamicPPL priors | *(not available)* | `dppl_prior`, `to_turing_model()` |
-| Compositional models | *(not available)* | `compose()`, `stratify()`, `lower()` |
+| Compositional models | *(not available)* | `compose()`, `stratify()`, `compile()` |
 | Mutating fns | — | Use `!` suffix (Julia convention) |
 | Parameters | `list(beta=0.3)` | `(beta=0.3,)` (NamedTuple) |
 

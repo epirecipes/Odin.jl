@@ -156,7 +156,9 @@ function classify_variables(exprs::Vector{OdinExpr})
         all_vars[v] = VarInfo(v, VAR_PARAMETER, is_arr, rank, get(dims, v, nothing), nothing)
     end
     for v in data_vars
-        all_vars[v] = VarInfo(v, VAR_DATA, false, 0, nothing, nothing)
+        is_arr = haskey(dims, v)
+        rank = is_arr ? _dim_rank(dims[v]) : 0
+        all_vars[v] = VarInfo(v, VAR_DATA, is_arr, rank, get(dims, v, nothing), nothing)
     end
     for v in intermediates
         is_arr = haskey(dims, v)

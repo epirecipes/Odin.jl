@@ -184,6 +184,8 @@ function _parse_indexed_assignment(lhs::Expr, rhs_expr, src::LineNumberNode)
         if rhs_fname == :parameter
             pinfo = _parse_parameter_call(rhs_expr)
             return OdinExpr(EXPR_PARAMETER, varname, pinfo, indices, src)
+        elseif rhs_fname == :data
+            return OdinExpr(EXPR_DATA, varname, nothing, indices, src)
         end
     end
 

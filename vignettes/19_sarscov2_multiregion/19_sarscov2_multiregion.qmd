@@ -263,7 +263,7 @@ println("Reporting rate: ", 100 * true_pars.rho, "%")
 
 ```{julia}
 sim_times = collect(0.0:1.0:365.0)
-result = dust_system_simulate(seird_regions, true_pars; times=sim_times, seed=1)
+result = simulate(seird_regions, true_pars; times=sim_times, seed=1)
 println("Output shape: ", size(result))
 ```
 
@@ -356,7 +356,7 @@ obs_weeks = collect(7.0:7.0:364.0)
 n_weeks = length(obs_weeks)
 
 # Simulate to get state at weekly intervals
-result_weekly = dust_system_simulate(seird_regions, true_pars; times=obs_weeks, seed=1)
+result_weekly = simulate(seird_regions, true_pars; times=obs_weeks, seed=1)
 
 # State indices for E (exposed): E1=2, E2=8, E3=14
 E_idx = [2, 8, 14]
@@ -392,7 +392,7 @@ p_data
 ### Prepare data for the unfilter
 
 ```{julia}
-data = dust_filter_data([
+data = ObservedData([
     (time = obs_weeks[w],
      cases1 = Float64(obs_cases[w, 1]),
      cases2 = Float64(obs_cases[w, 2]),
@@ -436,7 +436,7 @@ for region in 1:3
 end
 all_scalars = vcat([:rho, :ifr], Rt_names)
 
-packer = monty_packer(
+packer = Packer(
     all_scalars;
     fixed = (
         n_Rt_times = Float64(n_Rt),
@@ -470,7 +470,7 @@ println("Number of fitted parameters: ", packer.len)
 We place weakly informative priors on each parameter:
 
 ```{julia}
-prior = @monty_prior begin
+prior = @prior begin
     rho ~ Beta(3.0, 7.0)             # mean 0.3
     ifr ~ Beta(2.0, 398.0)           # mean ~0.005
     Rt_v1_1 ~ Normal(1.5, 0.7)
@@ -506,8 +506,8 @@ The unfilter evaluates the ODE at each data time point and computes the
 Poisson log-likelihood of the weekly case counts:
 
 ```{julia}
-uf = dust_unfilter_create(seird_regions, data; time_start=0.0)
-ll = dust_likelihood_monty(uf, packer)
+uf = Likelihood(seird_regions, data; time_start=0.0)
+ll = as_model(uf, packer)
 posterior = ll + prior
 
 # Check log-likelihood at true values
@@ -534,10 +534,10 @@ vcv_init = diagm(vcat(
     fill(0.01, n_Rt),                 # Rt_v3
 ))
 
-sampler = monty_sampler_adaptive(vcv_init)
+sampler = adaptive_mh(vcv_init)
 
 initial = reshape(true_theta, n_pars, 1)
-samples = monty_sample(posterior, sampler, 3000;
+samples = sample(posterior, sampler, 3000;
     initial=initial, n_chains=1, n_burnin=500, seed=42)
 ```
 
@@ -632,7 +632,7 @@ idx = rand(1:n_total, n_proj)
 
 for j in 1:n_proj
     pars_j = packer(samples.pars[:, idx[j], 1])
-    r = dust_system_simulate(seird_regions, pars_j; times=proj_times, seed=j)
+    r = simulate(seird_regions, pars_j; times=proj_times, seed=j)
     for i in 1:n_regions
         I_traj[j, :, i] = r[I_idx[i], 1, :]
     end
@@ -693,7 +693,7 @@ regions, which means:
 ```{julia}
 # Simulate without coupling (epsilon = 0)
 pars_nocoupling = merge(true_pars, (epsilon=0.0,))
-result_nc = dust_system_simulate(seird_regions, pars_nocoupling;
+result_nc = simulate(seird_regions, pars_nocoupling;
                                  times=sim_times, seed=1)
 
 p_coupling = plot(xlabel="Day", ylabel="Infectious (I)",
@@ -746,9 +746,9 @@ p_coupling
 | Step | API |
 |------|-----|
 | Define model | `@odin begin … end` with per-region states and `interpolate()` |
-| Prepare data | `dust_filter_data([(time=…, cases1=…, …), …])` |
-| Pack parameters | `monty_packer([:rho, :ifr]; array=Dict(:Rt_v1 => 8, …), fixed=…)` |
-| Likelihood | `dust_unfilter_create()` → `dust_likelihood_monty()` |
-| Prior | `@monty_prior begin … end` |
+| Prepare data | `ObservedData([(time=…, cases1=…, …), …])` |
+| Pack parameters | `Packer([:rho, :ifr]; array=Dict(:Rt_v1 => 8, …), fixed=…)` |
+| Likelihood | `Likelihood()` → `as_model()` |
+| Prior | `@prior begin … end` |
 | Posterior | `likelihood + prior` |
-| Sample | `monty_sample(posterior, sampler, n; …)` |
+| Sample | `sample(posterior, sampler, n; …)` |

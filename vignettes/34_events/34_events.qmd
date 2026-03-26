@@ -62,7 +62,7 @@ times = collect(0.0:0.5:50.0);
 ## Baseline: No Events
 
 ```{julia}
-out_baseline = dust_system_simulate(sir, pars; times=times)
+out_baseline = simulate(sir, pars; times=times)
 
 # Extract S, I, R
 S_base = out_baseline[1, 1, :]
@@ -89,9 +89,9 @@ vaccination = TimedEvent(
 )
 
 events_vax = EventSet(timed=[vaccination])
-sys = dust_system_create(sir, pars)
-dust_system_set_state_initial!(sys)
-out_vax = dust_system_simulate(sys, times; events=events_vax)
+sys = System(sir, pars)
+reset!(sys)
+out_vax = simulate(sys, times; events=events_vax)
 
 S_vax = out_vax[1, 1, :]
 I_vax = out_vax[2, 1, :]
@@ -124,9 +124,9 @@ intervention = ContinuousEvent(
 )
 
 events_react = EventSet(continuous=[intervention])
-sys2 = dust_system_create(sir, pars)
-dust_system_set_state_initial!(sys2)
-out_react = dust_system_simulate(sys2, times; events=events_react)
+sys2 = System(sir, pars)
+reset!(sys2)
+out_react = simulate(sys2, times; events=events_react)
 
 I_react = out_react[2, 1, :]
 println("Peak I (reactive): ", round(maximum(I_react), digits=1))
@@ -149,9 +149,9 @@ monitor = DiscreteEvent(
 )
 
 events_disc = EventSet(discrete=[monitor])
-sys3 = dust_system_create(sir, pars)
-dust_system_set_state_initial!(sys3)
-out_disc = dust_system_simulate(sys3, times; events=events_disc)
+sys3 = System(sir, pars)
+reset!(sys3)
+out_disc = simulate(sys3, times; events=events_disc)
 
 I_disc = out_disc[2, 1, :]
 println("Peak I (discrete monitoring): ", round(maximum(I_disc), digits=1))
@@ -180,9 +180,9 @@ combined_events = EventSet(
     ]
 )
 
-sys4 = dust_system_create(sir, pars)
-dust_system_set_state_initial!(sys4)
-out_combined = dust_system_simulate(sys4, times; events=combined_events)
+sys4 = System(sir, pars)
+reset!(sys4)
+out_combined = simulate(sys4, times; events=combined_events)
 
 println("Peak I (combined):  ", round(maximum(out_combined[2,1,:]), digits=1))
 println("Peak I (baseline):  ", round(maximum(I_base), digits=1))
@@ -203,7 +203,7 @@ exact_event = ContinuousEvent(
     direction = :up
 )
 
-result, log = dp5_solve_events!(
+result, log = Odin.dp5_solve_events!(
     f!, [0.0], (0.0, 30.0), nothing, collect(0.0:1.0:30.0);
     events = EventSet(continuous=[exact_event])
 )

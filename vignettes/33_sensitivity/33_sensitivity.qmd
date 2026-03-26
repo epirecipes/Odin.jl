@@ -54,7 +54,7 @@ $$
 where $S_{ij} = \partial u_i / \partial p_j$ is the sensitivity of state $i$ to parameter $j$.
 
 ```{julia}
-result = dust_sensitivity_forward(sir, pars;
+result = sensitivity(sir, pars;
     times=times,
     params_of_interest=[:beta, :gamma])
 
@@ -100,7 +100,7 @@ loss_fn = (state, t) -> begin
     return -0.5 * (I_pred - obs_I[idx])^2 / 100.0  # Gaussian log-likelihood
 end
 
-adj = dust_sensitivity_adjoint(sir, pars, loss_fn;
+adj = sensitivity(sir, pars, loss_fn;
     times=obs_times,
     params_of_interest=[:beta, :gamma])
 
@@ -131,22 +131,22 @@ sir_compare = @odin begin
 end
 
 # Generate synthetic data
-sys = dust_system_create(sir_compare, pars)
-dust_system_set_state_initial!(sys)
-sim = dust_system_simulate(sys, collect(5.0:5.0:50.0))
+sys = System(sir_compare, pars)
+reset!(sys)
+sim = simulate(sys, collect(5.0:5.0:50.0))
 data_vec = [(time=5.0*i, obs=max(1.0, round(sim[2,1,i]))) for i in 1:10]
-fdata = Odin.dust_filter_data(data_vec)
+fdata = Odin.ObservedData(data_vec)
 
-unfilter = dust_unfilter_create(sir_compare, fdata)
-packer = monty_packer([:beta, :gamma]; fixed=(I0=10.0, N=1000.0))
+unfilter = Odin.dust_unfilter_create(sir_compare, fdata)
+packer = Packer([:beta, :gamma]; fixed=(I0=10.0, N=1000.0))
 
 # Forward sensitivity gradient
-fwd = dust_unfilter_gradient(unfilter, pars, packer; method=:forward)
+fwd = Odin.dust_unfilter_gradient(unfilter, pars, packer; method=:forward)
 println("Forward: LL = $(round(fwd.log_likelihood, digits=2)), ",
         "grad = [$(round(fwd.gradient[1], digits=3)), $(round(fwd.gradient[2], digits=3))]")
 
 # Adjoint gradient
-adj = dust_unfilter_gradient(unfilter, pars, packer; method=:adjoint)
+adj = Odin.dust_unfilter_gradient(unfilter, pars, packer; method=:adjoint)
 println("Adjoint: LL = $(round(adj.log_likelihood, digits=2)), ",
         "grad = [$(round(adj.gradient[1], digits=3)), $(round(adj.gradient[2], digits=3))]")
 ```
@@ -165,7 +165,7 @@ pars_ranges = Dict(
     :N     => (500.0, 2000.0),
 )
 
-sobol = dust_sensitivity_sobol(sir, pars_ranges;
+sobol = sensitivity(sir, pars_ranges; method=:sobol,
     n_samples=500,
     times=collect(5.0:5.0:50.0),
     output_var=2)  # I compartment at final time
@@ -188,7 +188,7 @@ deviation ($\sigma$). High $\mu^*$ means the parameter is influential; high $\si
 means its effect depends on other parameters (interactions or nonlinearity).
 
 ```{julia}
-morris = dust_sensitivity_morris(sir, pars_ranges;
+morris = sensitivity(sir, pars_ranges; method=:morris,
     n_trajectories=30,
     times=collect(5.0:5.0:50.0),
     output_var=:I)
@@ -244,7 +244,7 @@ the `adjoint()` method in the generated C++ code.
 
 | Use case | Recommended method |
 |----------|-------------------|
-| Trajectory sensitivity (few params) | `dust_sensitivity_forward` |
+| Trajectory sensitivity (few params) | `sensitivity(; method=:forward)` |
 | Gradient for optimisation/MCMC | `dust_unfilter_gradient` with `:adjoint` |
 | Parameter importance ranking | `dust_sensitivity_sobol` |
 | Quick screening (many params) | `dust_sensitivity_morris` |

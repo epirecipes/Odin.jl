@@ -107,7 +107,7 @@ School closure periods: days 50–60, 120–130, and 170–180.
 ```{julia}
 times = collect(0.0:1.0:200.0)
 
-result = dust_system_simulate(sis, pars;
+result = simulate(sis, pars;
     times = times, dt = 1.0, n_particles = 20, seed = 42)
 
 size(result)  # (n_states, n_particles, n_times)
@@ -156,9 +156,9 @@ visibly during closures, with infected counts recovering once schools reopen.
 # No school effect (modifier = 0.0 means closures don't reduce beta)
 pars_no_closure = merge(pars, (schools_modifier = 0.0,))
 
-result_closure = dust_system_simulate(sis, pars;
+result_closure = simulate(sis, pars;
     times = times, dt = 1.0, n_particles = 20, seed = 1)
-result_no_closure = dust_system_simulate(sis, pars_no_closure;
+result_no_closure = simulate(sis, pars_no_closure;
     times = times, dt = 1.0, n_particles = 20, seed = 1)
 
 mean_I_closure = vec(mean(result_closure[2, :, :], dims = 1))
@@ -188,7 +188,7 @@ plot(p4, p5, layout = (2, 1), size = (700, 500))
 We use a single simulation run to generate observed case data:
 
 ```{julia}
-truth = dust_system_simulate(sis, pars;
+truth = simulate(sis, pars;
     times = times, dt = 1.0, n_particles = 1, seed = 101)
 
 # Incidence from the single run, starting from time 1
@@ -211,15 +211,15 @@ plot!()
 ## Particle Filter
 
 ```{julia}
-filter_data = dust_filter_data(
+filter_data = ObservedData(
     [(time = Float64(t), cases = Float64(c))
      for (t, c) in zip(times[2:end], observed_cases)]
 )
 
-filter = dust_filter_create(sis, filter_data;
+filter = Likelihood(sis, filter_data;
     n_particles = 100, dt = 1.0, seed = 42)
 
-ll = dust_likelihood_run!(filter, pars)
+ll = loglik(filter, pars)
 println("Log-likelihood at true parameters: ", round(ll, digits = 2))
 ```
 
@@ -230,7 +230,7 @@ beta0s = 0.05:0.02:0.5
 lls = Float64[]
 for b in beta0s
     test_pars = merge(pars, (beta0 = b,))
-    push!(lls, dust_likelihood_run!(filter, test_pars))
+    push!(lls, loglik(filter, test_pars))
 end
 
 plot(collect(beta0s), lls,
@@ -245,7 +245,7 @@ vline!([0.2], ls = :dash, color = :red, label = "True β₀")
 We estimate `beta0` and `gamma` using random-walk MCMC:
 
 ```{julia}
-packer = monty_packer([:beta0, :gamma];
+packer = Packer([:beta0, :gamma];
     fixed = (
         N = 1000.0,
         I0 = 10.0,
@@ -254,9 +254,9 @@ packer = monty_packer([:beta0, :gamma];
         schools_modifier = 0.6,
     ))
 
-likelihood = dust_likelihood_monty(filter, packer)
+likelihood = as_model(filter, packer)
 
-prior = @monty_prior begin
+prior = @prior begin
     beta0 ~ Gamma(2.0, 0.1)
     gamma ~ Gamma(2.0, 0.05)
 end
@@ -266,10 +266,10 @@ posterior = likelihood + prior
 
 ```{julia}
 vcv = [0.002 0.0; 0.0 0.001]
-sampler = monty_sampler_random_walk(vcv)
+sampler = random_walk(vcv)
 
 initial_pars = reshape([0.15, 0.08], 2, 1)
-samples = monty_sample(posterior, sampler, 2000;
+samples = sample(posterior, sampler, 2000;
     initial = initial_pars, n_chains = 1)
 ```
 
@@ -321,13 +321,13 @@ plot(p8, p9, layout = (2, 1), size = (700, 400))
 using BenchmarkTools
 
 # Simulation benchmark
-b_sim = @benchmark dust_system_simulate($sis, $pars;
+b_sim = @benchmark simulate($sis, $pars;
     times = $times, dt = 1.0, n_particles = 20, seed = 1)
 println("Simulation (20 particles, 200 days):")
 display(b_sim)
 
 # Particle filter benchmark
-b_filter = @benchmark dust_likelihood_run!($filter, $pars)
+b_filter = @benchmark loglik($filter, $pars)
 println("\nParticle filter (100 particles, 200 days):")
 display(b_filter)
 ```

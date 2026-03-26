@@ -160,7 +160,7 @@ println("Case fatality ratio = ", round(100 * cfr, digits=1), "%")
 
 ```{julia}
 times = collect(0.0:1.0:120.0)
-result = dust_system_simulate(seird_multi, true_pars; times=times, seed=1)
+result = simulate(seird_multi, true_pars; times=times, seed=1)
 
 true_S = result[1, 1, :]
 true_E = result[2, 1, :]
@@ -209,12 +209,12 @@ p_data
 The multi-stream data includes both columns; the single-stream data only cases.
 
 ```{julia}
-data_multi = dust_filter_data([
+data_multi = ObservedData([
     (time=Float64(t), reported_cases=Float64(c), reported_deaths=Float64(d))
     for (t, c, d) in zip(obs_times, obs_cases, obs_deaths)
 ])
 
-data_cases = dust_filter_data([
+data_cases = ObservedData([
     (time=Float64(t), reported_cases=Float64(c))
     for (t, c) in zip(obs_times, obs_cases)
 ])
@@ -226,7 +226,7 @@ We fit three parameters — β (transmission rate), ρ (case reporting fraction)
 and μ (death rate) — keeping all others fixed at their true values.
 
 ```{julia}
-prior = @monty_prior begin
+prior = @prior begin
     beta ~ Gamma(3.0, 0.1)      # mean 0.3, moderate uncertainty
     rho  ~ Beta(3.0, 7.0)       # mean 0.3
     mu   ~ Gamma(2.0, 0.0025)   # mean 0.005
@@ -236,18 +236,18 @@ end
 We need separate packers because the two models have different parameter sets:
 
 ```{julia}
-packer_cases = monty_packer([:beta, :rho, :mu];
+packer_cases = Packer([:beta, :rho, :mu];
     fixed=(N=100000.0, E0=10.0, sigma=0.2, gamma=0.1))
 
-packer_multi = monty_packer([:beta, :rho, :mu];
+packer_multi = Packer([:beta, :rho, :mu];
     fixed=(N=100000.0, E0=10.0, sigma=0.2, gamma=0.1, rho_d=0.9))
 ```
 
 ## Single-Stream Inference (Cases Only)
 
 ```{julia}
-uf_cases = dust_unfilter_create(seird_cases, data_cases; time_start=0.0)
-ll_cases = dust_likelihood_monty(uf_cases, packer_cases)
+uf_cases = Likelihood(seird_cases, data_cases; time_start=0.0)
+ll_cases = as_model(uf_cases, packer_cases)
 posterior_cases = ll_cases + prior
 
 ll_at_truth = ll_cases([true_pars.beta, true_pars.rho, true_pars.mu])
@@ -257,18 +257,18 @@ println("Log-likelihood at true parameters (cases only): ",
 
 ```{julia}
 vcv = diagm([0.001, 0.005, 0.000001])
-sampler = monty_sampler_adaptive(vcv)
+sampler = adaptive_mh(vcv)
 
 initial = reshape([0.3, 0.3, 0.005], 3, 1)
-samples_cases = monty_sample(posterior_cases, sampler, 5000;
+samples_cases = sample(posterior_cases, sampler, 5000;
     initial=initial, n_chains=1, n_burnin=1000, seed=42)
 ```
 
 ## Multi-Stream Inference (Cases + Deaths)
 
 ```{julia}
-uf_multi = dust_unfilter_create(seird_multi, data_multi; time_start=0.0)
-ll_multi = dust_likelihood_monty(uf_multi, packer_multi)
+uf_multi = Likelihood(seird_multi, data_multi; time_start=0.0)
+ll_multi = as_model(uf_multi, packer_multi)
 posterior_multi = ll_multi + prior
 
 ll_at_truth_multi = ll_multi([true_pars.beta, true_pars.rho, true_pars.mu])
@@ -277,7 +277,7 @@ println("Log-likelihood at true parameters (multi-stream): ",
 ```
 
 ```{julia}
-samples_multi = monty_sample(posterior_multi, sampler, 5000;
+samples_multi = sample(posterior_multi, sampler, 5000;
     initial=initial, n_chains=1, n_burnin=1000, seed=42)
 ```
 
@@ -387,7 +387,7 @@ function project(samples, n_proj, seed)
             rho  = samples.pars[2, idx[j], 1],
             mu   = samples.pars[3, idx[j], 1],
         )
-        r = dust_system_simulate(seird_multi, pars; times=proj_times, seed=j)
+        r = simulate(seird_multi, pars; times=proj_times, seed=j)
         I_traj[j, :] = r[3, 1, :]
         D_traj[j, :] = r[5, 1, :]
     end
@@ -453,8 +453,8 @@ because the death rate μ is poorly constrained by case data alone.
 | Step | API |
 |------|-----|
 | Define model | `@odin begin … end` with `~` for each data stream |
-| Prepare data | `dust_filter_data([(time=…, col1=…, col2=…), …])` |
-| Likelihood | `dust_unfilter_create()` → `dust_likelihood_monty()` |
-| Prior | `@monty_prior begin … end` |
+| Prepare data | `ObservedData([(time=…, col1=…, col2=…), …])` |
+| Likelihood | `Likelihood()` → `as_model()` |
+| Prior | `@prior begin … end` |
 | Posterior | `likelihood + prior` |
-| Sample | `monty_sample(posterior, sampler, n; …)` |
+| Sample | `sample(posterior, sampler, n; …)` |

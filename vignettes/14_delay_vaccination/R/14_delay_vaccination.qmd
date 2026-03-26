@@ -134,10 +134,10 @@ Run 100 stochastic realisations over one year:
 n_particles <- 100
 times <- seq(0, 365, by = 1)
 
-sys <- dust_system_create(seir_vacc, pars,
+sys <- System(seir_vacc, pars,
                           n_particles = n_particles, dt = 1, seed = 42)
 dust_system_set_state_initial(sys)
-result <- dust_system_simulate(sys, times)
+result <- simulate(sys, times)
 cat("Result dimensions:", dim(result), "\n")
 ```
 
@@ -260,10 +260,10 @@ ggplot(df_V, aes(x = time, y = vaccinated, color = age_group)) +
 pars_novacc <- pars
 pars_novacc$vacc_rate <- c(0, 0, 0)
 
-sys_nv <- dust_system_create(seir_vacc, pars_novacc,
+sys_nv <- System(seir_vacc, pars_novacc,
                               n_particles = n_particles, dt = 1, seed = 42)
 dust_system_set_state_initial(sys_nv)
-result_nv <- dust_system_simulate(sys_nv, times)
+result_nv <- simulate(sys_nv, times)
 
 I_vacc <- colMeans(result[idx_I[1], , ] + result[idx_I[2], , ] + result[idx_I[3], , ])
 I_novacc <- colMeans(result_nv[idx_I[1], , ] + result_nv[idx_I[2], , ] + result_nv[idx_I[3], , ])

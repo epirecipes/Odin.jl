@@ -58,21 +58,21 @@ First, simulate each pathogen independently:
 
 ```{julia}
 # Flu alone
-flu_gen = lower(flu; mode=:ode, frequency_dependent=true, N=:N,
+flu_gen = compile(flu; mode=:ode, frequency_dependent=true, N=:N,
                 params=Dict(:beta_flu => 0.4, :gamma_flu => 0.15, :N => 1000.0))
 
-sys_flu = dust_system_create(flu_gen, (beta_flu=0.4, gamma_flu=0.15, N=1000.0))
-dust_system_set_state_initial!(sys_flu)
+sys_flu = System(flu_gen, (beta_flu=0.4, gamma_flu=0.15, N=1000.0))
+reset!(sys_flu)
 times = collect(0.0:0.5:200.0)
-r_flu = dust_system_simulate(sys_flu, times)
+r_flu = simulate(sys_flu, times)
 
 # Chlamydia alone
-chl_gen = lower(chl; mode=:ode, frequency_dependent=true, N=:N,
+chl_gen = compile(chl; mode=:ode, frequency_dependent=true, N=:N,
                 params=Dict(:beta_chl => 0.3, :gamma_chl => 0.05, :N => 1000.0))
 
-sys_chl = dust_system_create(chl_gen, (beta_chl=0.3, gamma_chl=0.05, N=1000.0))
-dust_system_set_state_initial!(sys_chl)
-r_chl = dust_system_simulate(sys_chl, times)
+sys_chl = System(chl_gen, (beta_chl=0.3, gamma_chl=0.05, N=1000.0))
+reset!(sys_chl)
+r_chl = simulate(sys_chl, times)
 
 p = plot(layout=(1,2), size=(900, 400))
 plot!(p, times, [r_flu[1,1,:] r_flu[2,1,:] r_flu[3,1,:]],
@@ -141,10 +141,10 @@ two_pathogen = @odin begin
 end
 
 pars = (beta_flu=0.4, gamma_flu=0.15, beta_chl=0.3, gamma_chl=0.05, N=1000.0)
-sys = dust_system_create(two_pathogen, pars)
-dust_system_set_state_initial!(sys)
+sys = System(two_pathogen, pars)
+reset!(sys)
 times = collect(0.0:0.5:300.0)
-result = dust_system_simulate(sys, times)
+result = simulate(sys, times)
 
 sn = [:SS, :IS, :SI, :II, :RS, :RI]
 ```
@@ -231,9 +231,9 @@ p = plot(title="Chlamydia Prevalence under Cross-Immunity",
 for (k, sigma) in enumerate(sigma_values)
     pars_xi = (beta_flu=0.4, gamma_flu=0.15, beta_chl=0.3,
                gamma_chl=0.05, sigma=sigma, N=1000.0)
-    sys_xi = dust_system_create(two_pathogen_xi, pars_xi)
-    dust_system_set_state_initial!(sys_xi)
-    r_xi = dust_system_simulate(sys_xi, times)
+    sys_xi = System(two_pathogen_xi, pars_xi)
+    reset!(sys_xi)
+    r_xi = simulate(sys_xi, times)
     # Chlamydia infected: SI + II + RI
     chl = r_xi[3, 1, :] .+ r_xi[4, 1, :] .+ r_xi[6, 1, :]
     plot!(p, times, chl, label=labels[k], color=colors_xi[k])
@@ -279,13 +279,13 @@ println("Independent composition:")
 println("  Species: ", species_names(two_independent))
 println("  Transitions: ", transition_names(two_independent))
 
-gen_ind = lower(two_independent; mode=:ode, frequency_dependent=true, N=:N,
+gen_ind = compile(two_independent; mode=:ode, frequency_dependent=true, N=:N,
                 params=Dict(:beta_flu => 0.4, :gamma_flu => 0.15,
                             :beta_chl => 0.3, :gamma_chl => 0.05, :N => 500.0))
-sys_ind = dust_system_create(gen_ind, (beta_flu=0.4, gamma_flu=0.15,
+sys_ind = System(gen_ind, (beta_flu=0.4, gamma_flu=0.15,
                                         beta_chl=0.3, gamma_chl=0.05, N=500.0))
-dust_system_set_state_initial!(sys_ind)
-r_ind = dust_system_simulate(sys_ind, times)
+reset!(sys_ind)
+r_ind = simulate(sys_ind, times)
 
 sn_ind = species_names(two_independent)
 p = plot(title="Two Independent Pathogens (Composed)",
@@ -299,10 +299,10 @@ p
 ## Stochastic Co-Circulation
 
 ```{julia}
-sys_stoch = dust_system_create(two_pathogen, pars; n_particles=30, dt=0.25, seed=42)
-dust_system_set_state_initial!(sys_stoch)
+sys_stoch = System(two_pathogen, pars; n_particles=30, dt=0.25, seed=42)
+reset!(sys_stoch)
 times_s = collect(0.0:1.0:300.0)
-r_stoch = dust_system_simulate(sys_stoch, times_s)
+r_stoch = simulate(sys_stoch, times_s)
 
 p = plot(layout=(1,2), size=(900, 400),
          title=["Flu Prevalence" "Chlamydia Prevalence"])

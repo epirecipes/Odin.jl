@@ -69,7 +69,7 @@ sir <- odin({
 ### Deterministic Likelihood (Unfilter)
 
 ```{r}
-unfilter <- dust_unfilter_create(sir, data = incidence, time_start = 0,
+unfilter <- Likelihood(sir, data = incidence, time_start = 0,
                                   dt = 0.25)
 dust_likelihood_run(unfilter, list(beta = 0.4, gamma = 0.2))
 ```
@@ -77,9 +77,9 @@ dust_likelihood_run(unfilter, list(beta = 0.4, gamma = 0.2))
 ### MCMC Setup
 
 ```{r}
-packer <- monty_packer(c("beta", "gamma"))
+packer <- Packer(c("beta", "gamma"))
 
-likelihood <- dust_likelihood_monty(unfilter, packer)
+likelihood <- as_model(unfilter, packer)
 
 prior <- monty_dsl({
   beta ~ Exponential(mean = 0.5)
@@ -93,9 +93,9 @@ posterior <- likelihood + prior
 
 ```{r}
 vcv <- matrix(c(0.01, 0.005, 0.005, 0.005), 2, 2)
-sampler <- monty_sampler_random_walk(vcv)
+sampler <- random_walk(vcv)
 
-samples_det <- monty_sample(posterior, sampler, 2000, n_chains = 3)
+samples_det <- sample(posterior, sampler, 2000, n_chains = 3)
 ```
 
 ### Posterior Summary
@@ -126,13 +126,13 @@ bayesplot::mcmc_scatter(samples_df)
 ### Stochastic Comparison
 
 ```{r}
-filter <- dust_filter_create(sir, data = incidence, time_start = 0,
+filter <- Likelihood(sir, data = incidence, time_start = 0,
                               n_particles = 200, dt = 0.25)
 
-likelihood_stoch <- dust_likelihood_monty(filter, packer)
+likelihood_stoch <- as_model(filter, packer)
 posterior_stoch <- likelihood_stoch + prior
 
-samples_stoch <- monty_sample(posterior_stoch, sampler, 2000, n_chains = 3)
+samples_stoch <- sample(posterior_stoch, sampler, 2000, n_chains = 3)
 
 pars_det <- array(samples_det$pars, c(2, prod(dim(samples_det$pars)[-1])))
 pars_stoch <- array(samples_stoch$pars, c(2, prod(dim(samples_stoch$pars)[-1])))
@@ -210,11 +210,11 @@ schools_open <- c(1,  0,  1,   0,   1,   0,   1)
 ### MCMC Setup
 
 ```{r}
-sis_packer <- monty_packer(c("beta0", "gamma", "schools_modifier"),
+sis_packer <- Packer(c("beta0", "gamma", "schools_modifier"),
                            fixed = list(schools_time = schools_time,
                                         schools_open = schools_open))
 
-sis_filter <- dust_filter_create(sis, time_start = 0, dt = 1,
+sis_filter <- Likelihood(sis, time_start = 0, dt = 1,
                                   data = schools_data, n_particles = 200)
 
 sis_prior <- monty_dsl({
@@ -223,7 +223,7 @@ sis_prior <- monty_dsl({
   schools_modifier ~ Uniform(0, 1)
 })
 
-sis_likelihood <- dust_likelihood_monty(sis_filter, sis_packer)
+sis_likelihood <- as_model(sis_filter, sis_packer)
 sis_posterior <- sis_likelihood + sis_prior
 ```
 
@@ -231,9 +231,9 @@ sis_posterior <- sis_likelihood + sis_prior
 
 ```{r}
 sis_vcv <- diag(c(2e-4, 2e-4, 4e-4))
-sis_sampler <- monty_sampler_random_walk(sis_vcv)
+sis_sampler <- random_walk(sis_vcv)
 
-sis_samples <- monty_sample(sis_posterior, sis_sampler, 500,
+sis_samples <- sample(sis_posterior, sis_sampler, 500,
                             initial = c(0.3, 0.1, 0.5),
                             n_chains = 4)
 ```
@@ -276,10 +276,10 @@ pars_arr <- array(sis_samples_thin$pars, c(3, n_draws))
 projection_inc <- matrix(NA, nrow = 201, ncol = n_draws)
 for (i in seq_len(n_draws)) {
   p <- sis_packer$unpack(pars_arr[, i])
-  sys <- dust_system_create(sis, p, dt = 1)
+  sys <- System(sis, p, dt = 1)
   dust_system_set_state_initial(sys)
   t_all <- seq(0, 200)
-  y <- dust_system_simulate(sys, t_all)
+  y <- simulate(sys, t_all)
   y_unpacked <- dust_unpack_state(sys, y)
   projection_inc[, i] <- y_unpacked$incidence
 }
@@ -299,9 +299,9 @@ for (i in seq_len(n_draws)) {
   p <- sis_packer$unpack(pars_arr[, i])
   p$schools_time <- c(0, 50, 60)
   p$schools_open <- c(1, 0, 1)
-  sys <- dust_system_create(sis, p, dt = 1)
+  sys <- System(sis, p, dt = 1)
   dust_system_set_state_initial(sys)
-  y <- dust_system_simulate(sys, seq(0, 200))
+  y <- simulate(sys, seq(0, 200))
   y_unpacked <- dust_unpack_state(sys, y)
   cf_inc[, i] <- y_unpacked$incidence
 }
@@ -323,9 +323,9 @@ for (i in seq_len(n_draws)) {
   p <- sis_packer$unpack(pars_arr[, i])
   p$schools_time <- 0
   p$schools_open <- 1
-  sys <- dust_system_create(sis, p, dt = 1)
+  sys <- System(sis, p, dt = 1)
   dust_system_set_state_initial(sys)
-  y <- dust_system_simulate(sys, seq(0, 200))
+  y <- simulate(sys, seq(0, 200))
   y_unpacked <- dust_unpack_state(sys, y)
   no_closure_inc[, i] <- y_unpacked$incidence
 }
@@ -344,11 +344,11 @@ legend("topright", c("Fitted (3 closures)", "No closures"),
 | Step | R API |
 |------|-------|
 | Define model | `odin({...})` |
-| Deterministic likelihood | `dust_unfilter_create()` |
-| Stochastic likelihood | `dust_filter_create()` |
-| Bridge to MCMC | `dust_likelihood_monty()` |
+| Deterministic likelihood | `Likelihood()` |
+| Stochastic likelihood | `Likelihood()` |
+| Bridge to MCMC | `as_model()` |
 | Define prior | `monty_dsl({...})` |
 | Combine | `posterior <- likelihood + prior` |
-| Sample | `monty_sample()` |
+| Sample | `sample()` |
 | Thin | `monty_samples_thin()` |
-| Counterfactuals | `dust_system_create()` + `dust_system_simulate()` |
+| Counterfactuals | `System()` + `simulate()` |

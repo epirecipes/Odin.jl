@@ -375,9 +375,9 @@ n_particles = 10
 sim_times = collect(0.0:1.0:t_end)
 
 # Create system and set initial state
-sys = Odin.dust_system_create(yf_delay, pars; dt=1.0, seed=42,
+sys = Odin.System(yf_delay, pars; dt=1.0, seed=42,
                                n_particles=n_particles)
-Odin.dust_system_set_state_initial!(sys)
+Odin.reset!(sys)
 
 # Seed infections: find I_chain[2, 1] index in state vector
 # State layout: C_new[1:N_age], S[1:N_age], E_chain[N_age × k_E],
@@ -389,7 +389,7 @@ Odin.dust_system_set_state_initial!(sys)
 # R: indices 28:30
 # V: indices 31:33
 # I_chain[2, 1] is the 2nd element (age=2, stage=1) → index 20
-state = Odin.dust_system_state(sys)
+state = Odin.state(sys)
 i_chain_offset = N_age + N_age + N_age * k_E  # C_new + S + E_chain
 i_chain_idx_2_1 = i_chain_offset + 2  # I_chain[2, 1] in column-major
 for p in 1:n_particles
@@ -398,7 +398,7 @@ end
 Odin.dust_system_set_state!(sys, state)
 
 # Simulate
-result = Odin.dust_system_simulate(sys, sim_times)
+result = Odin.simulate(sys, sim_times)
 
 println("Result shape: ", size(result),
         "  (n_state+n_output × n_particles × n_times)")
@@ -675,14 +675,14 @@ compare_times = collect(0.0:1.0:365.0)
 simple_pars_1 = (N_age=3.0, k_E=1.0, k_I=1.0,
                  t_latent=5.0, t_infectious=5.0, R0=3.0,
                  S_0=S_0 .+ R_0 .+ V_0)
-sys_c1 = Odin.dust_system_create(yf_delay_simple, simple_pars_1; dt=1.0, seed=1)
-Odin.dust_system_set_state_initial!(sys_c1)
-st1 = Odin.dust_system_state(sys_c1)
+sys_c1 = Odin.System(yf_delay_simple, simple_pars_1; dt=1.0, seed=1)
+Odin.reset!(sys_c1)
+st1 = Odin.state(sys_c1)
 ic_off1 = N_age + N_age + N_age * 1
 st1[ic_off1 + 2, 1] = n_seed
 st1[N_age + 2, 1] -= n_seed
 Odin.dust_system_set_state!(sys_c1, st1)
-r1 = Odin.dust_system_simulate(sys_c1, compare_times)
+r1 = Odin.simulate(sys_c1, compare_times)
 I_exp = [sum(r1[(ic_off1+1):(ic_off1+N_age*1), 1, t]) for t in 1:length(compare_times)]
 
 GC.gc()
@@ -691,14 +691,14 @@ GC.gc()
 simple_pars_2 = (N_age=3.0, k_E=4.0, k_I=3.0,
                  t_latent=5.0, t_infectious=5.0, R0=3.0,
                  S_0=S_0 .+ R_0 .+ V_0)
-sys_c2 = Odin.dust_system_create(yf_delay_simple, simple_pars_2; dt=1.0, seed=1)
-Odin.dust_system_set_state_initial!(sys_c2)
-st2 = Odin.dust_system_state(sys_c2)
+sys_c2 = Odin.System(yf_delay_simple, simple_pars_2; dt=1.0, seed=1)
+Odin.reset!(sys_c2)
+st2 = Odin.state(sys_c2)
 ic_off2 = N_age + N_age + N_age * 4
 st2[ic_off2 + 2, 1] = n_seed
 st2[N_age + 2, 1] -= n_seed
 Odin.dust_system_set_state!(sys_c2, st2)
-r2 = Odin.dust_system_simulate(sys_c2, compare_times)
+r2 = Odin.simulate(sys_c2, compare_times)
 I_erl = [sum(r2[(ic_off2+1):(ic_off2+N_age*3), 1, t]) for t in 1:length(compare_times)]
 
 plot(compare_times, I_exp, lw=2.5, color=:blue, label="k=1 (Exponential)",
@@ -723,15 +723,15 @@ pars_novacc = merge(pars, (vacc_rate = zeros(N_age),
                             S_0 = pop .- R_0))
 pars_novacc = merge(pars_novacc, (S_0 = pars_novacc.S_0 .- [0, n_seed, 0],))
 
-sys_nv = Odin.dust_system_create(yf_delay, pars_novacc; dt=1.0, seed=42,
+sys_nv = Odin.System(yf_delay, pars_novacc; dt=1.0, seed=42,
                                   n_particles=n_particles)
-Odin.dust_system_set_state_initial!(sys_nv)
-st_nv = Odin.dust_system_state(sys_nv)
+Odin.reset!(sys_nv)
+st_nv = Odin.state(sys_nv)
 for p in 1:n_particles
     st_nv[i_chain_idx_2_1, p] = n_seed
 end
 Odin.dust_system_set_state!(sys_nv, st_nv)
-result_nv = Odin.dust_system_simulate(sys_nv, sim_times)
+result_nv = Odin.simulate(sys_nv, sim_times)
 
 I_vacc = vec(mean(sum(result[idx_I, :, :], dims=1), dims=2))
 I_novacc = vec(mean(sum(result_nv[idx_I, :, :], dims=1), dims=2))
@@ -750,10 +750,10 @@ plot!(sim_times, I_vacc, lw=2, color=:blue, label="With vaccination")
 using BenchmarkTools
 
 @benchmark begin
-    sys_b = Odin.dust_system_create($yf_delay, $pars; dt=1.0, seed=42,
+    sys_b = Odin.System($yf_delay, $pars; dt=1.0, seed=42,
                                      n_particles=10)
-    Odin.dust_system_set_state_initial!(sys_b)
-    Odin.dust_system_simulate(sys_b, $sim_times)
+    Odin.reset!(sys_b)
+    Odin.simulate(sys_b, $sim_times)
 end
 ```
 
@@ -792,5 +792,5 @@ end
 | Step | API |
 |------|-----|
 | Define model | `@odin begin … end` with 2D arrays for delay chains |
-| Simulate | `dust_system_simulate()` with manual state seeding |
+| Simulate | `simulate()` with manual state seeding |
 | Delay comparison | Run with different $k$ values, same mean |

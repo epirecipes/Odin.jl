@@ -64,12 +64,12 @@ using Odin
 
         # Generate synthetic data from the model
         pars = (N=1000.0, I0=10.0, beta=0.5, gamma=0.1)
-        sys = dust_system_create(gen, pars; n_particles=1, dt=1.0, seed=1)
-        dust_system_set_state_initial!(sys)
+        sys = System(gen, pars; n_particles=1, dt=1.0, seed=1)
+        reset!(sys)
         times = collect(5.0:5.0:50.0)
-        result = dust_system_simulate(sys, times)
+        result = simulate(sys, times)
         data_vec = [(time=times[i], cases=max(1.0, result[2,1,i])) for i in eachindex(times)]
-        fdata = Odin.dust_filter_data(data_vec)
+        fdata = Odin.ObservedData(data_vec)
 
         # Create GPU filter with CPU fallback
         gf = Odin.gpu_dust_filter_create(gen, fdata;
@@ -110,17 +110,17 @@ using Odin
         end
 
         pars = (N=1000.0, I0=10.0, beta=0.5, gamma=0.1)
-        sys = dust_system_create(gen, pars; n_particles=1, dt=1.0, seed=1)
-        dust_system_set_state_initial!(sys)
+        sys = System(gen, pars; n_particles=1, dt=1.0, seed=1)
+        reset!(sys)
         times = collect(5.0:5.0:50.0)
-        result = dust_system_simulate(sys, times)
+        result = simulate(sys, times)
         data_vec = [(time=times[i], cases=max(1.0, result[2,1,i])) for i in eachindex(times)]
-        fdata = Odin.dust_filter_data(data_vec)
+        fdata = Odin.ObservedData(data_vec)
 
         # CPU filter (standard)
-        cpu_filter = dust_filter_create(gen, fdata;
+        cpu_filter = Likelihood(gen, fdata;
             n_particles=200, dt=1.0, seed=42)
-        ll_cpu = dust_likelihood_run!(cpu_filter, pars)
+        ll_cpu = loglik(cpu_filter, pars)
 
         # GPU filter with CPU backend (should give identical result)
         gpu_filter = Odin.gpu_dust_filter_create(gen, fdata;
@@ -157,9 +157,9 @@ using Odin
         @test size(out_gpu) == (3, 5, length(times))
 
         # Should match standard simulate
-        sys = dust_system_create(gen, pars; n_particles=5, dt=1.0, seed=42)
-        dust_system_set_state_initial!(sys)
-        out_cpu = dust_system_simulate(sys, times)
+        sys = System(gen, pars; n_particles=5, dt=1.0, seed=42)
+        reset!(sys)
+        out_cpu = simulate(sys, times)
         @test out_gpu ≈ out_cpu atol=1e-10
     end
 
@@ -180,12 +180,12 @@ using Odin
         end
 
         pars = (N=1000.0, I0=10.0, beta=0.5, gamma=0.1)
-        sys = dust_system_create(gen, pars)
-        dust_system_set_state_initial!(sys)
+        sys = System(gen, pars)
+        reset!(sys)
         times = collect(5.0:5.0:20.0)
-        result = dust_system_simulate(sys, times)
+        result = simulate(sys, times)
         data_vec = [(time=times[i], cases=max(1.0, result[2,1,i])) for i in eachindex(times)]
-        fdata = Odin.dust_filter_data(data_vec)
+        fdata = Odin.ObservedData(data_vec)
 
         # Should be able to create the filter...
         gf = Odin.gpu_dust_filter_create(gen, fdata; n_particles=10, backend=:cpu)
@@ -214,16 +214,16 @@ using Odin
         end
 
         pars = (N=1000.0, I0=10.0, beta=0.5, gamma=0.1)
-        sys = dust_system_create(gen, pars; n_particles=1, dt=1.0, seed=1)
-        dust_system_set_state_initial!(sys)
+        sys = System(gen, pars; n_particles=1, dt=1.0, seed=1)
+        reset!(sys)
         times = collect(5.0:5.0:30.0)
-        result = dust_system_simulate(sys, times)
+        result = simulate(sys, times)
         data_vec = [(time=times[i], cases=max(1.0, result[2,1,i])) for i in eachindex(times)]
-        fdata = Odin.dust_filter_data(data_vec)
+        fdata = Odin.ObservedData(data_vec)
 
         gf = Odin.gpu_dust_filter_create(gen, fdata;
             n_particles=50, dt=1.0, seed=42, backend=:cpu)
-        packer = monty_packer([:beta, :gamma]; fixed=(I0=10.0, N=1000.0))
+        packer = Packer([:beta, :gamma]; fixed=(I0=10.0, N=1000.0))
         ll_model = Odin.gpu_dust_likelihood_monty(gf, packer)
 
         @test ll_model isa MontyModel
@@ -263,12 +263,12 @@ using Odin
                 end
 
                 pars = (N=1000.0, I0=10.0, beta=0.5, gamma=0.1)
-                sys = dust_system_create(gen, pars; n_particles=1, dt=1.0, seed=1)
-                dust_system_set_state_initial!(sys)
+                sys = System(gen, pars; n_particles=1, dt=1.0, seed=1)
+                reset!(sys)
                 times = collect(5.0:5.0:30.0)
-                result = dust_system_simulate(sys, times)
+                result = simulate(sys, times)
                 data_vec = [(time=times[i], cases=max(1.0, result[2,1,i])) for i in eachindex(times)]
-                fdata = Odin.dust_filter_data(data_vec)
+                fdata = Odin.ObservedData(data_vec)
 
                 # Run GPU filter
                 gf = Odin.gpu_dust_filter_create(gen, fdata;
@@ -277,9 +277,9 @@ using Odin
                 @test isfinite(ll_gpu)
 
                 # Compare with CPU filter (stochastic — use large tolerance)
-                cpu_filter = dust_filter_create(gen, fdata;
+                cpu_filter = Likelihood(gen, fdata;
                     n_particles=500, dt=1.0, seed=42)
-                ll_cpu = dust_likelihood_run!(cpu_filter, pars)
+                ll_cpu = loglik(cpu_filter, pars)
                 @test abs(ll_gpu - ll_cpu) / abs(ll_cpu) < 0.5  # within 50% relative
             end
         end

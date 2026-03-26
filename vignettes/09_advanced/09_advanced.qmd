@@ -92,10 +92,10 @@ pars = (
     nu_value = [0.0, 0.005],
 )
 
-sys = dust_system_create(seir_vax, pars; dt=1.0, seed=42)
-dust_system_set_state_initial!(sys)
+sys = System(seir_vax, pars; dt=1.0, seed=42)
+reset!(sys)
 times = collect(0.0:1.0:365.0)
-result = dust_system_simulate(sys, times)
+result = simulate(sys, times)
 
 p1 = plot(times, result[1, 1, :], label="S", lw=2, color=:blue)
 plot!(p1, times, result[2, 1, :], label="E", lw=1.5, color=:orange)
@@ -115,9 +115,9 @@ p2 = plot(xlabel="Day", ylabel="Daily cases",
           title="Observed incidence (10 realisations)")
 
 for seed in 1:10
-    sys = dust_system_create(seir_vax, pars; dt=1.0, seed=seed)
-    dust_system_set_state_initial!(sys)
-    r = dust_system_simulate(sys, times)
+    sys = System(seir_vax, pars; dt=1.0, seed=seed)
+    reset!(sys)
+    r = simulate(sys, times)
     plot!(p2, times, r[6, 1, :], alpha=0.5, lw=1, label=nothing)
 end
 vline!(p2, [30.0], ls=:dash, color=:gray, label="Vaccination starts")
@@ -142,9 +142,9 @@ for (label, nu_t, nu_v) in scenarios
     I_mean = zeros(length(times))
     for seed in 1:20
         p = merge(pars, (nu_time=nu_t, nu_value=nu_v))
-        sys = dust_system_create(seir_vax, p; dt=1.0, seed=seed)
-        dust_system_set_state_initial!(sys)
-        r = dust_system_simulate(sys, times)
+        sys = System(seir_vax, p; dt=1.0, seed=seed)
+        reset!(sys)
+        r = simulate(sys, times)
         I_mean .+= r[3, 1, :]
     end
     I_mean ./= 20
@@ -166,42 +166,42 @@ true_pars = (
     nu_time=[0.0, 30.0], nu_value=[0.0, 0.005],
 )
 
-sys_true = dust_system_create(seir_vax, true_pars; dt=1.0, seed=1)
-dust_system_set_state_initial!(sys_true)
+sys_true = System(seir_vax, true_pars; dt=1.0, seed=1)
+reset!(sys_true)
 obs_times = collect(0.0:1.0:180.0)
-true_result = dust_system_simulate(sys_true, obs_times)
+true_result = simulate(sys_true, obs_times)
 obs_cases = max.(1, round.(Int, true_result[6, 1, 2:end]))
 
-data = dust_filter_data(
+data = ObservedData(
     [(time=Float64(t), cases=obs_cases[t]) for t in 1:180]
 )
 
 # Set up inference
-packer = monty_packer([:beta, :sigma])
+packer = Packer([:beta, :sigma])
 
 function make_pars(theta)
     merge(true_pars, (beta=theta[1], sigma=theta[2]))
 end
 
-filter = dust_filter_create(seir_vax, data; n_particles=100, dt=1.0, seed=42)
+filter = Likelihood(seir_vax, data; n_particles=100, dt=1.0, seed=42)
 
-ll_model = monty_model(
+ll_model = DensityModel(
     function(theta)
         p = make_pars(theta)
-        return dust_likelihood_run!(filter, p)
+        return loglik(filter, p)
     end;
     parameters = ["beta", "sigma"],
     domain = [0.0 2.0; 0.0 2.0],
 )
 
-prior = @monty_prior begin
+prior = @prior begin
     beta ~ Gamma(4.0, 0.1)
     sigma ~ Gamma(2.0, 0.1)
 end
 
-posterior = monty_model_combine(ll_model, prior)
-sampler = monty_sampler_random_walk(diagm([0.001, 0.001]))
-samples = monty_sample(posterior, sampler, 2000;
+posterior = Odin.monty_model_combine(ll_model, prior)
+sampler = random_walk(diagm([0.001, 0.001]))
+samples = sample(posterior, sampler, 2000;
                        initial=repeat([0.3, 0.15], 1, 4), n_chains=4, n_burnin=500)
 
 println("Parameter estimates (posterior mean ± std):")

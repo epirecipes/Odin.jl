@@ -82,11 +82,11 @@ flu <- odin({
     ℹ Loading odin.systemba9c81dc
 
 ``` r
-sys <- dust_system_create(flu, list(beta = 0.4, gamma = 0.15, N = 1000),
+sys <- System(flu, list(beta = 0.4, gamma = 0.15, N = 1000),
                           ode_control = dust_ode_control())
 dust_system_set_state_initial(sys)
 times <- seq(0, 200, by = 0.5)
-r_flu <- dust_system_simulate(sys, times)
+r_flu <- simulate(sys, times)
 ```
 
 ### Chlamydia (SIS)
@@ -153,10 +153,10 @@ chl <- odin({
     ℹ Loading odin.systemb1293932
 
 ``` r
-sys <- dust_system_create(chl, list(beta = 0.3, gamma = 0.05, N = 1000),
+sys <- System(chl, list(beta = 0.3, gamma = 0.05, N = 1000),
                           ode_control = dust_ode_control())
 dust_system_set_state_initial(sys)
-r_chl <- dust_system_simulate(sys, times)
+r_chl <- simulate(sys, times)
 ```
 
 ``` r
@@ -275,10 +275,10 @@ two_pathogen <- odin({
 ``` r
 pars <- list(beta_flu = 0.4, gamma_flu = 0.15,
              beta_chl = 0.3, gamma_chl = 0.05, N = 1000)
-sys <- dust_system_create(two_pathogen, pars, ode_control = dust_ode_control())
+sys <- System(two_pathogen, pars, ode_control = dust_ode_control())
 dust_system_set_state_initial(sys)
 times <- seq(0, 300, by = 0.5)
-result <- dust_system_simulate(sys, times)
+result <- simulate(sys, times)
 ```
 
 ### Marginal Prevalence
@@ -393,10 +393,10 @@ for (k in seq_along(sigmas)) {
   pars_xi <- list(beta_flu = 0.4, gamma_flu = 0.15,
                   beta_chl = 0.3, gamma_chl = 0.05,
                   sigma = sigmas[k], N = 1000)
-  sys_xi <- dust_system_create(two_pathogen_xi, pars_xi,
+  sys_xi <- System(two_pathogen_xi, pars_xi,
                                ode_control = dust_ode_control())
   dust_system_set_state_initial(sys_xi)
-  r_xi <- dust_system_simulate(sys_xi, times)
+  r_xi <- simulate(sys_xi, times)
   chl_i <- r_xi[3, ] + r_xi[4, ] + r_xi[6, ]
   lines(times, chl_i, col = cols[k], lwd = 2)
 }

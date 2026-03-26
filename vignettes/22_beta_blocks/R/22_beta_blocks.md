@@ -137,9 +137,9 @@ true_pars <- list(
 
 times <- seq(0, 365, by = 1)
 
-sys <- dust_system_create(sir_beta_blocks, true_pars, dt = 1, seed = 1)
+sys <- System(sir_beta_blocks, true_pars, dt = 1, seed = 1)
 dust_system_set_state_initial(sys)
-result <- dust_system_simulate(sys, times)
+result <- simulate(sys, times)
 ```
 
 ## Visualising the Simulation
@@ -202,7 +202,7 @@ The packer maps four scalar β parameters to the `beta_values` array
 expected by the model.
 
 ``` r
-packer <- monty_packer(
+packer <- Packer(
   c("beta1", "beta2", "beta3", "beta4"),
   fixed = list(
     N = 10000,
@@ -219,9 +219,9 @@ packer <- monty_packer(
 ### Likelihood
 
 ``` r
-filter <- dust_filter_create(sir_beta_blocks, time_start = 0, data = data,
+filter <- Likelihood(sir_beta_blocks, time_start = 0, data = data,
                              n_particles = 1, seed = 1)
-likelihood <- dust_likelihood_monty(filter, packer)
+likelihood <- as_model(filter, packer)
 ```
 
 ### Prior
@@ -255,9 +255,9 @@ cat("Log-likelihood at true parameters:",
 
 ``` r
 vcv <- diag(rep(0.002, 4))
-sampler <- monty_sampler_random_walk(vcv)
+sampler <- random_walk(vcv)
 
-samples <- monty_sample(posterior, sampler, 5000,
+samples <- sample(posterior, sampler, 5000,
                         initial = theta_true, n_chains = 1,
                         burnin = 500)
 ```
@@ -349,10 +349,10 @@ legend("topright", legend = c("Posterior draws", "True"),
 | Piecewise-constant β | `interpolate(beta_times, beta_values, "constant")` |
 | Array dimensions | `dim(beta_times, beta_values) <- parameter(rank = 1)` |
 | Poisson observation | `cases ~ Poisson(incidence + 1e-6)` |
-| Exact likelihood | `dust_filter_create(..., n_particles = 1)` |
+| Exact likelihood | `Likelihood(..., n_particles = 1)` |
 | Process function | `process = function(x) list(beta_values = c(...))` |
 | Prior (monty DSL) | `beta1 ~ Gamma(shape = 4, rate = 10)` |
-| MCMC | `monty_sampler_random_walk(vcv)` |
+| MCMC | `random_walk(vcv)` |
 
 Both the Julia and R versions produce equivalent results using the same
 model structure and inference approach.

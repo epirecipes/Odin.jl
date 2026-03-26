@@ -258,9 +258,9 @@ cat("Case fatality ratio =", round(100 * cfr, 1), "%\n")
 ``` r
 times <- seq(0, 120, by = 1)
 
-sys <- dust_system_create(seird_multi, true_pars, seed = 1)
+sys <- System(seird_multi, true_pars, seed = 1)
 dust_system_set_state_initial(sys)
-result <- dust_system_simulate(sys, times)
+result <- simulate(sys, times)
 
 true_S <- result[1, ]
 true_E <- result[2, ]
@@ -347,11 +347,11 @@ We need separate packers because the two models have different parameter
 sets:
 
 ``` r
-packer_cases <- monty_packer(
+packer_cases <- Packer(
   c("beta", "rho", "mu"),
   fixed = list(N = 100000, E0 = 10, sigma = 0.2, gamma = 0.1))
 
-packer_multi <- monty_packer(
+packer_multi <- Packer(
   c("beta", "rho", "mu"),
   fixed = list(N = 100000, E0 = 10, sigma = 0.2, gamma = 0.1, rho_d = 0.9))
 ```
@@ -359,8 +359,8 @@ packer_multi <- monty_packer(
 ## Single-Stream Inference (Cases Only)
 
 ``` r
-uf_cases <- dust_unfilter_create(seird_cases, time_start = 0, data = data_cases)
-ll_cases <- dust_likelihood_monty(uf_cases, packer_cases)
+uf_cases <- Likelihood(seird_cases, time_start = 0, data = data_cases)
+ll_cases <- as_model(uf_cases, packer_cases)
 posterior_cases <- ll_cases + prior
 
 cat("Log-likelihood at true parameters (cases only):",
@@ -371,9 +371,9 @@ cat("Log-likelihood at true parameters (cases only):",
 
 ``` r
 vcv <- diag(c(0.001, 0.005, 0.000001))
-sampler <- monty_sampler_adaptive(vcv)
+sampler <- adaptive_mh(vcv)
 
-samples_cases <- monty_sample(posterior_cases, sampler, 5000,
+samples_cases <- sample(posterior_cases, sampler, 5000,
                               initial = c(0.3, 0.3, 0.005),
                               n_chains = 1, burnin = 1000)
 ```
@@ -385,8 +385,8 @@ samples_cases <- monty_sample(posterior_cases, sampler, 5000,
 ## Multi-Stream Inference (Cases + Deaths)
 
 ``` r
-uf_multi <- dust_unfilter_create(seird_multi, time_start = 0, data = data_multi)
-ll_multi <- dust_likelihood_monty(uf_multi, packer_multi)
+uf_multi <- Likelihood(seird_multi, time_start = 0, data = data_multi)
+ll_multi <- as_model(uf_multi, packer_multi)
 posterior_multi <- ll_multi + prior
 
 cat("Log-likelihood at true parameters (multi-stream):",
@@ -396,7 +396,7 @@ cat("Log-likelihood at true parameters (multi-stream):",
     Log-likelihood at true parameters (multi-stream): -642.957 
 
 ``` r
-samples_multi <- monty_sample(posterior_multi, sampler, 5000,
+samples_multi <- sample(posterior_multi, sampler, 5000,
                               initial = c(0.3, 0.3, 0.005),
                               n_chains = 1, burnin = 1000)
 ```
@@ -573,9 +573,9 @@ project <- function(samples, n_proj, seed) {
       rho   = samples$pars[2, idx[j], 1],
       mu    = samples$pars[3, idx[j], 1]
     )
-    sys <- dust_system_create(seird_multi, pars, seed = j)
+    sys <- System(seird_multi, pars, seed = j)
     dust_system_set_state_initial(sys)
-    r <- dust_system_simulate(sys, proj_times)
+    r <- simulate(sys, proj_times)
     I_traj[j, ] <- r[3, ]
     D_traj[j, ] <- r[5, ]
   }
@@ -655,7 +655,7 @@ because the death rate μ is poorly constrained by case data alone.
 |--------------|------------------------------------------------------|
 | Define model | `odin({ … })` with `~` for each data stream          |
 | Prepare data | `data.frame(time = …, col1 = …, col2 = …)`           |
-| Likelihood   | `dust_unfilter_create()` → `dust_likelihood_monty()` |
+| Likelihood   | `Likelihood()` → `as_model()` |
 | Prior        | `monty_dsl({ … })`                                   |
 | Posterior    | `likelihood + prior`                                 |
-| Sample       | `monty_sample(posterior, sampler, n, …)`             |
+| Sample       | `sample(posterior, sampler, n, …)`             |

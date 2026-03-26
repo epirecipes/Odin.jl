@@ -125,9 +125,9 @@ base_pars = (
 )
 
 times = collect(0.0:1.0:200.0)
-sys = dust_system_create(seirv_reactive, base_pars; dt=1.0, seed=42)
-dust_system_set_state_initial!(sys)
-result = dust_system_simulate(sys, times)
+sys = System(seirv_reactive, base_pars; dt=1.0, seed=42)
+reset!(sys)
+result = simulate(sys, times)
 
 p = plot(layout=(2, 1), size=(700, 500), link=:x)
 
@@ -179,9 +179,9 @@ for (idx, (label, rv, ev)) in enumerate(scenarios)
 
     for seed in 1:n_runs
         pars = merge(base_pars, (routine_vacc=rv, emergency_vacc=ev))
-        sys = dust_system_create(seirv_reactive, pars; dt=1.0, seed=seed)
-        dust_system_set_state_initial!(sys)
-        r = dust_system_simulate(sys, times)
+        sys = System(seirv_reactive, pars; dt=1.0, seed=seed)
+        reset!(sys)
+        r = simulate(sys, times)
         I_mean .+= r[3, 1, :]
         V_mean .+= r[8, 1, :]
     end
@@ -215,9 +215,9 @@ for (idx, d) in enumerate(delays)
     I_mean = zeros(length(times))
     for seed in 1:n_runs
         pars = merge(base_pars, (response_delay=Float64(d),))
-        sys = dust_system_create(seirv_reactive, pars; dt=1.0, seed=seed)
-        dust_system_set_state_initial!(sys)
-        r = dust_system_simulate(sys, times)
+        sys = System(seirv_reactive, pars; dt=1.0, seed=seed)
+        reset!(sys)
+        r = simulate(sys, times)
         I_mean .+= r[3, 1, :]
     end
     I_mean ./= n_runs
@@ -245,9 +245,9 @@ for (idx, th) in enumerate(thresholds)
     I_mean = zeros(length(times))
     for seed in 1:n_runs
         pars = merge(base_pars, (case_threshold=Float64(th),))
-        sys = dust_system_create(seirv_reactive, pars; dt=1.0, seed=seed)
-        dust_system_set_state_initial!(sys)
-        r = dust_system_simulate(sys, times)
+        sys = System(seirv_reactive, pars; dt=1.0, seed=seed)
+        reset!(sys)
+        r = simulate(sys, times)
         I_mean .+= r[3, 1, :]
     end
     I_mean ./= n_runs
@@ -273,9 +273,9 @@ scenario_labels = ["No vaccination", "Routine only", "Reactive"]
 
 for (idx, (pars, label)) in enumerate(zip(scenario_pars, scenario_labels))
     for seed in 1:30
-        sys = dust_system_create(seirv_reactive, pars; dt=1.0, seed=seed)
-        dust_system_set_state_initial!(sys)
-        r = dust_system_simulate(sys, times)
+        sys = System(seirv_reactive, pars; dt=1.0, seed=seed)
+        reset!(sys)
+        r = simulate(sys, times)
         plot!(p_stoch[idx], times, r[3, 1, :],
               color=cols[idx], alpha=0.2, lw=0.7)
     end
@@ -299,9 +299,9 @@ for (label, rv, ev) in scenarios
     sizes = Float64[]
     for seed in 1:n_sims
         pars = merge(base_pars, (routine_vacc=rv, emergency_vacc=ev))
-        sys = dust_system_create(seirv_reactive, pars; dt=1.0, seed=seed)
-        dust_system_set_state_initial!(sys)
-        r = dust_system_simulate(sys, times)
+        sys = System(seirv_reactive, pars; dt=1.0, seed=seed)
+        reset!(sys)
+        r = simulate(sys, times)
         # Final R = total recovered (infected + vaccinated), so cumulative
         # infections ≈ R_final - cum_vaccinated_final
         cum_inf = r[4, 1, end] - r[8, 1, end]

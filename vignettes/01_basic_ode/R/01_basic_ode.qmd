@@ -35,10 +35,10 @@ sir <- odin({
 
 ```{r}
 pars <- list(beta = 0.5, gamma = 0.1, I0 = 10, N = 1000)
-sys <- dust_system_create(sir, pars, ode_control = dust_ode_control())
+sys <- System(sir, pars, ode_control = dust_ode_control())
 dust_system_set_state_initial(sys)
 times <- seq(0, 200, by = 1)
-result <- dust_system_simulate(sys, times)
+result <- simulate(sys, times)
 ```
 
 ## Plot
@@ -69,9 +69,9 @@ plot(NULL, xlim = c(0, 200), ylim = c(0, 500),
 
 for (i in seq_along(betas)) {
   pars_b <- list(beta = betas[i], gamma = 0.1, I0 = 10, N = 1000)
-  sys_b <- dust_system_create(sir, pars_b, ode_control = dust_ode_control())
+  sys_b <- System(sir, pars_b, ode_control = dust_ode_control())
   dust_system_set_state_initial(sys_b)
-  res <- dust_system_simulate(sys_b, times)
+  res <- simulate(sys_b, times)
   lines(times, res[2, ], col = cols[i], lwd = 2)
 }
 legend("topright", legend = paste("β =", betas), col = cols, lwd = 2)

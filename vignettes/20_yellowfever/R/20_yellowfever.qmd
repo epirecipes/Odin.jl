@@ -273,10 +273,10 @@ pars <- list(
 n_particles <- 10
 sim_times <- seq(0, t_end, by = 1)
 
-sys <- dust_system_create(yf_seirv, pars, n_particles = n_particles,
+sys <- System(yf_seirv, pars, n_particles = n_particles,
                           dt = 1, seed = 42)
 dust_system_set_state_initial(sys)
-result <- dust_system_simulate(sys, sim_times)
+result <- simulate(sys, sim_times)
 cat("Result dimensions:", dim(result), "\n")
 ```
 
@@ -403,10 +403,10 @@ pars_novacc$vacc_rate <- rep(0, N_age)
 pars_novacc$V_0 <- rep(0, N_age)
 pars_novacc$S_0 <- pop - R_0 - I_0
 
-sys_nv <- dust_system_create(yf_seirv, pars_novacc, n_particles = n_particles,
+sys_nv <- System(yf_seirv, pars_novacc, n_particles = n_particles,
                              dt = 1, seed = 42)
 dust_system_set_state_initial(sys_nv)
-result_nv <- dust_system_simulate(sys_nv, sim_times)
+result_nv <- simulate(sys_nv, sim_times)
 
 I_vacc <- apply(apply(result[idx_I, , , drop = FALSE], c(2, 3), sum), 2, mean)
 I_novacc <- apply(apply(result_nv[idx_I, , , drop = FALSE], c(2, 3), sum), 2, mean)

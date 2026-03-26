@@ -65,9 +65,9 @@ println("Symbolic Jacobian (sir_nosym):    ",
 true_pars = (beta=0.5, gamma=0.1, rho=0.3, I0=10.0, N=1000.0)
 times = collect(1.0:1.0:50.0)
 
-sys = dust_system_create(sir_symbolic, true_pars; n_particles=1, seed=42)
-dust_system_set_state_initial!(sys)
-sim = dust_system_simulate(sys, times)
+sys = System(sir_symbolic, true_pars; n_particles=1, seed=42)
+reset!(sys)
+sim = simulate(sys, times)
 
 # Extract I compartment and simulate Poisson observations
 rng = MersenneTwister(123)
@@ -76,7 +76,7 @@ obs_cases = [rand(rng, Poisson(max(1e-10, 0.3 * I_trajectory[i]))) for i in 1:le
 obs_cases = max.(obs_cases, 1)
 
 data_rows = [(time=times[i], cases=Float64(obs_cases[i])) for i in 1:length(times)]
-fdata = dust_filter_data(data_rows; time_field=:time)
+fdata = ObservedData(data_rows; time_field=:time)
 
 # Save data for R benchmark
 open(joinpath(@__DIR__, "benchmark_hmc_data.csv"), "w") do io
@@ -94,11 +94,11 @@ println("\nData summary: $(length(times)) time points, ",
 # ──────────────────────────────────────────────────────────────
 
 function make_posterior(sir_gen, fdata)
-    uf = dust_unfilter_create(sir_gen, fdata)
-    packer = monty_packer([:beta, :gamma, :rho]; fixed=(N=1000.0, I0=10.0))
-    ll = dust_likelihood_monty(uf, packer)
+    uf = Likelihood(sir_gen, fdata)
+    packer = Packer([:beta, :gamma, :rho]; fixed=(N=1000.0, I0=10.0))
+    ll = as_model(uf, packer)
 
-    prior = monty_model(
+    prior = DensityModel(
         x -> begin
             b, g, r = x
             (b <= 0 || g <= 0 || r <= 0 || r >= 1) && return -Inf
@@ -122,11 +122,11 @@ end
 
 # Fix the prior gradient — Exponential(rate=1) has logpdf = -x, gradient = -1
 function make_posterior_v2(sir_gen, fdata)
-    uf = dust_unfilter_create(sir_gen, fdata)
-    packer = monty_packer([:beta, :gamma, :rho]; fixed=(N=1000.0, I0=10.0))
-    ll = dust_likelihood_monty(uf, packer)
+    uf = Likelihood(sir_gen, fdata)
+    packer = Packer([:beta, :gamma, :rho]; fixed=(N=1000.0, I0=10.0))
+    ll = as_model(uf, packer)
 
-    prior = monty_model(
+    prior = DensityModel(
         x -> begin
             b, g, r = x
             (b <= 0 || g <= 0 || r <= 0 || r >= 1) && return -Inf
@@ -194,13 +194,13 @@ end
 
 # ── NUTS with symbolic adjoint ──
 println("\n=== Julia NUTS (symbolic adjoint) ===")
-nuts_sym = monty_sampler_nuts(target_acceptance=0.8, n_adaption=n_burnin, metric=:dense)
+nuts_sym = nuts(target_acceptance=0.8, n_adaption=n_burnin, metric=:dense)
 # Warmup run
-_ = monty_sample(post_sym, nuts_sym, 50; n_chains=1,
+_ = sample(post_sym, nuts_sym, 50; n_chains=1,
                  initial=initial_mat[:, 1:1], n_burnin=20, seed=1)
 
 t_sym = @elapsed begin
-    res_nuts_sym = monty_sample(post_sym, nuts_sym, n_steps; n_chains=n_chains,
+    res_nuts_sym = sample(post_sym, nuts_sym, n_steps; n_chains=n_chains,
                                 initial=initial_mat, n_burnin=n_burnin, seed=42)
 end
 ess_sym = compute_ess(res_nuts_sym.pars, n_burnin)
@@ -211,12 +211,12 @@ results["NUTS_symbolic"] = (time=t_sym, ess=ess_sym)
 
 # ── NUTS without symbolic (ForwardDiff fallback) ──
 println("\n=== Julia NUTS (ForwardDiff fallback) ===")
-nuts_nosym = monty_sampler_nuts(target_acceptance=0.8, n_adaption=n_burnin, metric=:dense)
-_ = monty_sample(post_nosym, nuts_nosym, 50; n_chains=1,
+nuts_nosym = nuts(target_acceptance=0.8, n_adaption=n_burnin, metric=:dense)
+_ = sample(post_nosym, nuts_nosym, 50; n_chains=1,
                  initial=initial_mat[:, 1:1], n_burnin=20, seed=1)
 
 t_nosym = @elapsed begin
-    res_nuts_nosym = monty_sample(post_nosym, nuts_nosym, n_steps; n_chains=n_chains,
+    res_nuts_nosym = sample(post_nosym, nuts_nosym, n_steps; n_chains=n_chains,
                                   initial=initial_mat, n_burnin=n_burnin, seed=42)
 end
 ess_nosym = compute_ess(res_nuts_nosym.pars, n_burnin)
@@ -227,12 +227,12 @@ results["NUTS_forwarddiff"] = (time=t_nosym, ess=ess_nosym)
 
 # ── HMC with symbolic adjoint ──
 println("\n=== Julia HMC (symbolic adjoint) ===")
-hmc_sym = monty_sampler_hmc(0.005, 20)
-_ = monty_sample(post_sym, hmc_sym, 50; n_chains=1,
+hmc_sym = hmc(0.005, 20)
+_ = sample(post_sym, hmc_sym, 50; n_chains=1,
                  initial=initial_mat[:, 1:1], n_burnin=20, seed=1)
 
 t_hmc = @elapsed begin
-    res_hmc = monty_sample(post_sym, hmc_sym, n_steps; n_chains=n_chains,
+    res_hmc = sample(post_sym, hmc_sym, n_steps; n_chains=n_chains,
                             initial=initial_mat, n_burnin=n_burnin, seed=42)
 end
 ess_hmc = compute_ess(res_hmc.pars, n_burnin)
@@ -244,10 +244,10 @@ results["HMC_symbolic"] = (time=t_hmc, ess=ess_hmc)
 # ── Random Walk (baseline) ──
 println("\n=== Julia Random Walk (baseline) ===")
 vcv = [0.002 0.0 0.0; 0.0 0.0005 0.0; 0.0 0.0 0.003]
-rw = monty_sampler_random_walk(vcv)
+rw = random_walk(vcv)
 
 t_rw = @elapsed begin
-    res_rw = monty_sample(post_sym, rw, n_steps; n_chains=n_chains,
+    res_rw = sample(post_sym, rw, n_steps; n_chains=n_chains,
                            initial=initial_mat, n_burnin=n_burnin, seed=42)
 end
 ess_rw = compute_ess(res_rw.pars, n_burnin)

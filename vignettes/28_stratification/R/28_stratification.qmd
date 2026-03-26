@@ -66,10 +66,10 @@ pars <- list(
   beta = 0.3, gamma = 0.1, N = 1000
 )
 
-sys <- dust_system_create(sir_age, pars, ode_control = dust_ode_control())
+sys <- System(sir_age, pars, ode_control = dust_ode_control())
 dust_system_set_state_initial(sys)
 times <- seq(0, 200, by = 0.5)
-r_assort <- dust_system_simulate(sys, times)
+r_assort <- simulate(sys, times)
 
 cols <- c("blue", "red", "green")
 groups <- c("Child", "Adult", "Elder")
@@ -88,9 +88,9 @@ C_prop <- outer(activity, activity)
 C_prop <- C_prop / max(C_prop)
 
 pars$contact <- C_prop
-sys <- dust_system_create(sir_age, pars, ode_control = dust_ode_control())
+sys <- System(sir_age, pars, ode_control = dust_ode_control())
 dust_system_set_state_initial(sys)
-r_prop <- dust_system_simulate(sys, times)
+r_prop <- simulate(sys, times)
 
 plot(NULL, xlim = range(times), ylim = c(0, max(r_prop[4:6, ])),
      xlab = "Time", ylab = "Infected",
@@ -108,9 +108,9 @@ C_real <- matrix(c(3.0, 1.0, 0.3,
 
 pars$contact <- C_real
 pars$beta <- 0.15
-sys <- dust_system_create(sir_age, pars, ode_control = dust_ode_control())
+sys <- System(sir_age, pars, ode_control = dust_ode_control())
 dust_system_set_state_initial(sys)
-r_real <- dust_system_simulate(sys, times)
+r_real <- simulate(sys, times)
 
 plot(NULL, xlim = range(times), ylim = c(0, max(r_real[4:6, ])),
      xlab = "Time", ylab = "Infected",
@@ -187,13 +187,13 @@ pars_vax <- list(
 pars_nv <- pars_vax
 pars_nv$vax_rate <- c(0, 0, 0)
 
-sys_nv <- dust_system_create(sir_age_vax, pars_nv, ode_control = dust_ode_control())
+sys_nv <- System(sir_age_vax, pars_nv, ode_control = dust_ode_control())
 dust_system_set_state_initial(sys_nv)
-r_nv <- dust_system_simulate(sys_nv, times)
+r_nv <- simulate(sys_nv, times)
 
-sys_v <- dust_system_create(sir_age_vax, pars_vax, ode_control = dust_ode_control())
+sys_v <- System(sir_age_vax, pars_vax, ode_control = dust_ode_control())
 dust_system_set_state_initial(sys_v)
-r_v <- dust_system_simulate(sys_v, times)
+r_v <- simulate(sys_v, times)
 
 par(mfrow = c(1, 2))
 plot(NULL, xlim = range(times), ylim = c(0, max(r_nv[4:6, ])),

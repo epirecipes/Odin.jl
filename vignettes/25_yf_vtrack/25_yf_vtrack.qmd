@@ -342,7 +342,7 @@ pars = (
 n_particles = 10
 sim_times = collect(0.0:1.0:t_end)
 
-result = dust_system_simulate(yf_vtrack, pars;
+result = simulate(yf_vtrack, pars;
     times=sim_times, dt=1.0, seed=42, n_particles=n_particles)
 
 println("Result shape: ", size(result),
@@ -534,7 +534,7 @@ pars_novacc = merge(pars, (
     R_0 = R_0_nv,
 ))
 
-result_nv = dust_system_simulate(yf_vtrack, pars_novacc;
+result_nv = simulate(yf_vtrack, pars_novacc;
     times=sim_times, dt=1.0, seed=42, n_particles=n_particles)
 
 I_vacc = vec(mean(sum(result[idx_I, :, :], dims=1), dims=2))
@@ -555,14 +555,14 @@ particle filter to estimate the log-likelihood:
 ```{julia}
 # Generate synthetic data from a single run
 syn_times = collect(7.0:7.0:min(365.0, t_end))
-syn_result = dust_system_simulate(yf_vtrack, pars;
+syn_result = simulate(yf_vtrack, pars;
     times=syn_times, dt=1.0, seed=123, n_particles=1)
 
 # Total new cases per week
 syn_cases = [max(1.0, sum(syn_result[idx_C, 1, t])) for t in 1:length(syn_times)]
 
 data_vec = [(time=syn_times[i], cases=syn_cases[i]) for i in 1:length(syn_times)]
-fdata = Odin.dust_filter_data(data_vec)
+fdata = Odin.ObservedData(data_vec)
 
 println("Data points: ", length(syn_times))
 println("Total observed cases: ", sum(syn_cases))
@@ -574,15 +574,15 @@ plot(syn_times, syn_cases, seriestype=:bar, color=:steelblue, alpha=0.7,
 
 ```{julia}
 # Create and run particle filter
-filter = dust_filter_create(yf_vtrack, fdata;
+filter = Likelihood(yf_vtrack, fdata;
     n_particles=100, dt=1.0, seed=42)
 
-ll = dust_likelihood_run!(filter, pars)
+ll = loglik(filter, pars)
 println("Log-likelihood (true pars): ", round(ll, digits=2))
 
 # Perturbed parameters should give worse log-likelihood
 pars_bad = merge(pars, (t_infectious = 20.0,))
-ll_bad = dust_likelihood_run!(filter, pars_bad)
+ll_bad = loglik(filter, pars_bad)
 println("Log-likelihood (bad pars):  ", round(ll_bad, digits=2))
 
 @assert ll > ll_bad "True parameters should have higher likelihood"
@@ -620,6 +620,6 @@ println("✓ True parameters preferred over misspecified")
 | Step | API |
 |------|-----|
 | Define model | `@odin begin … end` with 2D arrays `c(N_age, 2)` |
-| Simulate | `dust_system_simulate(gen, pars; times, dt, seed, n_particles)` |
-| Filter | `dust_filter_create()` → `dust_likelihood_run!()` |
+| Simulate | `simulate(gen, pars; times, dt, seed, n_particles)` |
+| Filter | `Likelihood()` → `loglik()` |
 | Scenario comparison | Re-run with `vacc_rate = zeros(N_age)` |

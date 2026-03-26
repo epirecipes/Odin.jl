@@ -5,7 +5,7 @@ using Distributions
 @testset "Monty Model" begin
     @testset "Basic density evaluation" begin
         density = x -> logpdf(Normal(0, 1), x[1]) + logpdf(Normal(0, 1), x[2])
-        model = monty_model(density; parameters=["a", "b"])
+        model = DensityModel(density; parameters=["a", "b"])
 
         @test model([0.0, 0.0]) ≈ -log(2π)
         @test model([1.0, 0.0]) < model([0.0, 0.0])
@@ -14,15 +14,15 @@ using Distributions
     @testset "Domain checking" begin
         density = x -> -sum(x .^ 2)
         domain = [0.0 10.0; 0.0 10.0]
-        model = monty_model(density; parameters=["a", "b"], domain=domain)
+        model = DensityModel(density; parameters=["a", "b"], domain=domain)
 
         @test model([5.0, 5.0]) ≈ -50.0
         @test model([-1.0, 5.0]) == -Inf
     end
 
     @testset "Model combination" begin
-        likelihood = monty_model(x -> -sum(x .^ 2); parameters=["a", "b"])
-        prior = monty_model(x -> logpdf(Normal(0, 10), x[1]) + logpdf(Normal(0, 10), x[2]); parameters=["a", "b"])
+        likelihood = DensityModel(x -> -sum(x .^ 2); parameters=["a", "b"])
+        prior = DensityModel(x -> logpdf(Normal(0, 10), x[1]) + logpdf(Normal(0, 10), x[2]); parameters=["a", "b"])
 
         posterior = likelihood + prior
 

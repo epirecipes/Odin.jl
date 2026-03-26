@@ -55,10 +55,10 @@ We simulate from known "true" parameters and add Poisson-like noise:
 ```{julia}
 true_pars = (beta=0.5, gamma=0.1, I0=10.0, N=1000.0)
 times = collect(1.0:1.0:50.0)
-result = dust_system_simulate(sir, true_pars; times=times, dt=0.25)
+result = simulate(sir, true_pars; times=times, dt=0.25)
 
 # Extract the cases output variable
-sys = dust_system_create(sir, true_pars; n_particles=1, dt=0.25)
+sys = System(sir, true_pars; n_particles=1, dt=0.25)
 cases_idx = findfirst(==(:cases), vcat(sys.state_names, sys.output_names))
 
 Random.seed!(42)
@@ -71,9 +71,9 @@ println("Peak cases at time $(data[argmax([d.cases for d in data])].time)")
 ## Set up parameter packer and prior
 
 ```{julia}
-packer = monty_packer([:beta, :gamma]; fixed=(I0=10.0, N=1000.0))
+packer = Packer([:beta, :gamma]; fixed=(I0=10.0, N=1000.0))
 
-prior = @monty_prior begin
+prior = @prior begin
     beta ~ Exponential(1.0)
     gamma ~ Exponential(1.0)
 end
@@ -121,7 +121,7 @@ for c in 1:n_chains, s in 1:n_samples
     pars_arr[2, s, c] = 0.08 + 0.04 * rand()   # gamma ~ Uniform(0.08, 0.12)
 end
 density = zeros(n_samples, n_chains)
-samples = MontySamples(pars_arr, density, pars_arr[:, 1, :],
+samples = Samples(pars_arr, density, pars_arr[:, 1, :],
                        ["beta", "gamma"], Dict{Symbol, Any}())
 
 println("Posterior samples: $(n_samples) × $(n_chains) chains")
@@ -132,7 +132,7 @@ println("Gamma range: [$(round(minimum(pars_arr[2,:,:]), digits=3)), $(round(max
 ## 3. Posterior predictive check
 
 ```{julia}
-pp = posterior_predictive(samples, sir;
+pp = posterior_predict(samples, sir;
     times=times, n_draws=100, dt=0.25,
     output_vars=[:cases],
     packer=packer, seed=42)
@@ -214,10 +214,10 @@ for c in 1:n_chains, s in 1:n_samples
     wrong_pars_arr[2, s, c] = 0.3 + 0.05 * rand()     # gamma too high
 end
 wrong_density = zeros(n_samples, n_chains)
-wrong_samples = MontySamples(wrong_pars_arr, wrong_density, wrong_pars_arr[:, 1, :],
+wrong_samples = Samples(wrong_pars_arr, wrong_density, wrong_pars_arr[:, 1, :],
                               ["beta", "gamma"], Dict{Symbol, Any}())
 
-wrong_pp = posterior_predictive(wrong_samples, sir;
+wrong_pp = posterior_predict(wrong_samples, sir;
     times=times, n_draws=100, dt=0.25,
     output_vars=[:cases],
     packer=packer, seed=42)

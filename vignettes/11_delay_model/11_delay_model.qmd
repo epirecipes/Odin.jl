@@ -135,9 +135,9 @@ for (idx, k) in enumerate(k_values)
     i_end = 1 + k + k     # last I index:  1 + k_E + k_I
 
     for seed in 1:n_runs
-        sys = dust_system_create(seir_delay, pars; dt=1.0, seed=seed)
-        dust_system_set_state_initial!(sys)
-        r = dust_system_simulate(sys, times)
+        sys = System(seir_delay, pars; dt=1.0, seed=seed)
+        reset!(sys)
+        r = simulate(sys, times)
         for t_idx in 1:length(times)
             I_mean[t_idx] += sum(r[i_start:i_end, 1, t_idx])
         end
@@ -168,9 +168,9 @@ for (idx, k) in enumerate(k_values)
               title="k = $k", legend=false, ylim=(0, 3000))
 
     for seed in 1:20
-        sys = dust_system_create(seir_delay, pars; dt=1.0, seed=seed)
-        dust_system_set_state_initial!(sys)
-        r = dust_system_simulate(sys, times)
+        sys = System(seir_delay, pars; dt=1.0, seed=seed)
+        reset!(sys)
+        r = simulate(sys, times)
         I_total = [sum(r[i_start:i_end, 1, t]) for t in 1:length(times)]
         plot!(pk, times, I_total, color=colors[idx], alpha=0.3, lw=0.8)
     end
@@ -196,9 +196,9 @@ true_pars = (beta=0.8, sigma=0.2, gamma=0.1,
              k_E=4.0, k_I=4.0, I0=5.0, N=10000.0)
 
 obs_times = collect(0.0:1.0:100.0)
-sys_true = dust_system_create(seir_delay, true_pars; dt=1.0, seed=1)
-dust_system_set_state_initial!(sys_true)
-true_result = dust_system_simulate(sys_true, obs_times)
+sys_true = System(seir_delay, true_pars; dt=1.0, seed=1)
+reset!(sys_true)
+true_result = simulate(sys_true, obs_times)
 
 # Incidence is the last state: index = 1 (S) + k_E + k_I + 1 (R) + 1 = 11
 inc_idx = 3 + 4 + 4
@@ -215,20 +215,20 @@ We fix the chain lengths ($k_E = k_I = 4$) and initial conditions, estimating
 only the transmission and progression rates:
 
 ```{julia}
-data = dust_filter_data(
+data = ObservedData(
     [(time=Float64(t), cases=Float64(obs_cases[t]))
      for t in 1:length(obs_cases)]
 )
 
-filter = dust_filter_create(seir_delay, data;
+filter = Likelihood(seir_delay, data;
     n_particles=100, dt=1.0, seed=42)
 
-packer = monty_packer([:beta, :sigma, :gamma];
+packer = Packer([:beta, :sigma, :gamma];
     fixed=(k_E=4.0, k_I=4.0, I0=5.0, N=10000.0))
 
-likelihood = dust_likelihood_monty(filter, packer)
+likelihood = as_model(filter, packer)
 
-prior = @monty_prior begin
+prior = @prior begin
     beta ~ Gamma(4.0, 0.2)
     sigma ~ Gamma(2.0, 0.1)
     gamma ~ Gamma(2.0, 0.05)
@@ -243,10 +243,10 @@ posterior = likelihood + prior
 vcv = [0.005 0.0  0.0;
        0.0   0.002 0.0;
        0.0   0.0  0.001]
-sampler = monty_sampler_random_walk(vcv)
+sampler = random_walk(vcv)
 
 initial_theta = reshape([0.6, 0.15, 0.08], 3, 1)
-samples = monty_sample(posterior, sampler, 3000;
+samples = sample(posterior, sampler, 3000;
     initial=initial_theta, n_chains=1)
 ```
 

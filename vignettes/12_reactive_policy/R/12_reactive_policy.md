@@ -132,9 +132,9 @@ base_pars <- list(
 )
 
 times <- seq(0, 200, by = 1)
-sys <- dust_system_create(seirv_reactive, base_pars, dt = 1, seed = 42)
+sys <- System(seirv_reactive, base_pars, dt = 1, seed = 42)
 dust_system_set_state_initial(sys)
-result <- dust_system_simulate(sys, times)
+result <- simulate(sys, times)
 
 par(mfrow = c(2, 1), mar = c(4, 4, 2, 1))
 
@@ -185,9 +185,9 @@ for (k in seq_along(scenarios)) {
     p <- base_pars
     p$routine_vacc <- sc$rv
     p$emergency_vacc <- sc$ev
-    sys <- dust_system_create(seirv_reactive, p, dt = 1, seed = seed)
+    sys <- System(seirv_reactive, p, dt = 1, seed = seed)
     dust_system_set_state_initial(sys)
-    r <- dust_system_simulate(sys, times)
+    r <- simulate(sys, times)
     I_mean <- I_mean + r[3, ]
   }
   I_mean <- I_mean / n_runs
@@ -208,9 +208,9 @@ for (k in seq_along(scenarios)) {
     p <- base_pars
     p$routine_vacc <- sc$rv
     p$emergency_vacc <- sc$ev
-    sys <- dust_system_create(seirv_reactive, p, dt = 1, seed = seed)
+    sys <- System(seirv_reactive, p, dt = 1, seed = seed)
     dust_system_set_state_initial(sys)
-    r <- dust_system_simulate(sys, times)
+    r <- simulate(sys, times)
     V_mean <- V_mean + r[8, ]
   }
   V_mean <- V_mean / n_runs
@@ -237,9 +237,9 @@ for (idx in seq_along(delays)) {
   for (seed in 1:n_runs) {
     p <- base_pars
     p$response_delay <- delays[idx]
-    sys <- dust_system_create(seirv_reactive, p, dt = 1, seed = seed)
+    sys <- System(seirv_reactive, p, dt = 1, seed = seed)
     dust_system_set_state_initial(sys)
-    r <- dust_system_simulate(sys, times)
+    r <- simulate(sys, times)
     I_mean <- I_mean + r[3, ]
   }
   I_mean <- I_mean / n_runs
@@ -266,9 +266,9 @@ for (idx in seq_along(thresholds)) {
   for (seed in 1:n_runs) {
     p <- base_pars
     p$case_threshold <- thresholds[idx]
-    sys <- dust_system_create(seirv_reactive, p, dt = 1, seed = seed)
+    sys <- System(seirv_reactive, p, dt = 1, seed = seed)
     dust_system_set_state_initial(sys)
-    r <- dust_system_simulate(sys, times)
+    r <- simulate(sys, times)
     I_mean <- I_mean + r[3, ]
   }
   I_mean <- I_mean / n_runs
@@ -296,10 +296,10 @@ for (idx in 1:3) {
   plot(NULL, xlim = c(0, 200), ylim = c(0, 15000),
        xlab = "Day", ylab = "Infected", main = scenario_labels[idx])
   for (seed in 1:30) {
-    sys <- dust_system_create(seirv_reactive, scenario_pars_list[[idx]],
+    sys <- System(seirv_reactive, scenario_pars_list[[idx]],
                               dt = 1, seed = seed)
     dust_system_set_state_initial(sys)
-    r <- dust_system_simulate(sys, times)
+    r <- simulate(sys, times)
     lines(times, r[3, ], col = adjustcolor(cols[idx], alpha.f = 0.2))
   }
 }
@@ -320,9 +320,9 @@ for (k in seq_along(scenarios)) {
     p <- base_pars
     p$routine_vacc <- sc$rv
     p$emergency_vacc <- sc$ev
-    sys <- dust_system_create(seirv_reactive, p, dt = 1, seed = seed)
+    sys <- System(seirv_reactive, p, dt = 1, seed = seed)
     dust_system_set_state_initial(sys)
-    r <- dust_system_simulate(sys, times)
+    r <- simulate(sys, times)
     sizes[seed] <- r[4, length(times)] - r[8, length(times)]
   }
   final_sizes[[sc$label]] <- sizes

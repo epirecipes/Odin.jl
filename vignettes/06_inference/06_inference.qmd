@@ -51,10 +51,10 @@ end
 ```{julia}
 true_pars = (beta=0.5, gamma=0.1, I0=10.0, N=1000.0)
 times = collect(0.0:1.0:50.0)
-obs_result = dust_system_simulate(sir, true_pars; times=times, dt=1.0, seed=1)
+obs_result = simulate(sir, true_pars; times=times, dt=1.0, seed=1)
 observed = Int.(round.(obs_result[4, 1, 2:end]))
 
-data = dust_filter_data(
+data = ObservedData(
     [(time=Float64(t), cases=Float64(c)) for (t, c) in zip(times[2:end], observed)]
 )
 ```
@@ -63,17 +63,17 @@ data = dust_filter_data(
 
 ```{julia}
 # Particle filter likelihood
-filter = dust_filter_create(sir, data; n_particles=200, dt=1.0, seed=42)
+filter = Likelihood(sir, data; n_particles=200, dt=1.0, seed=42)
 
 # Parameter packer: map [beta, gamma] <-> named tuple
-packer = monty_packer([:beta, :gamma];
+packer = Packer([:beta, :gamma];
     fixed=(I0=10.0, N=1000.0))
 
 # Likelihood model
-likelihood = dust_likelihood_monty(filter, packer)
+likelihood = as_model(filter, packer)
 
 # Prior
-prior = @monty_prior begin
+prior = @prior begin
     beta ~ Gamma(2.0, 0.25)
     gamma ~ Gamma(2.0, 0.05)
 end
@@ -86,10 +86,10 @@ posterior = likelihood + prior
 
 ```{julia}
 vcv = [0.005 0.0; 0.0 0.001]
-sampler = monty_sampler_random_walk(vcv)
+sampler = random_walk(vcv)
 
 initial = reshape([0.4, 0.08], 2, 1)  # 2×1 matrix (n_pars × n_chains)
-samples = monty_sample(posterior, sampler, 2000;
+samples = sample(posterior, sampler, 2000;
     initial=initial, n_chains=1)
 ```
 

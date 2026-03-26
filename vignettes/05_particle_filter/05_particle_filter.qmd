@@ -56,7 +56,7 @@ end
 # Simulate "true" epidemic
 true_pars = (beta=0.5, gamma=0.1, I0=10.0, N=1000.0)
 times = collect(0.0:1.0:50.0)
-true_result = dust_system_simulate(sir_compare, true_pars;
+true_result = simulate(sir_compare, true_pars;
     times=times, dt=1.0, seed=1, n_particles=1)
 
 # Extract incidence as "observed" data
@@ -68,16 +68,16 @@ println("Observed cases (first 10): ", observed_cases[1:10])
 
 ```{julia}
 # Prepare filter data
-filter_data = dust_filter_data(
+filter_data = ObservedData(
     [(time=Float64(t), cases=Float64(c)) for (t, c) in zip(times[2:end], observed_cases)]
 )
 
 # Create particle filter
-filter = dust_filter_create(sir_compare, filter_data;
+filter = Likelihood(sir_compare, filter_data;
     n_particles=100, dt=1.0, seed=42)
 
 # Run with true parameters
-ll = dust_likelihood_run!(filter, true_pars)
+ll = loglik(filter, true_pars)
 println("Log-likelihood at true parameters: ", round(ll, digits=2))
 ```
 
@@ -89,7 +89,7 @@ betas = 0.1:0.05:1.0
 lls = Float64[]
 for b in betas
     pars = (beta=b, gamma=0.1, I0=10.0, N=1000.0)
-    push!(lls, dust_likelihood_run!(filter, pars))
+    push!(lls, loglik(filter, pars))
 end
 
 plot(collect(betas), lls,

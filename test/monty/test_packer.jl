@@ -3,7 +3,7 @@ using Odin
 
 @testset "Monty Packer" begin
     @testset "Scalar packing/unpacking" begin
-        p = monty_packer([:beta, :gamma])
+        p = Packer([:beta, :gamma])
 
         @test p.len == 2
 
@@ -16,7 +16,7 @@ using Odin
     end
 
     @testset "Array packing" begin
-        p = monty_packer([:a]; array=Dict(:b => 3))
+        p = Packer([:a]; array=Dict(:b => 3))
 
         @test p.len == 4
 
@@ -26,7 +26,7 @@ using Odin
     end
 
     @testset "Fixed values" begin
-        p = monty_packer([:beta]; fixed=(N=1000, gamma=0.1))
+        p = Packer([:beta]; fixed=(N=1000, gamma=0.1))
 
         @test p.len == 1
 
@@ -37,7 +37,7 @@ using Odin
     end
 
     @testset "Process function" begin
-        p = monty_packer([:a, :b]; process=nt -> (c=nt.a + nt.b,))
+        p = Packer([:a, :b]; process=nt -> (c=nt.a + nt.b,))
 
         nt = p([3.0, 4.0])
         @test nt.a ≈ 3.0

@@ -43,11 +43,11 @@ end
 true_pars = (beta=0.5, gamma=0.1, I0=10.0, N=1000.0)
 n_days = 100
 times = collect(0.0:1.0:Float64(n_days))
-sim = dust_system_simulate(sir, true_pars; times=times, dt=1.0, seed=1)
+sim = simulate(sir, true_pars; times=times, dt=1.0, seed=1)
 obs = round.(sim[4, 1, 2:end])
 
 data_rows = [(time=Float64(t), cases=Float64(obs[t])) for t in 1:n_days]
-fdata = Odin.dust_filter_data(data_rows)
+fdata = Odin.ObservedData(data_rows)
 
 # ══════════════════════════════════════════════════════════════════
 # PART 1: PARTICLE FILTER — vary n_particles
@@ -59,12 +59,12 @@ println("─" ^ 72)
 
 pf_results = []
 for np in [50, 100, 200, 500, 1000, 2000]
-    filter = dust_filter_create(sir, fdata; n_particles=np, dt=1.0, seed=42)
+    filter = Likelihood(sir, fdata; n_particles=np, dt=1.0, seed=42)
     # warmup
-    dust_likelihood_run!(filter, true_pars)
-    dust_likelihood_run!(filter, true_pars)
+    loglik(filter, true_pars)
+    loglik(filter, true_pars)
 
-    b = @benchmark dust_likelihood_run!($filter, $true_pars) samples=30
+    b = @benchmark loglik($filter, $true_pars) samples=30
     med = median(b).time / 1e6
     mn = minimum(b).time / 1e6
     mx = maximum(b).time / 1e6
@@ -76,8 +76,8 @@ end
 
 # ── Verify filter correctness ───────────────────────────────────
 
-filter_check = dust_filter_create(sir, fdata; n_particles=1000, dt=1.0, seed=42)
-lls = [dust_likelihood_run!(filter_check, true_pars) for _ in 1:20]
+filter_check = Likelihood(sir, fdata; n_particles=1000, dt=1.0, seed=42)
+lls = [loglik(filter_check, true_pars) for _ in 1:20]
 println("\n  Log-likelihood check (1000 particles, 20 runs):")
 @printf("    mean = %.2f  ±  %.2f\n", mean(lls), std(lls))
 
@@ -89,26 +89,26 @@ println("\n" * "─" ^ 72)
 println("PART 2: MCMC Sampling  (RW sampler + particle filter likelihood)")
 println("─" ^ 72)
 
-packer = monty_packer([:beta, :gamma]; fixed=(I0=10.0, N=1000.0))
-filter_mcmc = dust_filter_create(sir, fdata; n_particles=200, dt=1.0, seed=42)
-likelihood = dust_likelihood_monty(filter_mcmc, packer)
-prior = @monty_prior begin
+packer = Packer([:beta, :gamma]; fixed=(I0=10.0, N=1000.0))
+filter_mcmc = Likelihood(sir, fdata; n_particles=200, dt=1.0, seed=42)
+likelihood = as_model(filter_mcmc, packer)
+prior = @prior begin
     beta ~ Gamma(2.0, 0.25)
     gamma ~ Gamma(2.0, 0.05)
 end
 posterior = likelihood + prior
-sampler = monty_sampler_random_walk([0.005 0.0; 0.0 0.001])
+sampler = random_walk([0.005 0.0; 0.0 0.001])
 initial_mat = reshape([0.4, 0.08], 2, 1)
 
 # warmup
-monty_sample(posterior, sampler, 10; initial=initial_mat, n_chains=1)
+sample(posterior, sampler, 10; initial=initial_mat, n_chains=1)
 
 mcmc_results = []
 
 # 2a: Vary n_steps (1 chain)
 println("\n  2a: Vary n_steps (1 chain, 200 particles)")
 for ns in [100, 500, 1000, 2000]
-    b = @benchmark monty_sample($posterior, $sampler, $ns;
+    b = @benchmark sample($posterior, $sampler, $ns;
         initial=$initial_mat, n_chains=1) samples=5 seconds=60
     med = median(b).time / 1e6
     mn = minimum(b).time / 1e6
@@ -123,7 +123,7 @@ end
 println("\n  2b: Vary n_chains (500 steps, 200 particles)")
 for nc in [1, 2, 4]
     init = repeat([0.4, 0.08], 1, nc)
-    b = @benchmark monty_sample($posterior, $sampler, 500;
+    b = @benchmark sample($posterior, $sampler, 500;
         initial=$init, n_chains=$nc) samples=5 seconds=60
     med = median(b).time / 1e6
     mn = minimum(b).time / 1e6
@@ -137,12 +137,12 @@ end
 # 2c: Effect of n_particles on MCMC
 println("\n  2c: Vary n_particles in MCMC (500 steps, 1 chain)")
 for np in [50, 200, 500, 1000]
-    f = dust_filter_create(sir, fdata; n_particles=np, dt=1.0, seed=42)
-    ll = dust_likelihood_monty(f, packer)
+    f = Likelihood(sir, fdata; n_particles=np, dt=1.0, seed=42)
+    ll = as_model(f, packer)
     post = ll + prior
     # warmup
-    monty_sample(post, sampler, 10; initial=initial_mat, n_chains=1)
-    b = @benchmark monty_sample($post, $sampler, 500;
+    sample(post, sampler, 10; initial=initial_mat, n_chains=1)
+    b = @benchmark sample($post, $sampler, 500;
         initial=$initial_mat, n_chains=1) samples=5 seconds=60
     med = median(b).time / 1e6
     @printf("    n_particles=%5d  →  %10.1f ms\n", np, med)

@@ -63,9 +63,9 @@ pars_mal = (N_h=100000.0, N_m=300000.0, a=0.3, b=0.2, c_h=0.5, kappa=0.5,
             E_h0=500.0, I_h0=300.0, A_h0=1000.0, R_h0=5000.0, E_m0=5000.0, I_m0=3000.0)
 
 # Julia sim
-sys_mal = dust_system_create(MalariaModel, pars_mal; n_particles=1)
-dust_system_set_state_initial!(sys_mal)
-sol_jl = dust_system_simulate(sys_mal, [0.0, 1.0, 5.0, 10.0])
+sys_mal = System(MalariaModel, pars_mal; n_particles=1)
+reset!(sys_mal)
+sol_jl = simulate(sys_mal, [0.0, 1.0, 5.0, 10.0])
 
 # R sim
 R"""
@@ -102,9 +102,9 @@ malaria_r <- odin2::odin({
     E_h0 <- parameter(500); I_h0 <- parameter(300); A_h0 <- parameter(1000); R_h0 <- parameter(5000)
     E_m0 <- parameter(5000); I_m0 <- parameter(3000)
 })
-sys_r <- dust_system_create(malaria_r, list(), n_particles = 1L)
+sys_r <- System(malaria_r, list(), n_particles = 1L)
 dust_system_set_state_initial(sys_r)
-state_r <- dust_system_simulate(sys_r, c(0, 1, 5, 10))
+state_r <- simulate(sys_r, c(0, 1, 5, 10))
 """
 
 r_st = rcopy(R"state_r")  # 10 × 4
@@ -132,17 +132,17 @@ state_names_jl = MalariaModel.model.state_names
 idx_I_h = findfirst(==(:I_h), state_names_jl)
 idx_A_h = findfirst(==(:A_h), state_names_jl)
 
-sys2 = dust_system_create(MalariaModel, pars_mal; n_particles=1)
-dust_system_set_state_initial!(sys2)
+sys2 = System(MalariaModel, pars_mal; n_particles=1)
+reset!(sys2)
 obs_times = collect(30.0:30.0:360.0)  # monthly, only 1 year
-sol_obs = dust_system_simulate(sys2, obs_times)
+sol_obs = simulate(sys2, obs_times)
 sp = [(sol_obs[idx_I_h,1,i] + 0.5*sol_obs[idx_A_h,1,i]) / 100000 for i in 1:length(obs_times)]
 pos_vals = [rand(Binomial(200, clamp(s, 0.001, 0.999))) for s in sp]
 raw_data = [(time=obs_times[i], tested=200, positive=pos_vals[i]) for i in 1:length(obs_times)]
-fdata = dust_filter_data(raw_data)
+fdata = ObservedData(raw_data)
 
-uf_jl = dust_unfilter_create(MalariaModel, fdata; time_start=0.0)
-ll_jl = dust_unfilter_run!(uf_jl, pars_mal)
+uf_jl = Likelihood(MalariaModel, fdata; time_start=0.0)
+ll_jl = loglik(uf_jl, pars_mal)
 println("\n  Julia unfilter LL: ", @sprintf("%.4f", ll_jl))
 
 # R unfilter with same data
@@ -151,7 +151,7 @@ tested_r = [d.tested for d in fdata.data]
 positive_r = [d.positive for d in fdata.data]
 R"""
 data_r <- data.frame(time=$(obs_t_r), tested=$(tested_r), positive=$(positive_r))
-uf_r <- dust_unfilter_create(malaria_r, time_start = 0, data = data_r)
+uf_r <- Likelihood(malaria_r, time_start = 0, data = data_r)
 ll_r <- dust_likelihood_run(uf_r, list())
 """
 ll_r = rcopy(R"ll_r")
@@ -163,17 +163,17 @@ println("  LL match (|Δ| < 5): ", mal_ll_pass ? "✅ PASS" : "❌ FAIL")
 
 # Benchmark
 b_jl = @benchmark begin
-    s = dust_system_create($MalariaModel, $pars_mal; n_particles=1)
-    dust_system_set_state_initial!(s)
-    dust_system_simulate(s, $(collect(0.0:1.0:1095.0)))
+    s = System($MalariaModel, $pars_mal; n_particles=1)
+    reset!(s)
+    simulate(s, $(collect(0.0:1.0:1095.0)))
 end samples=20 evals=1
 jl_ms = median(b_jl.times) / 1e6
 
 R"""
 r_b <- system.time(for(i in 1:20) {
-    s <- dust_system_create(malaria_r, list(), n_particles=1L)
+    s <- System(malaria_r, list(), n_particles=1L)
     dust_system_set_state_initial(s)
-    dust_system_simulate(s, 0:1095)
+    simulate(s, 0:1095)
 })
 r_ms <- r_b[["elapsed"]] / 20 * 1000
 """
@@ -233,9 +233,9 @@ pars_cv = (N1=5e6, N2=3e6, N3=1e6, I0_1=100.0, I0_2=10.0, I0_3=1.0,
            c12=0.1, c13=0.05, c23=0.1,
            n_Rt_times=8, Rt_t=Rt_times, Rt_v1=Rt_v1, Rt_v2=Rt_v2, Rt_v3=Rt_v3)
 
-sys_cv = dust_system_create(SARSCoV2Model, pars_cv; n_particles=1)
-dust_system_set_state_initial!(sys_cv)
-sol_cv_jl = dust_system_simulate(sys_cv, [0.0, 1.0, 5.0, 10.0, 30.0])
+sys_cv = System(SARSCoV2Model, pars_cv; n_particles=1)
+reset!(sys_cv)
+sol_cv_jl = simulate(sys_cv, [0.0, 1.0, 5.0, 10.0, 30.0])
 
 R"""
 seird_r <- odin2::odin({
@@ -278,9 +278,9 @@ pars_cv_r <- list(n_Rt_times=8L,
     Rt_v1=c(2.5, 1.2, 0.9, 1.5, 1.1, 0.8, 1.3, 1.0),
     Rt_v2=c(2.2, 1.4, 1.0, 1.3, 0.9, 1.1, 1.2, 0.9),
     Rt_v3=c(2.0, 1.1, 1.2, 1.6, 1.3, 0.7, 1.0, 1.1))
-sys_cv_r <- dust_system_create(seird_r, pars_cv_r, n_particles=1L)
+sys_cv_r <- System(seird_r, pars_cv_r, n_particles=1L)
 dust_system_set_state_initial(sys_cv_r)
-state_cv_r <- dust_system_simulate(sys_cv_r, c(0, 1, 5, 10, 30))
+state_cv_r <- simulate(sys_cv_r, c(0, 1, 5, 10, 30))
 """
 
 r_cv_st = rcopy(R"state_cv_r")
@@ -304,17 +304,17 @@ println("  Short-time match (rtol < 1e-3): ", cv_short_pass ? "✅ PASS" : "❌ 
 
 # Benchmark
 b_cv_jl = @benchmark begin
-    s = dust_system_create($SARSCoV2Model, $pars_cv; n_particles=1)
-    dust_system_set_state_initial!(s)
-    dust_system_simulate(s, $(collect(0.0:1.0:365.0)))
+    s = System($SARSCoV2Model, $pars_cv; n_particles=1)
+    reset!(s)
+    simulate(s, $(collect(0.0:1.0:365.0)))
 end samples=20 evals=1
 jl_cv_ms = median(b_cv_jl.times) / 1e6
 
 R"""
 r_cv_b <- system.time(for(i in 1:20) {
-    s <- dust_system_create(seird_r, pars_cv_r, n_particles=1L)
+    s <- System(seird_r, pars_cv_r, n_particles=1L)
     dust_system_set_state_initial(s)
-    dust_system_simulate(s, 0:365)
+    simulate(s, 0:365)
 })
 r_cv_ms <- r_cv_b[["elapsed"]] / 20 * 1000
 """
@@ -370,9 +370,9 @@ pars_mpox = (n_age=4, n_vax=3, beta=0.3, sigma=1/7, gamma=1/14, kappa=10.0,
              I0=[5.0, 3.0, 2.0, 1.0], ve=[0.0, 0.7, 0.3], vax_rate=[0.001, 0.002, 0.001, 0.0005])
 
 # Quick sanity check — population conservation
-sys_mpox = dust_system_create(MpoxModel, pars_mpox; n_particles=1, dt=0.25, seed=42)
-dust_system_set_state_initial!(sys_mpox)
-sol_mpox = dust_system_simulate(sys_mpox, [0.0, 90.0, 180.0])
+sys_mpox = System(MpoxModel, pars_mpox; n_particles=1, dt=0.25, seed=42)
+reset!(sys_mpox)
+sol_mpox = simulate(sys_mpox, [0.0, 90.0, 180.0])
 println("  Mpox model runs — shape: ", size(sol_mpox))
 total_pop = 900000.0
 for (ti, t) in enumerate([0.0, 90.0, 180.0])
@@ -383,9 +383,9 @@ end
 
 # Benchmark stochastic simulation
 b_mpox = @benchmark begin
-    s = dust_system_create($MpoxModel, $pars_mpox; n_particles=200, dt=0.25, seed=42)
-    dust_system_set_state_initial!(s)
-    dust_system_simulate(s, collect(0.0:1.0:180.0))
+    s = System($MpoxModel, $pars_mpox; n_particles=200, dt=0.25, seed=42)
+    reset!(s)
+    simulate(s, collect(0.0:1.0:180.0))
 end samples=10 evals=1
 jl_mpox_ms = median(b_mpox.times) / 1e6
 

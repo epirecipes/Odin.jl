@@ -186,10 +186,10 @@ pars = (
     rain_v = rain_values,
 )
 
-sys = dust_system_create(gen, pars; dt = 0.5)
-dust_system_set_state_initial!(sys)
+sys = System(gen, pars; dt = 0.5)
+reset!(sys)
 times = collect(0.0:1.0:730.0)
-result = dust_system_simulate(sys, times)
+result = simulate(sys, times)
 ```
 
 ### Human Dynamics
@@ -265,14 +265,14 @@ rain_high = [0.7 + 0.3 * cos(2π * (t - 180) / 365) for t in rain_times]
 rain_low  = [0.3 + 0.15 * cos(2π * (t - 180) / 365) for t in rain_times]
 
 pars_high = merge(pars, (K_m_base = 80000.0, rain_v = rain_high))
-sys_h = dust_system_create(gen, pars_high; dt = 0.5)
-dust_system_set_state_initial!(sys_h)
-res_high = dust_system_simulate(sys_h, times)
+sys_h = System(gen, pars_high; dt = 0.5)
+reset!(sys_h)
+res_high = simulate(sys_h, times)
 
 pars_low = merge(pars, (K_m_base = 20000.0, rain_v = rain_low))
-sys_l = dust_system_create(gen, pars_low; dt = 0.5)
-dust_system_set_state_initial!(sys_l)
-res_low = dust_system_simulate(sys_l, times)
+sys_l = System(gen, pars_low; dt = 0.5)
+reset!(sys_l)
+res_low = simulate(sys_l, times)
 
 plot(times, result[8, 1, :] .* 100, label="Baseline", lw=2, color=:steelblue)
 plot!(times, res_high[8, 1, :] .* 100, label="High rainfall", lw=2,
@@ -300,14 +300,14 @@ reduction has a large effect. We compare:
 
 ```{julia}
 pars_net50 = merge(pars, (a = 0.15,))
-sys_n50 = dust_system_create(gen, pars_net50; dt = 0.5)
-dust_system_set_state_initial!(sys_n50)
-res_net50 = dust_system_simulate(sys_n50, times)
+sys_n50 = System(gen, pars_net50; dt = 0.5)
+reset!(sys_n50)
+res_net50 = simulate(sys_n50, times)
 
 pars_net80 = merge(pars, (a = 0.06,))
-sys_n80 = dust_system_create(gen, pars_net80; dt = 0.5)
-dust_system_set_state_initial!(sys_n80)
-res_net80 = dust_system_simulate(sys_n80, times)
+sys_n80 = System(gen, pars_net80; dt = 0.5)
+reset!(sys_n80)
+res_net80 = simulate(sys_n80, times)
 
 p1 = plot(times, result[8, 1, :] .* 100,
           label="No nets (a = 0.30)", lw=2, color=:red)

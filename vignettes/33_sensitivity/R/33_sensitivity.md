@@ -353,7 +353,7 @@ sir <- odin2::odin({
   N <- parameter(1000)
 })
 # adjoint sensitivity for log-likelihood gradients:
-# ll <- dust_unfilter_create(sir, data = ...)
+# ll <- Likelihood(sir, data = ...)
 # grad <- dust_unfilter_run(ll, pars, adjoint = TRUE)
 ```
 

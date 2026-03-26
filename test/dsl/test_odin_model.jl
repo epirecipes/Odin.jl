@@ -30,8 +30,8 @@ using Odin
         @test haskey(model, :prior)
         @test haskey(model, :packer)
 
-        # System is a DustSystemGenerator
-        @test model.system isa Odin.DustSystemGenerator
+        # System is a OdinModel
+        @test model.system isa Odin.OdinModel
 
         # Prior is a MontyModel with correct parameters
         @test model.prior isa Odin.MontyModel
@@ -132,12 +132,12 @@ using Odin
         end
 
         pars = Odin.unpack(model.packer, [0.5, 0.1])
-        sys = dust_system_create(model.system, pars; n_particles=1)
-        dust_system_set_state_initial!(sys)
-        state = dust_system_state(sys)
-        @test state[1, 1] ≈ 990.0  # S = N - I0
-        @test state[2, 1] ≈ 10.0   # Inf2 = I0
-        @test state[3, 1] ≈ 0.0    # R = 0
+        sys = System(model.system, pars; n_particles=1)
+        reset!(sys)
+        st = state(sys)
+        @test st[1, 1] ≈ 990.0  # S = N - I0
+        @test st[2, 1] ≈ 10.0   # Inf2 = I0
+        @test st[3, 1] ≈ 0.0    # R = 0
     end
 
     @testset "no @fixed section is allowed" begin

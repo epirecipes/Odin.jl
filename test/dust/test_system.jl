@@ -17,16 +17,16 @@ using Odin
         end
 
         pars = (N=1000.0, I0=10.0, beta=0.2, gamma=0.1)
-        sys = dust_system_create(gen, pars; n_particles=1)
+        sys = System(gen, pars; n_particles=1)
 
         @test sys.n_particles == 1
         @test sys.n_state == 3
 
-        dust_system_set_state_initial!(sys)
-        state = dust_system_state(sys)
-        @test state[1, 1] ≈ 990.0  # S = N - I0
-        @test state[2, 1] ≈ 10.0   # I = I0
-        @test state[3, 1] ≈ 0.0    # R = 0
+        reset!(sys)
+        st = state(sys)
+        @test st[1, 1] ≈ 990.0  # S = N - I0
+        @test st[2, 1] ≈ 10.0   # I = I0
+        @test st[3, 1] ≈ 0.0    # R = 0
     end
 
     @testset "Create discrete system" begin
@@ -48,18 +48,18 @@ using Odin
         end
 
         pars = (N=1000.0, I0=10.0, beta=0.2, gamma=0.1)
-        sys = dust_system_create(gen, pars; n_particles=5, dt=0.25, seed=42)
+        sys = System(gen, pars; n_particles=5, dt=0.25, seed=42)
 
         @test sys.n_particles == 5
         @test sys.dt == 0.25
 
-        dust_system_set_state_initial!(sys)
-        state = dust_system_state(sys)
+        reset!(sys)
+        st = state(sys)
         # All particles start at same initial conditions
         for p in 1:5
-            @test state[1, p] ≈ 990.0
-            @test state[2, p] ≈ 10.0
-            @test state[3, p] ≈ 0.0
+            @test st[1, p] ≈ 990.0
+            @test st[2, p] ≈ 10.0
+            @test st[3, p] ≈ 0.0
         end
     end
 end

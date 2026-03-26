@@ -7,14 +7,14 @@ output.
 
 ## Solver Selection
 
-Choose the solver via [`DustODEControl`](@ref):
+Choose the solver via [`ODEControl`](@ref):
 
 ```julia
 # Non-stiff (default)
-ctrl = DustODEControl(solver=:dp5)
+ctrl = ODEControl(solver=:dp5)
 
 # Stiff systems
-ctrl = DustODEControl(solver=:sdirk)
+ctrl = ODEControl(solver=:sdirk)
 ```
 
 | Solver | Symbol | Order | Stability | Best for |
@@ -78,10 +78,10 @@ cached on the [`DustSystem`](@ref) for reuse across time steps.
 
 ## Configuration
 
-Solver behaviour is controlled via [`DustODEControl`](@ref):
+Solver behaviour is controlled via [`ODEControl`](@ref):
 
 ```julia
-ctrl = DustODEControl(;
+ctrl = ODEControl(;
     atol = 1e-6,          # absolute tolerance
     rtol = 1e-6,          # relative tolerance
     max_steps = 10000,    # maximum steps per integration interval
@@ -92,14 +92,14 @@ ctrl = DustODEControl(;
 Pass this to [`dust_system_create`](@ref) or [`dust_unfilter_create`](@ref):
 
 ```julia
-sys = dust_system_create(gen, pars; ode_control=ctrl)
-uf  = dust_unfilter_create(gen; data=data, time_start=0.0, ode_control=ctrl)
+sys = System(gen, pars; ode_control=ctrl)
+uf  = Likelihood(gen; data=data, time_start=0.0, ode_control=ctrl)
 ```
 
 ## API Reference
 
 ```@docs
-Odin.DustODEControl
+Odin.ODEControl
 Odin.sdirk_solve!
 Odin.SDIRKWorkspace
 Odin.SDIRKResult

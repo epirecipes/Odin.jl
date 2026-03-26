@@ -1,7 +1,7 @@
 @testset "Monty DSL" begin
 
-    @testset "@monty_prior basic" begin
-        prior = @monty_prior begin
+    @testset "@prior basic" begin
+        prior = @prior begin
             beta ~ Exponential(1.0)
             gamma ~ Gamma(2.0, 0.5)
         end
@@ -26,8 +26,8 @@
         @test all(isfinite, g)
     end
 
-    @testset "@monty_prior domain extraction" begin
-        prior = @monty_prior begin
+    @testset "@prior domain extraction" begin
+        prior = @prior begin
             x ~ Normal(0.0, 1.0)
             y ~ Uniform(0.0, 1.0)
         end
@@ -38,8 +38,8 @@
         @test prior.domain[2, 2] ≈ 1.0
     end
 
-    @testset "@monty_prior direct sample" begin
-        prior = @monty_prior begin
+    @testset "@prior direct sample" begin
+        prior = @prior begin
             a ~ Normal(5.0, 0.01)
             b ~ Exponential(0.01)
         end
@@ -51,12 +51,12 @@
         @test s[2] > 0.0            # Exponential is positive
     end
 
-    @testset "@monty_prior + likelihood combination" begin
-        prior = @monty_prior begin
+    @testset "@prior + likelihood combination" begin
+        prior = @prior begin
             mu ~ Normal(0.0, 10.0)
         end
 
-        likelihood = Odin.monty_model(
+        likelihood = Odin.DensityModel(
             x -> -0.5 * (x[1] - 3.0)^2;
             parameters=["mu"],
         )
@@ -70,15 +70,15 @@
         @test posterior(x) ≈ likelihood(x) + prior(x)
     end
 
-    @testset "@monty_prior with MCMC" begin
+    @testset "@prior with MCMC" begin
         # Simple inference: estimate mean of Normal
-        prior = @monty_prior begin
+        prior = @prior begin
             mu ~ Normal(0.0, 100.0)
         end
 
         # Likelihood: data from Normal(5.0, 1.0)
         data_vals = [4.5, 5.2, 4.8, 5.5, 5.0]
-        likelihood = Odin.monty_model(
+        likelihood = Odin.DensityModel(
             x -> begin
                 s = 0.0
                 for d in data_vals
@@ -90,8 +90,8 @@
         )
 
         posterior = likelihood + prior
-        sampler = Odin.monty_sampler_random_walk(fill(1.0, 1, 1))
-        samples = Odin.monty_sample(posterior, sampler, 5000;
+        sampler = Odin.random_walk(fill(1.0, 1, 1))
+        samples = Odin.sample(posterior, sampler, 5000;
                                     initial=fill(4.0, 1, 1), n_chains=1)
         # pars shape is (n_pars, n_steps, n_chains)
         mean_mu = mean(samples.pars[1, 1000:end, 1])

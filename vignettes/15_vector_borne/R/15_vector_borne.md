@@ -178,10 +178,10 @@ pars <- list(
   rain_v = rain_v
 )
 
-sys <- dust_system_create(gen, pars, ode_control = dust_ode_control())
+sys <- System(gen, pars, ode_control = dust_ode_control())
 dust_system_set_state_initial(sys)
 times <- seq(0, 730, by = 1)
-result <- dust_system_simulate(sys, times)
+result <- simulate(sys, times)
 ```
 
 ### Human Dynamics
@@ -253,14 +253,14 @@ rain_high <- 0.7 + 0.3 * cos(2 * pi * (rain_t - 180) / 365)
 rain_low  <- 0.3 + 0.15 * cos(2 * pi * (rain_t - 180) / 365)
 
 pars_high <- modifyList(pars, list(K_m_base = 80000, rain_v = rain_high))
-sys_h <- dust_system_create(gen, pars_high, ode_control = dust_ode_control())
+sys_h <- System(gen, pars_high, ode_control = dust_ode_control())
 dust_system_set_state_initial(sys_h)
-res_high <- dust_system_simulate(sys_h, times)
+res_high <- simulate(sys_h, times)
 
 pars_low <- modifyList(pars, list(K_m_base = 20000, rain_v = rain_low))
-sys_l <- dust_system_create(gen, pars_low, ode_control = dust_ode_control())
+sys_l <- System(gen, pars_low, ode_control = dust_ode_control())
 dust_system_set_state_initial(sys_l)
-res_low <- dust_system_simulate(sys_l, times)
+res_low <- simulate(sys_l, times)
 
 ymax <- max(result[8, ], res_high[8, ], res_low[8, ]) * 100
 plot(times, result[8, ] * 100, type = "l", lwd = 2, col = "steelblue",
@@ -282,14 +282,14 @@ directions of transmission, reductions have a large (quadratic) impact.
 
 ``` r
 pars_net50 <- modifyList(pars, list(a = 0.15))
-sys_n50 <- dust_system_create(gen, pars_net50, ode_control = dust_ode_control())
+sys_n50 <- System(gen, pars_net50, ode_control = dust_ode_control())
 dust_system_set_state_initial(sys_n50)
-res_net50 <- dust_system_simulate(sys_n50, times)
+res_net50 <- simulate(sys_n50, times)
 
 pars_net80 <- modifyList(pars, list(a = 0.06))
-sys_n80 <- dust_system_create(gen, pars_net80, ode_control = dust_ode_control())
+sys_n80 <- System(gen, pars_net80, ode_control = dust_ode_control())
 dust_system_set_state_initial(sys_n80)
-res_net80 <- dust_system_simulate(sys_n80, times)
+res_net80 <- simulate(sys_n80, times)
 
 par(mfrow = c(2, 1), mar = c(4, 4, 2, 1))
 

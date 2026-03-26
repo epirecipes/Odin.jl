@@ -37,25 +37,25 @@ println("  Loaded shared_data.csv ($(nrow(shared_data)) obs)")
 
 true_pars = (beta=0.5, gamma=0.1, I0=10.0, N=1000.0)
 
-fdata = Odin.dust_filter_data(
+fdata = Odin.ObservedData(
     [(time=Float64(row.time), cases=Float64(row.cases)) for row in eachrow(shared_data)]
 )
 
 # Run MCMC with same configuration as R
-filter = dust_filter_create(sir, fdata; n_particles=500, dt=1.0, seed=42)
-packer = monty_packer([:beta, :gamma]; fixed=(I0=10.0, N=1000.0))
-likelihood = dust_likelihood_monty(filter, packer)
-prior = @monty_prior begin
+filter = Likelihood(sir, fdata; n_particles=500, dt=1.0, seed=42)
+packer = Packer([:beta, :gamma]; fixed=(I0=10.0, N=1000.0))
+likelihood = as_model(filter, packer)
+prior = @prior begin
     beta ~ Gamma(2.0, 0.25)
     gamma ~ Gamma(2.0, 0.05)
 end
 posterior = likelihood + prior
-sampler = monty_sampler_random_walk([0.005 0.0; 0.0 0.001])
+sampler = random_walk([0.005 0.0; 0.0 0.001])
 initial_mat = repeat([0.4, 0.08], 1, 4)
 
 println("  Running MCMC: 5000 steps × 4 chains, 500 particles...")
 t0 = time()
-samples = monty_sample(posterior, sampler, 5000;
+samples = sample(posterior, sampler, 5000;
                        initial=initial_mat, n_chains=4)
 elapsed = time() - t0
 println("  Done in $(round(elapsed, digits=1)) seconds")
@@ -87,8 +87,8 @@ println("  Saved posterior_julia.csv")
 println("  Computing log-likelihood distribution (500 particles × 100 runs)...")
 ll_vals = Float64[]
 for i in 1:100
-    f_tmp = dust_filter_create(sir, fdata; n_particles=500, dt=1.0, seed=nothing)
-    push!(ll_vals, dust_likelihood_run!(f_tmp, true_pars))
+    f_tmp = Likelihood(sir, fdata; n_particles=500, dt=1.0, seed=nothing)
+    push!(ll_vals, loglik(f_tmp, true_pars))
 end
 CSV.write("benchmark/ll_dist_julia.csv", DataFrame(ll=ll_vals))
 println("  LL: mean=$(round(mean(ll_vals), digits=2))  sd=$(round(std(ll_vals), digits=2))")

@@ -237,9 +237,9 @@ true_pars <- list(
 
 ``` r
 times <- seq(0, 1095, by = 1)  # 3 years
-sys <- dust_system_create(malaria, true_pars, ode_control = dust_ode_control())
+sys <- System(malaria, true_pars, ode_control = dust_ode_control())
 dust_system_set_state_initial(sys)
-result <- dust_system_simulate(sys, times)
+result <- simulate(sys, times)
 ```
 
 ### Human dynamics
@@ -310,16 +310,16 @@ interventions have a powerful, roughly quadratic effect on transmission.
 
 ``` r
 pars_itn50 <- modifyList(true_pars, list(itn_cov = 0.5))
-sys_itn50 <- dust_system_create(malaria, pars_itn50,
+sys_itn50 <- System(malaria, pars_itn50,
                                  ode_control = dust_ode_control())
 dust_system_set_state_initial(sys_itn50)
-res_itn50 <- dust_system_simulate(sys_itn50, times)
+res_itn50 <- simulate(sys_itn50, times)
 
 pars_itn80 <- modifyList(true_pars, list(itn_cov = 0.8))
-sys_itn80 <- dust_system_create(malaria, pars_itn80,
+sys_itn80 <- System(malaria, pars_itn80,
                                  ode_control = dust_ode_control())
 dust_system_set_state_initial(sys_itn80)
-res_itn80 <- dust_system_simulate(sys_itn80, times)
+res_itn80 <- simulate(sys_itn80, times)
 ```
 
 ``` r
@@ -550,7 +550,7 @@ prior <- monty_dsl({
 ### Packer and likelihood
 
 ``` r
-packer <- monty_packer(
+packer <- Packer(
   c("a", "b", "K_m0", "amp"),
   fixed = list(
     c = 0.15,
@@ -571,8 +571,8 @@ packer <- monty_packer(
     I_h0 = 100
   ))
 
-uf <- dust_unfilter_create(malaria_fit, time_start = 0, data = survey_data)
-ll <- dust_likelihood_monty(uf, packer)
+uf <- Likelihood(malaria_fit, time_start = 0, data = survey_data)
+ll <- as_model(uf, packer)
 posterior <- ll + prior
 ```
 
@@ -590,9 +590,9 @@ cat("Log-likelihood at true parameters:",
 
 ``` r
 vcv <- diag(c(0.0005, 0.001, 1e8, 0.001))
-sampler <- monty_sampler_adaptive(vcv)
+sampler <- adaptive_mh(vcv)
 
-samples <- monty_sample(posterior, sampler, 5000,
+samples <- sample(posterior, sampler, 5000,
                         initial = theta_true,
                         n_chains = 1, burnin = 1000)
 ```
@@ -692,10 +692,10 @@ for (j in seq_len(n_pred)) {
     K_m0 = samples$pars[3, idx[j], 1],
     amp  = samples$pars[4, idx[j], 1]
   ))
-  sys_j <- dust_system_create(malaria, pars_j,
+  sys_j <- System(malaria, pars_j,
                                ode_control = dust_ode_control())
   dust_system_set_state_initial(sys_j)
-  r <- dust_system_simulate(sys_j, pred_times)
+  r <- simulate(sys_j, pred_times)
   prev_traj[j, ] <- r[9, ]
 }
 
@@ -777,7 +777,7 @@ intensity.
 |--------------|----------------------------------------------------------|
 | Define model | `odin({ … })` with `~` for data comparison               |
 | Prepare data | `data.frame(time = …, slide_positive = …, n_tested = …)` |
-| Likelihood   | `dust_unfilter_create()` → `dust_likelihood_monty()`     |
+| Likelihood   | `Likelihood()` → `as_model()`     |
 | Prior        | `monty_dsl({ … })`                                       |
 | Posterior    | `likelihood + prior`                                     |
-| Sample       | `monty_sample(posterior, sampler, n, …)`                 |
+| Sample       | `sample(posterior, sampler, n, …)`                 |

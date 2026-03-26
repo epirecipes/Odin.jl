@@ -51,7 +51,7 @@ pars = (beta=0.5, gamma=0.1, I0=10.0, N=1000.0)
 times = collect(0.0:1.0:200.0)
 n_particles = 20
 
-result = dust_system_simulate(sir_stoch, pars;
+result = simulate(sir_stoch, pars;
     times=times, dt=1.0, seed=42, n_particles=n_particles)
 println("Result shape: ", size(result), " (state × particles × times)")
 ```
@@ -82,7 +82,7 @@ sir_det = @odin begin
     N = parameter(1000)
 end
 
-det_result = dust_system_simulate(sir_det, pars; times=times)
+det_result = simulate(sir_det, pars; times=times)
 
 p = plot(title="Stochastic vs Deterministic SIR",
          xlabel="Time", ylabel="Infected")

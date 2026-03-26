@@ -78,20 +78,20 @@ end
 
 ```julia
 pars = (N=1000.0, I0=10.0, beta=0.5, gamma=0.1)
-sys = dust_system_create(sir, pars; n_particles=1, dt=1.0, seed=1)
-dust_system_set_state_initial!(sys)
+sys = System(sir, pars; n_particles=1, dt=1.0, seed=1)
+reset!(sys)
 times = collect(1.0:1.0:100.0)
-result = dust_system_simulate(sys, times)
+result = simulate(sys, times)
 
 data_vec = [(time=times[i], cases=max(1.0, result[2,1,i])) for i in eachindex(times)]
-fdata = dust_filter_data(data_vec)
+fdata = ObservedData(data_vec)
 ```
 
 ### Run GPU Particle Filter
 
 ```julia
 # Create the GPU-accelerated filter
-gf = gpu_dust_filter_create(sir, fdata;
+gf = gpu_Likelihood(sir, fdata;
     n_particles=10_000,
     dt=1.0,
     seed=42,
@@ -109,11 +109,11 @@ println("Log-likelihood: ", ll)
 using BenchmarkTools
 
 # CPU filter
-cpu_filter = dust_filter_create(sir, fdata; n_particles=10_000, dt=1.0, seed=42)
-@btime dust_likelihood_run!($cpu_filter, $pars)
+cpu_filter = Likelihood(sir, fdata; n_particles=10_000, dt=1.0, seed=42)
+@btime loglik($cpu_filter, $pars)
 
 # GPU filter (CPU fallback for comparison)
-gpu_filter = gpu_dust_filter_create(sir, fdata;
+gpu_filter = gpu_Likelihood(sir, fdata;
     n_particles=10_000, dt=1.0, seed=42, backend=:auto)
 @btime gpu_dust_filter_run!($gpu_filter, $pars)
 ```
@@ -139,16 +139,16 @@ println("Output shape: ", size(output))
 The GPU filter integrates with monty samplers via `gpu_dust_likelihood_monty`:
 
 ```julia
-packer = monty_packer([:beta, :gamma]; fixed=(I0=10.0, N=1000.0))
-ll_model = gpu_dust_likelihood_monty(gf, packer)
+packer = Packer([:beta, :gamma]; fixed=(I0=10.0, N=1000.0))
+ll_model = gpu_as_model(gf, packer)
 
 # Use with any monty sampler
-sampler = monty_sampler_random_walk(
+sampler = random_walk(
     vcv=diagm([0.01, 0.001]),
     boundaries=[(0.0, Inf), (0.0, Inf)],
 )
 
-samples = monty_sample(ll_model, sampler, 1000; n_chains=4)
+samples = sample(ll_model, sampler, 1000; n_chains=4)
 ```
 
 ## Architecture
@@ -183,7 +183,7 @@ Steps 3–5 involve small data transfers (n_particles floats/ints).
 ### Model Compatibility
 
 GPU particle filters work with **discrete-time stochastic models** (those using
-`update()`). Continuous ODE models should use `dust_unfilter_create` instead.
+`update()`). Continuous ODE models should use `Likelihood` instead.
 
 Not all model features are GPU-kernel compatible (e.g., interpolation, complex
 array operations). The current implementation uses a hybrid approach where model
@@ -197,7 +197,7 @@ with all `@odin` models.
 | `gpu_backend(; preferred)` | Select GPU backend |
 | `has_gpu()` | Check if GPU is available |
 | `available_gpu_backends()` | List registered backends |
-| `gpu_dust_filter_create(gen, data; ...)` | Create GPU particle filter |
+| `gpu_Likelihood(gen, data; ...)` | Create GPU particle filter |
 | `gpu_dust_filter_run!(filter, pars)` | Run filter, return log-likelihood |
-| `gpu_dust_likelihood_monty(filter, packer)` | Bridge to monty MCMC |
+| `gpu_as_model(filter, packer)` | Bridge to monty MCMC |
 | `gpu_dust_simulate(gen, pars; ...)` | GPU multi-particle simulation |

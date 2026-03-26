@@ -228,15 +228,15 @@ using Statistics
     i_chain_idx_2_1 = i_chain_offset + 2
 
     function seed_and_simulate(gen, p, n_part; seed=42)
-        sys = Odin.dust_system_create(gen, p; dt=1.0, seed=seed,
+        sys = Odin.System(gen, p; dt=1.0, seed=seed,
                                        n_particles=n_part)
-        Odin.dust_system_set_state_initial!(sys)
-        state = Odin.dust_system_state(sys)
+        Odin.reset!(sys)
+        st = Odin.state(sys)
         for pp in 1:n_part
-            state[i_chain_idx_2_1, pp] = n_seed
+            st[i_chain_idx_2_1, pp] = n_seed
         end
-        Odin.dust_system_set_state!(sys, state)
-        return Odin.dust_system_simulate(sys, times)
+        Odin.dust_system_set_state!(sys, st)
+        return Odin.simulate(sys, times)
     end
 
     @testset "compiles and runs" begin
@@ -250,9 +250,9 @@ using Statistics
     end
 
     @testset "initial conditions correct" begin
-        sys = Odin.dust_system_create(yf_delay, pars; dt=1.0, seed=1)
-        Odin.dust_system_set_state_initial!(sys)
-        s = Odin.dust_system_state(sys)
+        sys = Odin.System(yf_delay, pars; dt=1.0, seed=1)
+        Odin.reset!(sys)
+        s = Odin.state(sys)
 
         @test s[idx_S, 1] ≈ S_0
         @test s[idx_R, 1] ≈ R_0
@@ -289,13 +289,13 @@ using Statistics
     @testset "delay chain progression" begin
         # After a few steps, infections should have moved through E chain stages
         short_times = collect(0.0:1.0:30.0)
-        sys = Odin.dust_system_create(yf_delay, pars; dt=1.0, seed=42,
+        sys = Odin.System(yf_delay, pars; dt=1.0, seed=42,
                                        n_particles=1)
-        Odin.dust_system_set_state_initial!(sys)
-        state = Odin.dust_system_state(sys)
-        state[i_chain_idx_2_1, 1] = n_seed
-        Odin.dust_system_set_state!(sys, state)
-        result = Odin.dust_system_simulate(sys, short_times)
+        Odin.reset!(sys)
+        st = Odin.state(sys)
+        st[i_chain_idx_2_1, 1] = n_seed
+        Odin.dust_system_set_state!(sys, st)
+        result = Odin.simulate(sys, short_times)
 
         # After 30 days, some E_chain stages beyond stage 1 should be populated
         # or I_chain should have individuals (showing progression through E)
@@ -323,12 +323,12 @@ using Statistics
         n_runs = 50
         I_mean_k1 = zeros(length(times))
         for seed in 1:n_runs
-            sys = Odin.dust_system_create(yf_delay, pars_k1; dt=1.0, seed=seed)
-            Odin.dust_system_set_state_initial!(sys)
-            st = Odin.dust_system_state(sys)
+            sys = Odin.System(yf_delay, pars_k1; dt=1.0, seed=seed)
+            Odin.reset!(sys)
+            st = Odin.state(sys)
             st[i_chain_idx_k1, 1] = n_seed
             Odin.dust_system_set_state!(sys, st)
-            r = Odin.dust_system_simulate(sys, times)
+            r = Odin.simulate(sys, times)
             for t in 1:length(times)
                 I_mean_k1[t] += sum(r[idx_I_k1, 1, t])
             end
@@ -355,12 +355,12 @@ using Statistics
 
             peaks = Float64[]
             for seed in 1:n_runs
-                sys = Odin.dust_system_create(gen, p_mod; dt=1.0, seed=seed)
-                Odin.dust_system_set_state_initial!(sys)
-                st = Odin.dust_system_state(sys)
+                sys = Odin.System(gen, p_mod; dt=1.0, seed=seed)
+                Odin.reset!(sys)
+                st = Odin.state(sys)
                 st[ic_idx, 1] = n_seed
                 Odin.dust_system_set_state!(sys, st)
-                r = Odin.dust_system_simulate(sys, times)
+                r = Odin.simulate(sys, times)
                 peak = maximum([sum(r[idx_I_mod, 1, t]) for t in 1:length(times)])
                 push!(peaks, peak)
             end

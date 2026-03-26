@@ -119,9 +119,9 @@ using Odin
     idx_pop_h = 39
 
     @testset "compiles and runs" begin
-        sys = dust_system_create(orov, pars; n_particles = 1)
-        dust_system_set_state_initial!(sys)
-        result = dust_system_simulate(sys, times)
+        sys = System(orov, pars; n_particles = 1)
+        reset!(sys)
+        result = simulate(sys, times)
 
         # 12 + 12 delay chain + 8 human + 3 vector + 4 outputs = 39
         @test size(result, 1) == 39
@@ -131,9 +131,9 @@ using Odin
     end
 
     @testset "human population conserved" begin
-        sys = dust_system_create(orov, pars; n_particles = 1)
-        dust_system_set_state_initial!(sys)
-        result = dust_system_simulate(sys, times)
+        sys = System(orov, pars; n_particles = 1)
+        reset!(sys)
+        result = simulate(sys, times)
 
         for t in 1:length(times)
             pop = result[idx_Sh, 1, t] + result[idx_Eh, 1, t] +
@@ -149,18 +149,18 @@ using Odin
 
     @testset "omega=0 means no relapse" begin
         pars_nr = merge(pars, (omega = 0.0,))
-        sys = dust_system_create(orov, pars_nr; n_particles = 1)
-        dust_system_set_state_initial!(sys)
-        result = dust_system_simulate(sys, times)
+        sys = System(orov, pars_nr; n_particles = 1)
+        reset!(sys)
+        result = simulate(sys, times)
 
         # I_h_sym2 should stay at zero (initial is 0, and omega=0 blocks inflow)
         @test all(abs.(result[idx_Ihs2, 1, :]) .< 1e-10)
     end
 
     @testset "epidemic peak occurs" begin
-        sys = dust_system_create(orov, pars; n_particles = 1)
-        dust_system_set_state_initial!(sys)
-        result = dust_system_simulate(sys, times)
+        sys = System(orov, pars; n_particles = 1)
+        reset!(sys)
+        result = simulate(sys, times)
 
         prevalence = result[idx_prev_h, 1, :]
         peak_val = maximum(prevalence)
@@ -174,9 +174,9 @@ using Odin
     end
 
     @testset "non-negative compartments" begin
-        sys = dust_system_create(orov, pars; n_particles = 1)
-        dust_system_set_state_initial!(sys)
-        result = dust_system_simulate(sys, times)
+        sys = System(orov, pars; n_particles = 1)
+        reset!(sys)
+        result = simulate(sys, times)
 
         for idx in [idx_Sh, idx_Eh, idx_Iha, idx_Ihs0, idx_Ihs1,
                     idx_Rht, idx_Ihs2, idx_Rh, idx_Sv, idx_Ev, idx_Iv]
@@ -186,14 +186,14 @@ using Odin
 
     @testset "higher relapse rate increases I_h_sym2 peak" begin
         pars_low = merge(pars, (omega = 0.1,))
-        sys_low = dust_system_create(orov, pars_low; n_particles = 1)
-        dust_system_set_state_initial!(sys_low)
-        res_low = dust_system_simulate(sys_low, times)
+        sys_low = System(orov, pars_low; n_particles = 1)
+        reset!(sys_low)
+        res_low = simulate(sys_low, times)
 
         pars_high = merge(pars, (omega = 0.5,))
-        sys_high = dust_system_create(orov, pars_high; n_particles = 1)
-        dust_system_set_state_initial!(sys_high)
-        res_high = dust_system_simulate(sys_high, times)
+        sys_high = System(orov, pars_high; n_particles = 1)
+        reset!(sys_high)
+        res_high = simulate(sys_high, times)
 
         peak_low = maximum(res_low[idx_Ihs2, 1, :])
         peak_high = maximum(res_high[idx_Ihs2, 1, :])

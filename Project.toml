@@ -6,6 +6,7 @@ authors = ["Simon Frost"]
 [deps]
 AbstractMCMC = "80f14c24-f653-4e6a-9b94-39d6b0f70001"
 AdvancedHMC = "0bf59076-c3b1-5ca4-86bd-e02cd72cde3d"
+BenchmarkTools = "6e4b80f9-dd63-53aa-95a3-0cdb28fa8baf"
 Catlab = "134e5e36-593f-5add-ad60-77f754baafbe"
 DifferentialEquations = "0c46a032-eb83-5123-abaf-570d42b7fbaa"
 Distributions = "31c24e10-a181-5473-b8eb-7969acd0382f"
@@ -30,6 +31,7 @@ OdinMetalExt = "Metal"
 [compat]
 AbstractMCMC = "5"
 AdvancedHMC = "0.8"
+BenchmarkTools = "1.6.3"
 Catlab = "0.17"
 DifferentialEquations = "7"
 Distributions = "0.25"

@@ -24,17 +24,17 @@ using Random
             N = parameter(1000.0)
         end
 
-        @test gen isa Odin.DustSystemGenerator
+        @test gen isa Odin.OdinModel
         @test gen.model.is_continuous == true
         @test gen.model.is_sde == true
 
         pars = (beta=0.5, gamma=0.1, sigma_S=0.1, sigma_I=0.1, sigma_R=0.1,
                 I0=10.0, N=1000.0)
-        sys = dust_system_create(gen, pars; dt=0.01, seed=42)
-        dust_system_set_state_initial!(sys)
+        sys = System(gen, pars; dt=0.01, seed=42)
+        reset!(sys)
 
         times = collect(0.0:1.0:50.0)
-        output = dust_system_simulate(sys, times)
+        output = simulate(sys, times)
 
         @test size(output) == (3, 1, length(times))
         # Initial conditions
@@ -65,11 +65,11 @@ using Random
 
         pars = (beta=0.5, gamma=0.1, sigma=0.5, I0=10.0, N=1000.0)
         n_particles = 10
-        sys = dust_system_create(gen, pars; n_particles=n_particles, dt=0.01, seed=123)
-        dust_system_set_state_initial!(sys)
+        sys = System(gen, pars; n_particles=n_particles, dt=0.01, seed=123)
+        reset!(sys)
 
         times = collect(0.0:1.0:30.0)
-        output = dust_system_simulate(sys, times; solver=:euler_maruyama)
+        output = simulate(sys, times; solver=:euler_maruyama)
 
         @test size(output) == (3, n_particles, length(times))
 
@@ -117,15 +117,15 @@ using Random
         pars_ode = (beta=0.5, gamma=0.1, I0=10.0, N=1000.0)
 
         # SDE with σ=0, very small dt
-        sys_sde = dust_system_create(sde_gen, pars_sde; dt=0.001, seed=42)
-        dust_system_set_state_initial!(sys_sde)
+        sys_sde = System(sde_gen, pars_sde; dt=0.001, seed=42)
+        reset!(sys_sde)
         times = collect(0.0:1.0:20.0)
-        out_sde = dust_system_simulate(sys_sde, times; solver=:euler_maruyama)
+        out_sde = simulate(sys_sde, times; solver=:euler_maruyama)
 
         # ODE with DP5
-        sys_ode = dust_system_create(ode_gen, pars_ode)
-        dust_system_set_state_initial!(sys_ode)
-        out_ode = dust_system_simulate(sys_ode, times; solver=:dp5)
+        sys_ode = System(ode_gen, pars_ode)
+        reset!(sys_ode)
+        out_ode = simulate(sys_ode, times; solver=:dp5)
 
         # Should be close (SDE with fixed dt = Euler, ODE with adaptive = DP5)
         # Use moderate tolerance because Euler fixed-step vs adaptive DP5
@@ -155,11 +155,11 @@ using Random
         end
 
         pars = (beta=0.5, gamma=0.1, sigma=0.1, I0=10.0, N=1000.0)
-        sys = dust_system_create(gen, pars; dt=0.01, seed=42)
-        dust_system_set_state_initial!(sys)
+        sys = System(gen, pars; dt=0.01, seed=42)
+        reset!(sys)
 
         times = collect(0.0:1.0:30.0)
-        output = dust_system_simulate(sys, times; solver=:milstein)
+        output = simulate(sys, times; solver=:milstein)
 
         @test size(output) == (3, 1, length(times))
         @test all(isfinite, output)
@@ -204,14 +204,14 @@ using Random
 
         # Many particles
         n_particles = 200
-        sys_sde = dust_system_create(sde_gen, pars_sde; n_particles=n_particles, dt=0.01, seed=1234)
-        dust_system_set_state_initial!(sys_sde)
+        sys_sde = System(sde_gen, pars_sde; n_particles=n_particles, dt=0.01, seed=1234)
+        reset!(sys_sde)
         times = collect(0.0:2.0:20.0)
-        out_sde = dust_system_simulate(sys_sde, times; solver=:euler_maruyama)
+        out_sde = simulate(sys_sde, times; solver=:euler_maruyama)
 
-        sys_ode = dust_system_create(ode_gen, pars_ode)
-        dust_system_set_state_initial!(sys_ode)
-        out_ode = dust_system_simulate(sys_ode, times; solver=:dp5)
+        sys_ode = System(ode_gen, pars_ode)
+        reset!(sys_ode)
+        out_ode = simulate(sys_ode, times; solver=:dp5)
 
         # Mean of SDE particles should approximate ODE
         for ti in 1:length(times)
@@ -239,16 +239,16 @@ using Random
 
         # Low noise
         pars_low = (alpha=0.1, sigma=0.05)
-        sys_low = dust_system_create(gen, pars_low; n_particles=n_particles, dt=0.01, seed=42)
-        dust_system_set_state_initial!(sys_low)
-        out_low = dust_system_simulate(sys_low, times; solver=:euler_maruyama)
+        sys_low = System(gen, pars_low; n_particles=n_particles, dt=0.01, seed=42)
+        reset!(sys_low)
+        out_low = simulate(sys_low, times; solver=:euler_maruyama)
         var_low = var(out_low[1, :, end])
 
         # High noise
         pars_high = (alpha=0.1, sigma=0.2)
-        sys_high = dust_system_create(gen, pars_high; n_particles=n_particles, dt=0.01, seed=42)
-        dust_system_set_state_initial!(sys_high)
-        out_high = dust_system_simulate(sys_high, times; solver=:euler_maruyama)
+        sys_high = System(gen, pars_high; n_particles=n_particles, dt=0.01, seed=42)
+        reset!(sys_high)
+        out_high = simulate(sys_high, times; solver=:euler_maruyama)
         var_high = var(out_high[1, :, end])
 
         # Higher noise should produce higher variance
@@ -270,11 +270,11 @@ using Random
 
         pars = (mu=0.05, sigma=0.2, X0=1.0)
         n_particles = 50
-        sys = dust_system_create(gen, pars; n_particles=n_particles, dt=0.01, seed=999)
-        dust_system_set_state_initial!(sys)
+        sys = System(gen, pars; n_particles=n_particles, dt=0.01, seed=999)
+        reset!(sys)
 
         times = collect(0.0:0.5:5.0)
-        output = dust_system_simulate(sys, times; solver=:euler_maruyama)
+        output = simulate(sys, times; solver=:euler_maruyama)
 
         @test size(output) == (1, n_particles, length(times))
         # All particles start at same value
@@ -297,13 +297,13 @@ using Random
         pars = (alpha=0.1, sigma=0.0)
         times = collect(0.0:1.0:10.0)
 
-        sys_em = dust_system_create(gen, pars; dt=0.01, seed=42)
-        dust_system_set_state_initial!(sys_em)
-        out_em = dust_system_simulate(sys_em, times; solver=:euler_maruyama)
+        sys_em = System(gen, pars; dt=0.01, seed=42)
+        reset!(sys_em)
+        out_em = simulate(sys_em, times; solver=:euler_maruyama)
 
-        sys_mil = dust_system_create(gen, pars; dt=0.01, seed=42)
-        dust_system_set_state_initial!(sys_mil)
-        out_mil = dust_system_simulate(sys_mil, times; solver=:milstein)
+        sys_mil = System(gen, pars; dt=0.01, seed=42)
+        reset!(sys_mil)
+        out_mil = simulate(sys_mil, times; solver=:milstein)
 
         # With zero noise, both methods produce identical results
         for ti in 1:length(times)
@@ -320,16 +320,16 @@ using Random
         end
 
         pars = NamedTuple()
-        sys = dust_system_create(gen, pars; dt=0.01, seed=42)
-        dust_system_set_state_initial!(sys)
+        sys = System(gen, pars; dt=0.01, seed=42)
+        reset!(sys)
 
         times = collect(0.0:1.0:5.0)
-        out1 = dust_system_simulate(sys, times; solver=:euler_maruyama)
+        out1 = simulate(sys, times; solver=:euler_maruyama)
 
         # Simulate again (workspace should be reused)
-        dust_system_set_state_initial!(sys)
+        reset!(sys)
         sys.time = 0.0
-        out2 = dust_system_simulate(sys, times; solver=:euler_maruyama)
+        out2 = simulate(sys, times; solver=:euler_maruyama)
 
         @test size(out1) == size(out2)
         @test all(isfinite, out1)

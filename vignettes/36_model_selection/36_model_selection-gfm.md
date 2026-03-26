@@ -1,23 +1,19 @@
----
-title: "Model Selection and Comparison"
-subtitle: "Odin.jl Vignette 36"
-format:
-  html:
-    toc: true
-    code-fold: false
-engine: julia
-julia:
-  project: ".."
----
+
+
+# Model Selection and Comparison
 
 ## Introduction
 
-When fitting multiple candidate models to the same data, we need principled tools to select the best model. This vignette demonstrates how to use Odin.jl's model selection utilities to compare competing epidemic models using information criteria (AIC, BIC, DIC, WAIC) and leave-one-out cross-validation (LOO-CV).
+When fitting multiple candidate models to the same data, we need
+principled tools to select the best model. This vignette demonstrates
+how to use Odin.jl’s model selection utilities to compare competing
+epidemic models using information criteria (AIC, BIC, DIC, WAIC) and
+leave-one-out cross-validation (LOO-CV).
 
 ### When to use each criterion
 
 | Criterion | Best for | Requires |
-|-----------|----------|----------|
+|----|----|----|
 | **AIC/AICc** | Prediction, small samples | Maximum likelihood estimate |
 | **BIC** | Identifying true model | Maximum likelihood estimate |
 | **DIC** | Bayesian models (posterior samples) | MCMC output |
@@ -30,7 +26,7 @@ We compare an SIR and an SEIR model fitted to the same outbreak data.
 
 ### SIR Model
 
-```{julia}
+``` julia
 using Odin
 using Random
 
@@ -52,9 +48,11 @@ sir = @odin begin
 end
 ```
 
+    OdinModel{var"##OdinModel#277"}(var"##OdinModel#277"(3, [:S, :I, :R], [:beta, :gamma, :I0, :N], true, false, true, false, false, Dict{Symbol, Array}()))
+
 ### SEIR Model
 
-```{julia}
+``` julia
 seir = @odin begin
     deriv(S) = -beta * S * I / N
     deriv(E) = beta * S * I / N - sigma * E
@@ -76,11 +74,13 @@ seir = @odin begin
 end
 ```
 
+    OdinModel{var"##OdinModel#278"}(var"##OdinModel#278"(4, [:S, :E, :I, :R], [:beta, :gamma, :sigma, :I0, :N], true, false, true, false, false, Dict{Symbol, Array}()))
+
 ## Generate Synthetic Data
 
-We generate data from the SIR model so we know the "true" model.
+We generate data from the SIR model so we know the “true” model.
 
-```{julia}
+``` julia
 true_pars = (beta=0.5, gamma=0.1, I0=10.0, N=1000.0)
 times = collect(1.0:1.0:40.0)
 
@@ -95,9 +95,12 @@ println("Generated $(length(observed)) observations")
 println("Peak cases: $(maximum(observed))")
 ```
 
+    Generated 40 observations
+    Peak cases: 479.0
+
 ## Compute Log-Likelihoods
 
-```{julia}
+``` julia
 # SIR unfilter
 uf_sir = Likelihood(sir, data; time_start=0.0)
 pars_sir = (beta=0.5, gamma=0.1, I0=10.0, N=1000.0)
@@ -112,11 +115,15 @@ println("SIR log-likelihood:  $ll_sir")
 println("SEIR log-likelihood: $ll_seir")
 ```
 
+    SIR log-likelihood:  -139.78791957087182
+    SEIR log-likelihood: -3088.9637972232467
+
 ## AIC and BIC
 
-AIC and BIC use the maximum log-likelihood and the number of free parameters.
+AIC and BIC use the maximum log-likelihood and the number of free
+parameters.
 
-```{julia}
+``` julia
 k_sir = 3   # beta, gamma, I0
 k_seir = 4  # beta, gamma, sigma, I0
 n_obs = length(times)
@@ -131,28 +138,36 @@ println("AIC — SIR: $(round(aic_sir; digits=1)),  SEIR: $(round(aic_seir; digi
 println("BIC — SIR: $(round(bic_sir; digits=1)),  SEIR: $(round(bic_seir; digits=1))")
 ```
 
+    AIC — SIR: 285.6,  SEIR: 6185.9
+    BIC — SIR: 290.6,  SEIR: 6192.7
+
 For small samples, use the corrected AICc:
 
-```{julia}
+``` julia
 aicc_sir = aicc(ll_sir, k_sir, n_obs)
 aicc_seir = aicc(ll_seir, k_seir, n_obs)
 println("AICc — SIR: $(round(aicc_sir; digits=1)),  SEIR: $(round(aicc_seir; digits=1))")
 ```
 
+    AICc — SIR: 286.2,  SEIR: 6187.1
+
 ## Akaike Weights
 
 Akaike weights convert AIC differences into model probabilities:
 
-```{julia}
+``` julia
 w = akaike_weights([aic_sir, aic_seir])
 println("Akaike weights — SIR: $(round(w[1]; digits=3)),  SEIR: $(round(w[2]; digits=3))")
 ```
 
+    Akaike weights — SIR: 1.0,  SEIR: 0.0
+
 ## WAIC via Pointwise Log-Likelihoods
 
-WAIC requires per-observation log-likelihoods across posterior samples. We demonstrate with the unfilter pointwise function:
+WAIC requires per-observation log-likelihoods across posterior samples.
+We demonstrate with the unfilter pointwise function:
 
-```{julia}
+``` julia
 # Get pointwise log-likelihoods for different parameter draws
 n_posterior = 200
 rng = Random.MersenneTwister(42)
@@ -178,24 +193,31 @@ println("WAIC — SIR: $(round(waic_sir.waic; digits=1)),  SEIR: $(round(waic_se
 println("p_WAIC — SIR: $(round(waic_sir.p_waic; digits=2)),  SEIR: $(round(waic_seir.p_waic; digits=2))")
 ```
 
+    WAIC — SIR: 504.1,  SEIR: 28418.0
+    p_WAIC — SIR: 92.76,  SEIR: 12161.85
+
 ## LOO-CV
 
 Pareto-smoothed importance sampling LOO provides a robust alternative:
 
-```{julia}
+``` julia
 loo_sir = loo(pw_sir)
 loo_seir = loo(pw_seir)
 println("LOO — SIR: $(round(loo_sir.loo; digits=1)),  SEIR: $(round(loo_seir.loo; digits=1))")
 println("Max Pareto k — SIR: $(round(maximum(loo_sir.k_diagnostics); digits=2)),  SEIR: $(round(maximum(loo_seir.k_diagnostics); digits=2))")
 ```
 
-A Pareto k > 0.7 indicates unreliable LOO estimates for that observation.
+    LOO — SIR: 483.6,  SEIR: 7439.8
+    Max Pareto k — SIR: 0.48,  SEIR: 0.49
+
+A Pareto k \> 0.7 indicates unreliable LOO estimates for that
+observation.
 
 ## Model Comparison Table
 
 Bring everything together with `compare_models`:
 
-```{julia}
+``` julia
 mc = compare(;
     n_observations=n_obs,
     SIR=(ll=ll_sir, k=k_sir, waic=waic_sir.waic),
@@ -204,23 +226,38 @@ mc = compare(;
 mc
 ```
 
-The table is sorted by AIC (best model first) and shows Akaike/BIC weights.
+    Model Comparison (n_obs = 40)
+    ──────────────────────────────────────────────────────────────────────────────────────────
+    Model              LL    k      AIC     AICc      BIC      DIC     WAIC   w_AIC   w_BIC
+    ──────────────────────────────────────────────────────────────────────────────────────────
+    SIR            -139.8    3    285.6    286.2    290.6        —    504.1     1.0     1.0
+    SEIR          -3089.0    4   6185.9   6187.1   6192.7        —  28418.0     0.0     0.0
+    ──────────────────────────────────────────────────────────────────────────────────────────
+
+The table is sorted by AIC (best model first) and shows Akaike/BIC
+weights.
 
 ## Guidance on Criterion Choice
 
-- **AIC/AICc**: Best for predictive accuracy. Use AICc when n/k < 40.
-- **BIC**: Consistent — selects the true model as n → ∞. Penalises complexity more heavily than AIC.
-- **DIC**: Convenient when only MCMC samples are available (no pointwise likelihoods). Can be unreliable for non-Gaussian posteriors.
-- **WAIC**: Fully Bayesian, uses the entire posterior. More stable than DIC.
-- **LOO-CV (PSIS-LOO)**: Gold standard for Bayesian model comparison. Pareto k diagnostics flag unreliable estimates.
+- **AIC/AICc**: Best for predictive accuracy. Use AICc when n/k \< 40.
+- **BIC**: Consistent — selects the true model as n → ∞. Penalises
+  complexity more heavily than AIC.
+- **DIC**: Convenient when only MCMC samples are available (no pointwise
+  likelihoods). Can be unreliable for non-Gaussian posteriors.
+- **WAIC**: Fully Bayesian, uses the entire posterior. More stable than
+  DIC.
+- **LOO-CV (PSIS-LOO)**: Gold standard for Bayesian model comparison.
+  Pareto k diagnostics flag unreliable estimates.
 
-In practice, start with AIC/BIC for quick comparison, then use WAIC or LOO-CV for rigorous Bayesian analysis.
+In practice, start with AIC/BIC for quick comparison, then use WAIC or
+LOO-CV for rigorous Bayesian analysis.
 
 ## R Companion
 
-The equivalent analysis in R uses the `loo` package for WAIC and LOO-CV, and base R for AIC/BIC:
+The equivalent analysis in R uses the `loo` package for WAIC and LOO-CV,
+and base R for AIC/BIC:
 
-```r
+``` r
 # AIC / BIC
 AIC_sir <- -2 * ll_sir + 2 * k_sir
 BIC_sir <- -2 * ll_sir + k_sir * log(n_obs)
@@ -234,4 +271,6 @@ loo_sir  <- loo::loo(pointwise_ll_sir)
 loo::loo_compare(list(sir = loo_sir, seir = loo_seir))
 ```
 
-The `loo` package (Vehtari, Gabry, Magnusson, Yao, Bürkner, Paananen, Gelman, 2024) provides the most comprehensive R implementation of PSIS-LOO and WAIC.
+The `loo` package (Vehtari, Gabry, Magnusson, Yao, Bürkner, Paananen,
+Gelman, 2024) provides the most comprehensive R implementation of
+PSIS-LOO and WAIC.

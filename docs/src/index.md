@@ -34,10 +34,10 @@ sir = @odin begin
 end
 
 # Simulate
-sys = dust_system_create(sir, (beta=0.5, gamma=0.1, N=1000.0, I0=10.0))
-dust_system_set_state_initial!(sys)
+sys = System(sir, (beta=0.5, gamma=0.1, N=1000.0, I0=10.0))
+reset!(sys)
 times = 0.0:1.0:100.0
-result = dust_system_simulate(sys, times)
+result = simulate(sys, times)
 ```
 
 See the [Getting Started](@ref) guide for a more complete walkthrough.

@@ -49,14 +49,14 @@ using Odin
     times = collect(0.0:1.0:200.0)
 
     @testset "compiles and runs" begin
-        result = dust_system_simulate(sis_school, pars;
+        result = simulate(sis_school, pars;
             times = times, dt = 1.0, n_particles = 5, seed = 42)
         @test size(result) == (3, 5, length(times))
         @test all(isfinite, result)
     end
 
     @testset "S + I = N conservation" begin
-        result = dust_system_simulate(sis_school, pars;
+        result = simulate(sis_school, pars;
             times = times, dt = 1.0, n_particles = 10, seed = 1)
         for p in 1:10, t in 1:length(times)
             S = result[1, p, t]
@@ -66,16 +66,16 @@ using Odin
     end
 
     @testset "incidence zero_every resets" begin
-        sys = dust_system_create(sis_school, pars; dt = 1.0, n_particles = 1, seed = 7)
-        dust_system_set_state_initial!(sys)
+        sys = System(sis_school, pars; dt = 1.0, n_particles = 1, seed = 7)
+        reset!(sys)
 
         # Run two consecutive steps and verify incidence reflects a single step
-        dust_system_run_to_time!(sys, 1.0)
-        state1 = dust_system_state(sys)
+        run_to!(sys, 1.0)
+        state1 = state(sys)
         inc1 = state1[3, 1]
 
-        dust_system_run_to_time!(sys, 2.0)
-        state2 = dust_system_state(sys)
+        run_to!(sys, 2.0)
+        state2 = state(sys)
         inc2 = state2[3, 1]
 
         # Incidence should be new infections in the current step, not cumulative
@@ -89,12 +89,12 @@ using Odin
 
     @testset "school closure reduces transmission" begin
         n_particles = 50
-        result_closure = dust_system_simulate(sis_school, pars;
+        result_closure = simulate(sis_school, pars;
             times = times, dt = 1.0, n_particles = n_particles, seed = 123)
 
         # schools_modifier = 0.0 means closure has no effect on beta
         pars_no_closure = merge(pars, (schools_modifier = 0.0,))
-        result_no_closure = dust_system_simulate(sis_school, pars_no_closure;
+        result_no_closure = simulate(sis_school, pars_no_closure;
             times = times, dt = 1.0, n_particles = n_particles, seed = 123)
 
         # Mean incidence during a closure period (days 50–60) should be lower
@@ -119,9 +119,9 @@ using Odin
             schools_open = [1.0],
         ))
 
-        result_schedule = dust_system_simulate(sis_school, pars;
+        result_schedule = simulate(sis_school, pars;
             times = times, dt = 1.0, n_particles = 1, seed = 99)
-        result_always_open = dust_system_simulate(sis_school, pars_always_open;
+        result_always_open = simulate(sis_school, pars_always_open;
             times = times, dt = 1.0, n_particles = 1, seed = 99)
 
         # Before any closure (t < 50), trajectories should be identical
@@ -136,18 +136,18 @@ using Odin
 
     @testset "particle filter runs" begin
         # Simulate data
-        truth = dust_system_simulate(sis_school, pars;
+        truth = simulate(sis_school, pars;
             times = times, dt = 1.0, n_particles = 1, seed = 101)
 
         true_inc = truth[3, 1, 2:end]
-        data = dust_filter_data(
+        data = ObservedData(
             [(time = Float64(t), cases = max(1.0, Float64(c)))
              for (t, c) in zip(times[2:end], true_inc)]
         )
 
-        filter = dust_filter_create(sis_school, data;
+        filter = Likelihood(sis_school, data;
             n_particles = 20, dt = 1.0, seed = 42)
-        ll = dust_likelihood_run!(filter, pars)
+        ll = loglik(filter, pars)
 
         @test isfinite(ll)
         @test ll < 0

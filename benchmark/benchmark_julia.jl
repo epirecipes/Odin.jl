@@ -34,10 +34,10 @@ pars_ode = (beta=0.5, gamma=0.1, I0=10.0, N=1000.0)
 times_ode = collect(0.0:1.0:365.0)
 
 # Warmup
-dust_system_simulate(sir_ode, pars_ode; times=times_ode, seed=1)
+simulate(sir_ode, pars_ode; times=times_ode, seed=1)
 
 println("\n1. ODE SIR — simulate 365 days, 1 particle")
-b1 = @benchmark dust_system_simulate($sir_ode, $pars_ode; times=$times_ode, seed=1)
+b1 = @benchmark simulate($sir_ode, $pars_ode; times=$times_ode, seed=1)
 display(b1)
 
 # ── 2. Stochastic SIR simulation ───────────────────────────────
@@ -63,10 +63,10 @@ pars_stoch = (beta=0.5, gamma=0.1, I0=10.0, N=1000.0)
 times_stoch = collect(0.0:1.0:365.0)
 
 # Warmup
-dust_system_simulate(sir_stoch, pars_stoch; times=times_stoch, dt=1.0, seed=1, n_particles=100)
+simulate(sir_stoch, pars_stoch; times=times_stoch, dt=1.0, seed=1, n_particles=100)
 
 println("\n2. Stochastic SIR — 365 days, 100 particles")
-b2 = @benchmark dust_system_simulate($sir_stoch, $pars_stoch;
+b2 = @benchmark simulate($sir_stoch, $pars_stoch;
     times=$times_stoch, dt=1.0, seed=1, n_particles=100)
 display(b2)
 
@@ -110,10 +110,10 @@ pars_age = (
 times_age = collect(0.0:1.0:365.0)
 
 # Warmup
-dust_system_simulate(sir_age, pars_age; times=times_age, seed=1)
+simulate(sir_age, pars_age; times=times_age, seed=1)
 
 println("\n3. Age-structured ODE SIR (10 groups) — 365 days")
-b3 = @benchmark dust_system_simulate($sir_age, $pars_age; times=$times_age, seed=1)
+b3 = @benchmark simulate($sir_age, $pars_age; times=$times_age, seed=1)
 display(b3)
 
 # ── 4. Particle filter ─────────────────────────────────────────
@@ -142,39 +142,39 @@ end
 # Generate data
 pars_pf = (beta=0.5, gamma=0.1, I0=10.0, N=1000.0)
 times_pf = collect(0.0:1.0:100.0)
-sim_data = dust_system_simulate(sir_pf, pars_pf; times=times_pf, dt=1.0, seed=1)
+sim_data = simulate(sir_pf, pars_pf; times=times_pf, dt=1.0, seed=1)
 obs = round.(sim_data[4, 1, 2:end])
 
-fdata = Odin.dust_filter_data(
+fdata = Odin.ObservedData(
     [(time=Float64(t), cases=Float64(c)) for (t, c) in zip(times_pf[2:end], obs)]
 )
 
-filter = dust_filter_create(sir_pf, fdata; n_particles=200, dt=1.0, seed=42)
+filter = Likelihood(sir_pf, fdata; n_particles=200, dt=1.0, seed=42)
 
 # Warmup
-dust_likelihood_run!(filter, pars_pf)
+loglik(filter, pars_pf)
 
 println("\n4. Particle filter — 100 days, 200 particles")
-b4 = @benchmark dust_likelihood_run!($filter, $pars_pf)
+b4 = @benchmark loglik($filter, $pars_pf)
 display(b4)
 
 # ── 5. MCMC sampling (short chain) ─────────────────────────────
 
-packer = monty_packer([:beta, :gamma]; fixed=(I0=10.0, N=1000.0))
-likelihood = dust_likelihood_monty(filter, packer)
-prior = @monty_prior begin
+packer = Packer([:beta, :gamma]; fixed=(I0=10.0, N=1000.0))
+likelihood = as_model(filter, packer)
+prior = @prior begin
     beta ~ Gamma(2.0, 0.25)
     gamma ~ Gamma(2.0, 0.05)
 end
 posterior = likelihood + prior
-sampler = monty_sampler_random_walk([0.005 0.0; 0.0 0.001])
+sampler = random_walk([0.005 0.0; 0.0 0.001])
 initial_mat = collect([0.4 0.08]')
 
 # Warmup
-monty_sample(posterior, sampler, 50; initial=initial_mat, n_chains=1)
+sample(posterior, sampler, 50; initial=initial_mat, n_chains=1)
 
 println("\n5. MCMC — 500 iterations, RW sampler, particle filter likelihood")
-b5 = @benchmark monty_sample($posterior, $sampler, 500;
+b5 = @benchmark sample($posterior, $sampler, 500;
     initial=$initial_mat, n_chains=1) samples=10
 display(b5)
 

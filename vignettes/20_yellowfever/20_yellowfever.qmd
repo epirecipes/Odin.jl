@@ -335,7 +335,7 @@ We run 10 stochastic particles for 10 years:
 n_particles = 10
 sim_times = collect(0.0:1.0:t_end)
 
-result = dust_system_simulate(yf_seirv, pars;
+result = simulate(yf_seirv, pars;
     times=sim_times, dt=1.0, seed=42, n_particles=n_particles)
 
 println("Result shape: ", size(result),
@@ -502,7 +502,7 @@ We compare the epidemic with and without vaccination:
 pars_novacc = merge(pars, (vacc_rate = zeros(N_age), V_0 = zeros(N_age),
                             S_0 = pop .- R_0 .- I_0))
 
-result_novacc = dust_system_simulate(yf_seirv, pars_novacc;
+result_novacc = simulate(yf_seirv, pars_novacc;
     times=sim_times, dt=1.0, seed=42, n_particles=n_particles)
 
 I_vacc = vec(mean(sum(result[idx_I, :, :], dims=1), dims=2))
@@ -520,7 +520,7 @@ plot!(sim_times, I_vacc, lw=2, color=:blue, label="With vaccination")
 ```{julia}
 using BenchmarkTools
 
-@benchmark dust_system_simulate($yf_seirv, $pars;
+@benchmark simulate($yf_seirv, $pars;
     times=$sim_times, dt=1.0, seed=42, n_particles=10)
 ```
 
@@ -557,5 +557,5 @@ using BenchmarkTools
 | Step | API |
 |------|-----|
 | Define model | `@odin begin … end` with 1D arrays and interpolation |
-| Simulate | `dust_system_simulate(gen, pars; times, dt, seed, n_particles)` |
+| Simulate | `simulate(gen, pars; times, dt, seed, n_particles)` |
 | Scenario comparison | Re-run with `vacc_rate = zeros(N_age)` |

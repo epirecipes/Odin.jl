@@ -88,10 +88,10 @@ pars_ring <- list(
   beta = 0.3, gamma = 0.1, N = 1000
 )
 
-sys <- dust_system_create(sir_spatial, pars_ring, ode_control = dust_ode_control())
+sys <- System(sir_spatial, pars_ring, ode_control = dust_ode_control())
 dust_system_set_state_initial(sys)
 times <- seq(0, 300, by = 0.5)
-result_ring <- dust_system_simulate(sys, times)
+result_ring <- simulate(sys, times)
 
 cols <- c("blue", "red", "green")
 patches <- c("p1", "p2", "p3")
@@ -126,9 +126,9 @@ pars_star <- list(
   beta = 0.3, gamma = 0.1, N = 1000
 )
 
-sys2 <- dust_system_create(sir_spatial, pars_star, ode_control = dust_ode_control())
+sys2 <- System(sir_spatial, pars_star, ode_control = dust_ode_control())
 dust_system_set_state_initial(sys2)
-result_star <- dust_system_simulate(sys2, times)
+result_star <- simulate(sys2, times)
 
 plot(NULL, xlim = range(times), ylim = c(0, max(result_star[4:6, ])),
      xlab = "Time", ylab = "Infected",
@@ -161,7 +161,7 @@ par(mfrow = c(1, 1))
 
 | Feature | Julia (Odin.jl) | R (odin2) |
 |---------|-----------------|-----------|
-| Base model | `sir_net()` Petri net | Manual DSL |
+| Base model | `SIR()` Petri net | Manual DSL |
 | Spatial structure | `stratify(sir, patches; contact=C)` | Array indexing with contact matrix |
 | Migration | `compose()` with migration sub-nets | Matrix multiplication in ODEs |
 | Topology change | Swap contact matrix + migration nets | Swap parameter matrices |

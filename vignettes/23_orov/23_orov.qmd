@@ -188,10 +188,10 @@ pars = (
     delay_tau = 12.0,
 )
 
-sys = dust_system_create(gen, pars; n_particles = 1)
-dust_system_set_state_initial!(sys)
+sys = System(gen, pars; n_particles = 1)
+reset!(sys)
 times = collect(0.0:0.5:365.0)
-result = dust_system_simulate(sys, times)
+result = simulate(sys, times)
 ```
 
 ### Human Compartment Dynamics
@@ -278,14 +278,14 @@ pathway on epidemic dynamics:
 
 ```{julia}
 pars_no_relapse = merge(pars, (omega = 0.0,))
-sys_nr = dust_system_create(gen, pars_no_relapse; n_particles = 1)
-dust_system_set_state_initial!(sys_nr)
-res_nr = dust_system_simulate(sys_nr, times)
+sys_nr = System(gen, pars_no_relapse; n_particles = 1)
+reset!(sys_nr)
+res_nr = simulate(sys_nr, times)
 
 pars_high_relapse = merge(pars, (omega = 0.5,))
-sys_hr = dust_system_create(gen, pars_high_relapse; n_particles = 1)
-dust_system_set_state_initial!(sys_hr)
-res_hr = dust_system_simulate(sys_hr, times)
+sys_hr = System(gen, pars_high_relapse; n_particles = 1)
+reset!(sys_hr)
+res_hr = simulate(sys_hr, times)
 
 p1 = plot(times, res_nr[idx_prev_h, 1, :] .* 100,
           label="ω = 0 (no relapse)", lw=2, color=:steelblue)
@@ -318,9 +318,9 @@ Higher $\omega$ produces a visible second wave of symptomatic infection.
 
 ```{julia}
 function run_orov(gen, pars, times)
-    sys = dust_system_create(gen, pars; n_particles = 1)
-    dust_system_set_state_initial!(sys)
-    dust_system_simulate(sys, times)
+    sys = System(gen, pars; n_particles = 1)
+    reset!(sys)
+    simulate(sys, times)
 end
 
 # Warm-up

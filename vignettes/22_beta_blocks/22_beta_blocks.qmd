@@ -106,7 +106,7 @@ true_pars = (
 )
 
 times = collect(0.0:1.0:365.0)
-result = dust_system_simulate(sir_beta_blocks, true_pars;
+result = simulate(sir_beta_blocks, true_pars;
     times = times, dt = 1.0, seed = 1, n_particles = 1)
 ```
 
@@ -158,7 +158,7 @@ true values.
 ### Prepare filter data
 
 ```{julia}
-data = dust_filter_data(
+data = ObservedData(
     [(time = Float64(t), cases = Float64(c))
      for (t, c) in zip(times[2:end], observed_cases)]
 )
@@ -170,7 +170,7 @@ The packer maps a flat 4-element vector to named β values, and assembles
 them into the `beta_values` array that the model expects.
 
 ```{julia}
-packer = monty_packer(
+packer = Packer(
     [:beta1, :beta2, :beta3, :beta4];
     fixed = (
         N = 10000.0,
@@ -188,9 +188,9 @@ Since the model is deterministic, a single particle gives the exact
 likelihood — no particle filter variance.
 
 ```{julia}
-filter = dust_filter_create(sir_beta_blocks, data;
+filter = Likelihood(sir_beta_blocks, data;
     n_particles = 1, dt = 1.0, seed = 1)
-likelihood = dust_likelihood_monty(filter, packer)
+likelihood = as_model(filter, packer)
 ```
 
 ### Prior
@@ -199,7 +199,7 @@ We place weakly informative Gamma priors on each β value, centred around
 plausible transmission rates.
 
 ```{julia}
-prior = @monty_prior begin
+prior = @prior begin
     beta1 ~ Gamma(4.0, 0.1)
     beta2 ~ Gamma(4.0, 0.1)
     beta3 ~ Gamma(4.0, 0.1)
@@ -225,10 +225,10 @@ println("Log-likelihood at true parameters: ", round(ll_true, digits = 2))
 
 ```{julia}
 vcv = diagm([0.002, 0.002, 0.002, 0.002])
-sampler = monty_sampler_random_walk(vcv)
+sampler = random_walk(vcv)
 
 initial = reshape(theta_true, 4, 1)
-samples = monty_sample(posterior, sampler, 5000;
+samples = sample(posterior, sampler, 5000;
     initial = initial, n_chains = 1, n_burnin = 500)
 ```
 
@@ -309,7 +309,7 @@ for j in 1:n_draw
     pars_j = merge(true_pars, (
         beta_values = [b[1], b[2], b[3], b[4]],
     ))
-    r = dust_system_simulate(sir_beta_blocks, pars_j;
+    r = simulate(sir_beta_blocks, pars_j;
         times = times, dt = 1.0, seed = 1, n_particles = 1)
     pred_inc[j, :] = r[3, 1, 2:end]
 end
@@ -340,7 +340,7 @@ end
 println("Likelihood evaluation: ", round(t_ll / 1000 * 1e6, digits = 1), " μs (mean of 1000 runs)")
 
 # Benchmark MCMC (short run)
-t_mcmc = @elapsed monty_sample(posterior, sampler, 1000;
+t_mcmc = @elapsed sample(posterior, sampler, 1000;
     initial = initial, n_chains = 1, n_burnin = 0)
 println("MCMC (1000 steps): ", round(t_mcmc, digits = 3), " s")
 println("  per step: ", round(t_mcmc / 1000 * 1e3, digits = 2), " ms")
@@ -354,10 +354,10 @@ println("  per step: ", round(t_mcmc / 1000 * 1e3, digits = 2), " ms")
 | Piecewise-constant β | `interpolate(beta_times, beta_values, :constant)` |
 | Incidence tracking | `initial(incidence, zero_every = 1)` |
 | Poisson observation | `cases ~ Poisson(incidence + 1e-6)` |
-| Exact likelihood | `dust_filter_create(..., n_particles = 1)` |
+| Exact likelihood | `Likelihood(..., n_particles = 1)` |
 | Array via packer | `process = nt -> (beta_values = [...],)` |
-| Prior | `@monty_prior begin β ~ Gamma(...) end` |
-| MCMC | `monty_sampler_random_walk(vcv)` |
+| Prior | `@prior begin β ~ Gamma(...) end` |
+| MCMC | `random_walk(vcv)` |
 
 ### Key takeaways
 

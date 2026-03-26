@@ -17,11 +17,11 @@ using Odin
         end
 
         pars = (N=1000.0, I0=10.0, beta=0.2, gamma=0.1)
-        sys = dust_system_create(gen, pars)
-        dust_system_set_state_initial!(sys)
+        sys = System(gen, pars)
+        reset!(sys)
 
         times = collect(0.0:1.0:100.0)
-        output = dust_system_simulate(sys, times)
+        output = simulate(sys, times)
 
         @test size(output) == (3, 1, length(times))
 
@@ -58,11 +58,11 @@ using Odin
         end
 
         pars = (N=1000.0, I0=10.0, beta=0.2, gamma=0.1)
-        sys = dust_system_create(gen, pars; n_particles=10, dt=1.0, seed=42)
-        dust_system_set_state_initial!(sys)
+        sys = System(gen, pars; n_particles=10, dt=1.0, seed=42)
+        reset!(sys)
 
         times = collect(0.0:1.0:50.0)
-        output = dust_system_simulate(sys, times)
+        output = simulate(sys, times)
 
         @test size(output) == (3, 10, length(times))
 

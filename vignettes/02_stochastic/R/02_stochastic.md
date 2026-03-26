@@ -86,10 +86,10 @@ sir_stoch <- odin({
 ``` r
 pars <- list(beta = 0.5, gamma = 0.1, I0 = 10, N = 1000)
 n_particles <- 20
-sys <- dust_system_create(sir_stoch, pars, n_particles = n_particles, dt = 1, seed = 42)
+sys <- System(sir_stoch, pars, n_particles = n_particles, dt = 1, seed = 42)
 dust_system_set_state_initial(sys)
 times <- seq(0, 200, by = 1)
-result <- dust_system_simulate(sys, times)
+result <- simulate(sys, times)
 cat("Result dimensions:", dim(result), "\n")
 ```
 
@@ -174,9 +174,9 @@ sir_det <- odin({
     ℹ Loading odin.system642b6fa1
 
 ``` r
-sys_det <- dust_system_create(sir_det, pars, ode_control = dust_ode_control())
+sys_det <- System(sir_det, pars, ode_control = dust_ode_control())
 dust_system_set_state_initial(sys_det)
-det_result <- dust_system_simulate(sys_det, times)
+det_result <- simulate(sys_det, times)
 ```
 
 ``` r

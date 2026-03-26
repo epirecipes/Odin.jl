@@ -93,9 +93,9 @@ sir <- odin({
 true_pars <- list(beta = 0.5, gamma = 0.1, I0 = 10, N = 1000)
 times <- seq(0, 50, by = 1)
 
-sys <- dust_system_create(sir, true_pars, dt = 1, seed = 1)
+sys <- System(sir, true_pars, dt = 1, seed = 1)
 dust_system_set_state_initial(sys)
-obs_result <- dust_system_simulate(sys, times)
+obs_result <- simulate(sys, times)
 observed <- round(obs_result[4, -1])
 
 data <- data.frame(time = times[-1], cases = observed)
@@ -104,13 +104,13 @@ data <- data.frame(time = times[-1], cases = observed)
 ## Set Up Inference
 
 ``` r
-filter <- dust_filter_create(sir, time_start = 0, data = data,
+filter <- Likelihood(sir, time_start = 0, data = data,
                              n_particles = 200, seed = 42)
 
-packer <- monty_packer(c("beta", "gamma"),
+packer <- Packer(c("beta", "gamma"),
                        fixed = list(I0 = 10, N = 1000))
 
-likelihood <- dust_likelihood_monty(filter, packer)
+likelihood <- as_model(filter, packer)
 
 prior <- monty_dsl({
   beta ~ Gamma(shape = 2, rate = 4)
@@ -124,9 +124,9 @@ posterior <- likelihood + prior
 
 ``` r
 vcv <- matrix(c(0.005, 0, 0, 0.001), 2, 2)
-sampler <- monty_sampler_random_walk(vcv)
+sampler <- random_walk(vcv)
 
-samples <- monty_sample(posterior, sampler, 2000, initial = c(0.4, 0.08))
+samples <- sample(posterior, sampler, 2000, initial = c(0.4, 0.08))
 ```
 
     ⡀⠀ Sampling  ■                                |   0% ETA: 39s

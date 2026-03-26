@@ -280,7 +280,7 @@ using ForwardDiff
             return sum(traj .^ 2)
         end
 
-        adj_result = Odin.dust_sensitivity_adjoint(sir_gen, pars, loss_fn;
+        adj_result = Odin.sensitivity(sir_gen, pars, loss_fn;
             times=times, params_of_interest=[:beta, :gamma])
 
         @test adj_result.param_names == [:beta, :gamma]
@@ -288,9 +288,9 @@ using ForwardDiff
 
         # Compare with finite differences on total trajectory norm
         function total_loss(p)
-            sys = Odin.dust_system_create(sir_gen, p)
-            Odin.dust_system_set_state_initial!(sys)
-            traj = Odin.dust_system_simulate(sys, times)
+            sys = Odin.System(sir_gen, p)
+            Odin.reset!(sys)
+            traj = Odin.simulate(sys, times)
             return sum(traj .^ 2)
         end
 

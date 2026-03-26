@@ -19,10 +19,10 @@ using Statistics
         N = parameter(1000)
     end
 
-    packer = monty_packer([:beta, :gamma]; fixed=(I0=10.0, N=1000.0))
+    packer = Packer([:beta, :gamma]; fixed=(I0=10.0, N=1000.0))
 
     @testset "Posterior predictive dimensions" begin
-        # Create fake MontySamples
+        # Create fake Samples
         n_pars = 2
         n_samples = 50
         n_chains = 2
@@ -32,11 +32,11 @@ using Statistics
             pars_arr[2, s, c] = 0.08 + 0.04 * rand() # gamma ∈ [0.08, 0.12]
         end
         density = zeros(n_samples, n_chains)
-        samples = MontySamples(pars_arr, density, pars_arr[:, 1, :],
+        samples = Samples(pars_arr, density, pars_arr[:, 1, :],
                                ["beta", "gamma"], Dict{Symbol, Any}())
 
         times = collect(1.0:5.0:30.0)
-        pp = posterior_predictive(samples, gen;
+        pp = posterior_predict(samples, gen;
                                   times=times, n_draws=10, dt=0.25,
                                   packer=packer, seed=42)
 
@@ -60,11 +60,11 @@ using Statistics
             pars_arr[2, s, 1] = 0.1
         end
         density = zeros(n_samples, n_chains)
-        samples = MontySamples(pars_arr, density, pars_arr[:, 1, :],
+        samples = Samples(pars_arr, density, pars_arr[:, 1, :],
                                ["beta", "gamma"], Dict{Symbol, Any}())
 
         times = collect(5.0:5.0:20.0)
-        pp = posterior_predictive(samples, gen;
+        pp = posterior_predict(samples, gen;
                                   times=times, n_draws=5, dt=0.25,
                                   output_vars=[:cases],
                                   packer=packer, seed=123)
@@ -84,18 +84,18 @@ using Statistics
             pars_arr[2, s, c] = 0.08 + 0.04 * rand()
         end
         density = zeros(n_samples, n_chains)
-        samples = MontySamples(pars_arr, density, pars_arr[:, 1, :],
+        samples = Samples(pars_arr, density, pars_arr[:, 1, :],
                                ["beta", "gamma"], Dict{Symbol, Any}())
 
         times = collect(1.0:2.0:30.0)
-        pp = posterior_predictive(samples, gen;
+        pp = posterior_predict(samples, gen;
                                   times=times, n_draws=50, dt=0.25,
                                   output_vars=[:cases],
                                   packer=packer, seed=42)
 
         # Generate data from the true model (within posterior range)
         true_pars = (beta=0.5, gamma=0.1, I0=10.0, N=1000.0)
-        result = dust_system_simulate(gen, true_pars; times=times, dt=0.25)
+        result = simulate(gen, true_pars; times=times, dt=0.25)
         n_state = gen.model.n_state
         cases_idx = n_state + 1
         data = [(time=times[i], cases=result[cases_idx, 1, i]) for i in 1:length(times)]
@@ -124,17 +124,17 @@ using Statistics
             pars_arr[2, s, 1] = 0.1
         end
         density = zeros(n_samples, n_chains)
-        samples = MontySamples(pars_arr, density, pars_arr[:, 1, :],
+        samples = Samples(pars_arr, density, pars_arr[:, 1, :],
                                ["beta", "gamma"], Dict{Symbol, Any}())
 
         times = collect(1.0:2.0:20.0)
-        pp = posterior_predictive(samples, gen;
+        pp = posterior_predict(samples, gen;
                                   times=times, n_draws=20, dt=0.25,
                                   output_vars=[:cases],
                                   packer=packer, seed=42)
 
         true_pars = (beta=0.5, gamma=0.1, I0=10.0, N=1000.0)
-        result = dust_system_simulate(gen, true_pars; times=times, dt=0.25)
+        result = simulate(gen, true_pars; times=times, dt=0.25)
         n_state = gen.model.n_state
         cases_idx = n_state + 1
         data = [(time=times[i], cases=result[cases_idx, 1, i]) for i in 1:length(times)]
@@ -161,17 +161,17 @@ using Statistics
             pars_arr[2, s, c] = 0.09 + 0.02 * rand()
         end
         density = zeros(n_samples, n_chains)
-        samples = MontySamples(pars_arr, density, pars_arr[:, 1, :],
+        samples = Samples(pars_arr, density, pars_arr[:, 1, :],
                                ["beta", "gamma"], Dict{Symbol, Any}())
 
         times = collect(1.0:1.0:30.0)
-        pp = posterior_predictive(samples, gen;
+        pp = posterior_predict(samples, gen;
                                   times=times, n_draws=40, dt=0.25,
                                   output_vars=[:cases],
                                   packer=packer, seed=42)
 
         true_pars = (beta=0.5, gamma=0.1, I0=10.0, N=1000.0)
-        result = dust_system_simulate(gen, true_pars; times=times, dt=0.25)
+        result = simulate(gen, true_pars; times=times, dt=0.25)
         n_state = gen.model.n_state
         cases_idx = n_state + 1
         # Add noise that matches the posterior spread
@@ -194,18 +194,18 @@ using Statistics
             pars_arr[2, s, c] = 0.08 + 0.04 * rand()
         end
         density = zeros(n_samples, n_chains)
-        samples = MontySamples(pars_arr, density, pars_arr[:, 1, :],
+        samples = Samples(pars_arr, density, pars_arr[:, 1, :],
                                ["beta", "gamma"], Dict{Symbol, Any}())
 
         times = collect(1.0:2.0:30.0)
-        pp = posterior_predictive(samples, gen;
+        pp = posterior_predict(samples, gen;
                                   times=times, n_draws=60, dt=0.25,
                                   output_vars=[:cases],
                                   packer=packer, seed=42)
 
         # Data from the model with true params (should be well within predictions)
         true_pars = (beta=0.5, gamma=0.1, I0=10.0, N=1000.0)
-        result = dust_system_simulate(gen, true_pars; times=times, dt=0.25)
+        result = simulate(gen, true_pars; times=times, dt=0.25)
         n_state = gen.model.n_state
         cases_idx = n_state + 1
         data = [(time=times[i], cases=result[cases_idx, 1, i]) for i in 1:length(times)]
@@ -232,18 +232,18 @@ using Statistics
             pars_arr[2, s, 1] = 0.5    # very high gamma (wrong)
         end
         density = zeros(n_samples, n_chains)
-        samples = MontySamples(pars_arr, density, pars_arr[:, 1, :],
+        samples = Samples(pars_arr, density, pars_arr[:, 1, :],
                                ["beta", "gamma"], Dict{Symbol, Any}())
 
         times = collect(1.0:2.0:30.0)
-        pp = posterior_predictive(samples, gen;
+        pp = posterior_predict(samples, gen;
                                   times=times, n_draws=20, dt=0.25,
                                   output_vars=[:cases],
                                   packer=packer, seed=42)
 
         # Data from true (correct) parameters
         true_pars = (beta=0.5, gamma=0.1, I0=10.0, N=1000.0)
-        result = dust_system_simulate(gen, true_pars; times=times, dt=0.25)
+        result = simulate(gen, true_pars; times=times, dt=0.25)
         n_state = gen.model.n_state
         cases_idx = n_state + 1
         data = [(time=times[i], cases=result[cases_idx, 1, i]) for i in 1:length(times)]
@@ -267,18 +267,18 @@ using Statistics
             pars_arr[2, s, c] = 0.09 + 0.02 * rand()
         end
         density = zeros(n_samples, n_chains)
-        samples = MontySamples(pars_arr, density, pars_arr[:, 1, :],
+        samples = Samples(pars_arr, density, pars_arr[:, 1, :],
                                ["beta", "gamma"], Dict{Symbol, Any}())
 
         times = collect(1.0:1.0:20.0)
-        pp = posterior_predictive(samples, gen;
+        pp = posterior_predict(samples, gen;
                                   times=times, n_draws=30, dt=0.25,
                                   output_vars=[:cases],
                                   packer=packer, seed=42)
 
         # Add independent noise → autocorrelation should be ~0
         true_pars = (beta=0.5, gamma=0.1, I0=10.0, N=1000.0)
-        result = dust_system_simulate(gen, true_pars; times=times, dt=0.25)
+        result = simulate(gen, true_pars; times=times, dt=0.25)
         n_state = gen.model.n_state
         cases_idx = n_state + 1
         Random.seed!(77)
@@ -297,7 +297,7 @@ using Statistics
     @testset "Prior predictive produces wider intervals" begin
         using Distributions
 
-        prior = @monty_prior begin
+        prior = @prior begin
             beta ~ Exponential(1.0)
             gamma ~ Exponential(1.0)
         end
@@ -320,10 +320,10 @@ using Statistics
             pars_arr[2, s, 1] = 0.09 + 0.02 * rand()
         end
         density = zeros(n_samples, n_chains)
-        samples = MontySamples(pars_arr, density, pars_arr[:, 1, :],
+        samples = Samples(pars_arr, density, pars_arr[:, 1, :],
                                ["beta", "gamma"], Dict{Symbol, Any}())
 
-        post_pp = posterior_predictive(samples, gen;
+        post_pp = posterior_predict(samples, gen;
                                        times=times, n_draws=30, dt=0.25,
                                        packer=packer, seed=42)
 

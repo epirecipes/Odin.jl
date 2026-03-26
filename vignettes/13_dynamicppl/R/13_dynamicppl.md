@@ -5,7 +5,7 @@
 
 This vignette shows the R equivalent of the Julia DynamicPPL integration
 workflow. In R, we use `monty_dsl()` for prior specification and
-`monty_sample()` for inference, with `odin2`, `dust2`, and `monty`.
+`sample()` for inference, with `odin2`, `dust2`, and `monty`.
 
 Note that R’s `monty_dsl()` supports independent priors only. The
 hierarchical prior structures available via Julia’s DynamicPPL
@@ -92,9 +92,9 @@ sir <- odin({
 true_pars <- list(beta = 0.5, gamma = 0.1, I0 = 10, N = 1000)
 times <- seq(0, 50, by = 1)
 
-sys <- dust_system_create(sir, true_pars, seed = 1)
+sys <- System(sir, true_pars, seed = 1)
 dust_system_set_state_initial(sys)
-result <- dust_system_simulate(sys, times)
+result <- simulate(sys, times)
 
 true_infected <- result[2, -1]
 observed <- round(pmax(true_infected, 0))
@@ -110,9 +110,9 @@ plot(data$time, data$cases, pch = 16, cex = 0.8,
 ## Set Up Inference
 
 ``` r
-uf <- dust_unfilter_create(sir, time_start = 0, data = data)
-pk <- monty_packer(c("beta", "gamma"), fixed = list(I0 = 10, N = 1000))
-likelihood <- dust_likelihood_monty(uf, pk)
+uf <- Likelihood(sir, time_start = 0, data = data)
+pk <- Packer(c("beta", "gamma"), fixed = list(I0 = 10, N = 1000))
+likelihood <- as_model(uf, pk)
 
 cat("Log-likelihood at true parameters:",
     monty_model_density(likelihood, c(0.5, 0.1)), "\n")
@@ -132,7 +132,7 @@ prior <- monty_dsl({
 })
 ```
 
-This is equivalent to the Julia `@monty_prior` and `dppl_prior`
+This is equivalent to the Julia `@prior` and `dppl_prior`
 approaches shown in the Julia vignette.
 
 ``` r
@@ -143,9 +143,9 @@ posterior <- likelihood + prior
 
 ``` r
 vcv <- matrix(c(0.005, 0, 0, 0.001), 2, 2)
-sampler <- monty_sampler_adaptive(vcv)
+sampler <- adaptive_mh(vcv)
 
-samples <- monty_sample(posterior, sampler, 3000, initial = c(0.4, 0.08),
+samples <- sample(posterior, sampler, 3000, initial = c(0.4, 0.08),
                         n_chains = 1, burnin = 500)
 ```
 
@@ -208,9 +208,9 @@ abline(h = 0.1, col = "red")
 ## Comparison with Julia
 
 The R workflow produces equivalent posteriors to the Julia
-`@monty_prior` and `dppl_prior` approaches. The key differences are:
+`@prior` and `dppl_prior` approaches. The key differences are:
 
-| Feature | R (`monty_dsl`) | Julia (`@monty_prior`) | Julia (`dppl_prior`) |
+| Feature | R (`monty_dsl`) | Julia (`@prior`) | Julia (`dppl_prior`) |
 |----|----|----|----|
 | Independent priors | ✓ | ✓ | ✓ |
 | Hierarchical priors | ✗ | ✗ | ✓ |

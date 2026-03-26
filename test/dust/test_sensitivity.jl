@@ -23,7 +23,7 @@ using Statistics
 
     # ──────────────────────────────────────────────────────────
     @testset "Forward sensitivity matches finite differences" begin
-        result = Odin.dust_sensitivity_forward(sir_gen, pars;
+        result = sensitivity(sir_gen, pars;
             times=times, params_of_interest=[:beta, :gamma])
 
         @test size(result.trajectory) == (3, length(times))
@@ -39,13 +39,13 @@ using Statistics
             pars_plus = merge(pars, NamedTuple{(pname,)}((pv + eps_fd,)))
             pars_minus = merge(pars, NamedTuple{(pname,)}((pv - eps_fd,)))
 
-            sys_plus = dust_system_create(sir_gen, pars_plus)
-            dust_system_set_state_initial!(sys_plus)
-            out_plus = dust_system_simulate(sys_plus, times)
+            sys_plus = System(sir_gen, pars_plus)
+            reset!(sys_plus)
+            out_plus = simulate(sys_plus, times)
 
-            sys_minus = dust_system_create(sir_gen, pars_minus)
-            dust_system_set_state_initial!(sys_minus)
-            out_minus = dust_system_simulate(sys_minus, times)
+            sys_minus = System(sir_gen, pars_minus)
+            reset!(sys_minus)
+            out_minus = simulate(sys_minus, times)
 
             for ti in 1:length(times)
                 for si in 1:3
@@ -64,13 +64,13 @@ using Statistics
 
     # ──────────────────────────────────────────────────────────
     @testset "Forward sensitivity trajectory is correct" begin
-        result = Odin.dust_sensitivity_forward(sir_gen, pars;
+        result = sensitivity(sir_gen, pars;
             times=times, params_of_interest=[:beta])
 
         # The trajectory should match a standard simulation
-        sys = dust_system_create(sir_gen, pars)
-        dust_system_set_state_initial!(sys)
-        ref = dust_system_simulate(sys, times)
+        sys = System(sir_gen, pars)
+        reset!(sys)
+        ref = simulate(sys, times)
 
         for ti in 1:length(times)
             for si in 1:3
@@ -98,17 +98,17 @@ using Statistics
         end
 
         # Generate synthetic data
-        sys = dust_system_create(sir_compare, pars)
-        dust_system_set_state_initial!(sys)
+        sys = System(sir_compare, pars)
+        reset!(sys)
         obs_times = collect(5.0:5.0:30.0)
-        sim_result = dust_system_simulate(sys, obs_times)
+        sim_result = simulate(sys, obs_times)
         data_vec = [(time=obs_times[i], obs=max(1.0, round(sim_result[2, 1, i])))
                      for i in 1:length(obs_times)]
-        fdata = Odin.dust_filter_data(data_vec)
+        fdata = Odin.ObservedData(data_vec)
 
         # Build unfilter
-        unfilter = dust_unfilter_create(sir_compare, fdata)
-        packer = monty_packer([:beta, :gamma]; fixed=(I0=10.0, N=1000.0))
+        unfilter = Odin.dust_unfilter_create(sir_compare, fdata)
+        packer = Packer([:beta, :gamma]; fixed=(I0=10.0, N=1000.0))
 
         # Forward gradient
         fwd_result = Odin.dust_unfilter_gradient(unfilter, pars, packer;
@@ -149,19 +149,19 @@ using Statistics
             N = parameter(1000)
         end
 
-        sys = dust_system_create(sir_compare, pars)
-        dust_system_set_state_initial!(sys)
+        sys = System(sir_compare, pars)
+        reset!(sys)
         obs_times = collect(5.0:5.0:30.0)
-        sim_result = dust_system_simulate(sys, obs_times)
+        sim_result = simulate(sys, obs_times)
         data_vec = [(time=obs_times[i], obs=max(1.0, round(sim_result[2, 1, i])))
                      for i in 1:length(obs_times)]
-        fdata = Odin.dust_filter_data(data_vec)
+        fdata = Odin.ObservedData(data_vec)
 
-        unfilter = dust_unfilter_create(sir_compare, fdata)
-        packer = monty_packer([:beta, :gamma]; fixed=(I0=10.0, N=1000.0))
+        unfilter = Odin.dust_unfilter_create(sir_compare, fdata)
+        packer = Packer([:beta, :gamma]; fixed=(I0=10.0, N=1000.0))
 
         # ForwardDiff gradient through the unfilter
-        ll_model = dust_likelihood_monty(unfilter, packer)
+        ll_model = as_model(unfilter, packer)
         x = [0.5, 0.1]
         fd_grad = ll_model.gradient(x)
 
@@ -202,7 +202,7 @@ using Statistics
             :N => (500.0, 2000.0),
         )
 
-        sobol = Odin.dust_sensitivity_sobol(sir_gen, pars_ranges;
+        sobol = sensitivity(sir_gen, pars_ranges; method=:sobol,
             n_samples=200, times=collect(5.0:5.0:30.0), output_var=2)  # I compartment
 
         @test sobol isa Odin.SobolResult
@@ -228,7 +228,7 @@ using Statistics
             :N => (500.0, 2000.0),
         )
 
-        morris = Odin.dust_sensitivity_morris(sir_gen, pars_ranges;
+        morris = sensitivity(sir_gen, pars_ranges; method=:morris,
             n_trajectories=15, times=collect(5.0:5.0:30.0), output_var=2)
 
         @test morris isa Odin.MorrisResult
@@ -254,7 +254,7 @@ using Statistics
             :N => (500.0, 2000.0),
         )
 
-        sobol = Odin.dust_sensitivity_sobol(sir_gen, pars_ranges;
+        sobol = sensitivity(sir_gen, pars_ranges; method=:sobol,
             n_samples=100, times=collect(5.0:5.0:30.0), output_var=:I)
 
         @test sobol isa Odin.SobolResult

@@ -34,7 +34,7 @@ using Odin
     end
 
     @testset "Stoichiometry" begin
-        sir = sir_net()
+        sir = SIR()
         S = stoichiometry_matrix(sir)
         @test size(S) == (3, 2)
         # Infection: S-1, I+1, R=0
@@ -51,7 +51,7 @@ using Odin
     end
 
     @testset "Input/output species" begin
-        sir = sir_net()
+        sir = SIR()
         @test Set(input_species(sir, :inf)) == Set([:S, :I])
         @test output_species(sir, :inf) == [:I, :I]  # Both output arcs go to I
         @test input_species(sir, :rec) == [:I]
@@ -60,33 +60,33 @@ using Odin
 
     @testset "Pre-built models" begin
         # SIR
-        sir = sir_net()
+        sir = SIR()
         @test nspecies(sir) == 3
         @test ntransitions(sir) == 2
 
         # SEIR
-        seir = seir_net()
+        seir = SEIR()
         @test nspecies(seir) == 4
         @test ntransitions(seir) == 3
         @test Set(species_names(seir)) == Set([:S, :E, :I, :R])
 
         # SIS
-        sis = sis_net()
+        sis = SIS()
         @test nspecies(sis) == 2
         @test ntransitions(sis) == 2
 
         # SIRS
-        sirs = sirs_net()
+        sirs = SIRS()
         @test nspecies(sirs) == 3
         @test ntransitions(sirs) == 3
 
         # SEIRS
-        seirs = seirs_net()
+        seirs = SEIRS()
         @test nspecies(seirs) == 4
         @test ntransitions(seirs) == 4
 
         # SIR + vaccination
-        sir_v = sir_vax_net()
+        sir_v = SIRVax()
         @test nspecies(sir_v) == 4
         @test ntransitions(sir_v) == 3
     end
@@ -105,7 +105,7 @@ using Odin
 
         # Stoichiometry should match direct SIR
         S_composed = stoichiometry_matrix(sir)
-        S_direct = stoichiometry_matrix(sir_net())
+        S_direct = stoichiometry_matrix(SIR())
         @test S_composed == S_direct
 
         # Compose three parts: infection + progression + recovery (SEIR)
@@ -122,7 +122,7 @@ using Odin
     end
 
     @testset "Stratification" begin
-        sir = sir_net()
+        sir = SIR()
 
         # Basic stratification (no contact matrix)
         sir_2g = stratify(sir, [:young, :old])
@@ -153,14 +153,14 @@ using Odin
     end
 
     @testset "ODE lowering" begin
-        sir = sir_net()
-        gen = lower(sir; mode=:ode, frequency_dependent=true, N=:N,
+        sir = SIR()
+        gen = compile(sir; mode=:ode, frequency_dependent=true, N=:N,
                     params=Dict(:beta => 0.3, :gamma => 0.1, :N => 1000.0))
-        @test gen isa DustSystemGenerator
+        @test gen isa OdinModel
 
-        sys = dust_system_create(gen, (beta=0.3, gamma=0.1, N=1000.0))
-        dust_system_set_state_initial!(sys)
-        result = dust_system_simulate(sys, collect(0.0:1.0:100.0))
+        sys = System(gen, (beta=0.3, gamma=0.1, N=1000.0))
+        reset!(sys)
+        result = simulate(sys, collect(0.0:1.0:100.0))
         r = result[:, 1, end]
 
         # Population conserved
@@ -170,15 +170,15 @@ using Odin
     end
 
     @testset "Discrete lowering" begin
-        sir = sir_net()
-        gen = lower(sir; mode=:discrete, frequency_dependent=true, N=:N,
+        sir = SIR()
+        gen = compile(sir; mode=:discrete, frequency_dependent=true, N=:N,
                     params=Dict(:beta => 0.5, :gamma => 0.1, :N => 1000.0))
-        @test gen isa DustSystemGenerator
+        @test gen isa OdinModel
 
-        sys = dust_system_create(gen, (beta=0.5, gamma=0.1, N=1000.0);
+        sys = System(gen, (beta=0.5, gamma=0.1, N=1000.0);
                                   n_particles=10, dt=0.25, seed=42)
-        dust_system_set_state_initial!(sys)
-        result = dust_system_simulate(sys, collect(0.0:1.0:100.0))
+        reset!(sys)
+        result = simulate(sys, collect(0.0:1.0:100.0))
 
         # Check all particles conserve population
         for p in 1:10
@@ -188,12 +188,12 @@ using Odin
     end
 
     @testset "SEIR ODE lowering" begin
-        seir = seir_net()
-        gen = lower(seir; mode=:ode, frequency_dependent=true, N=:N,
+        seir = SEIR()
+        gen = compile(seir; mode=:ode, frequency_dependent=true, N=:N,
                     params=Dict(:beta => 0.5, :sigma => 0.2, :gamma => 0.1, :N => 1000.0))
-        sys = dust_system_create(gen, (beta=0.5, sigma=0.2, gamma=0.1, N=1000.0))
-        dust_system_set_state_initial!(sys)
-        result = dust_system_simulate(sys, collect(0.0:1.0:200.0))
+        sys = System(gen, (beta=0.5, sigma=0.2, gamma=0.1, N=1000.0))
+        reset!(sys)
+        result = simulate(sys, collect(0.0:1.0:200.0))
         r = result[:, 1, end]
 
         # Population conserved
@@ -204,8 +204,8 @@ using Odin
 
     @testset "Composed model matches direct model" begin
         # Build SIR two ways and check results match
-        direct = sir_net()
-        gen_direct = lower(direct; mode=:ode, frequency_dependent=true, N=:N,
+        direct = SIR()
+        gen_direct = compile(direct; mode=:ode, frequency_dependent=true, N=:N,
                            params=Dict(:beta => 0.3, :gamma => 0.1, :N => 1000.0))
 
         inf = EpiNet([:S => 990.0, :I => 10.0],
@@ -213,32 +213,32 @@ using Odin
         rec = EpiNet([:I => 10.0, :R => 0.0],
                      [:rec => ([:I] => [:R], :gamma)])
         composed = compose(inf, rec)
-        gen_composed = lower(composed; mode=:ode, frequency_dependent=true, N=:N,
+        gen_composed = compile(composed; mode=:ode, frequency_dependent=true, N=:N,
                              params=Dict(:beta => 0.3, :gamma => 0.1, :N => 1000.0))
 
         pars = (beta=0.3, gamma=0.1, N=1000.0)
         times = collect(0.0:1.0:100.0)
 
-        sys_d = dust_system_create(gen_direct, pars)
-        dust_system_set_state_initial!(sys_d)
-        r_d = dust_system_simulate(sys_d, times)[:, 1, :]
+        sys_d = System(gen_direct, pars)
+        reset!(sys_d)
+        r_d = simulate(sys_d, times)[:, 1, :]
 
-        sys_c = dust_system_create(gen_composed, pars)
-        dust_system_set_state_initial!(sys_c)
-        r_c = dust_system_simulate(sys_c, times)[:, 1, :]
+        sys_c = System(gen_composed, pars)
+        reset!(sys_c)
+        r_c = simulate(sys_c, times)[:, 1, :]
 
         @test r_d ≈ r_c atol=0.01
     end
 
     @testset "Stratified ODE simulation" begin
-        sir = sir_net()
+        sir = SIR()
         C = [2.0 0.5; 0.5 1.0]
         sir_age = stratify(sir, [:young, :old]; contact=C)
-        gen = lower(sir_age; mode=:ode, frequency_dependent=true, N=:N,
+        gen = compile(sir_age; mode=:ode, frequency_dependent=true, N=:N,
                     params=Dict(:beta => 0.3, :gamma => 0.1, :N => 1000.0))
-        sys = dust_system_create(gen, (beta=0.3, gamma=0.1, N=1000.0))
-        dust_system_set_state_initial!(sys)
-        result = dust_system_simulate(sys, collect(0.0:1.0:100.0))
+        sys = System(gen, (beta=0.3, gamma=0.1, N=1000.0))
+        reset!(sys)
+        result = simulate(sys, collect(0.0:1.0:100.0))
         r = result[:, 1, end]
 
         # Population conserved
@@ -252,7 +252,7 @@ using Odin
     end
 
     @testset "lower_expr returns expressions" begin
-        sir = sir_net()
+        sir = SIR()
         exprs = lower_expr(sir; mode=:ode, frequency_dependent=true, N=:N,
                            params=Dict(:beta => 0.3, :gamma => 0.1, :N => 1000.0))
         @test exprs isa Vector

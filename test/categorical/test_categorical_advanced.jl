@@ -4,7 +4,7 @@ using Odin
 @testset "Categorical Advanced" begin
 
     @testset "Spatial composition — ring topology" begin
-        sir = sir_net(; S0=990.0, I0=10.0, R0=0.0)
+        sir = SIR(; S0=990.0, I0=10.0, R0=0.0)
         patches = [:p1, :p2, :p3]
         C_ring = [1.0 0.1 0.1; 0.1 1.0 0.1; 0.1 0.1 1.0]
         sir_ring = stratify(sir, patches; contact=C_ring)
@@ -41,7 +41,7 @@ using Odin
     end
 
     @testset "Spatial composition — ODE simulation conserves population" begin
-        sir = sir_net(; S0=990.0, I0=10.0, R0=0.0)
+        sir = SIR(; S0=990.0, I0=10.0, R0=0.0)
         patches = [:p1, :p2, :p3]
         C = [1.0 0.1 0.1; 0.1 1.0 0.1; 0.1 0.1 1.0]
         sir_strat = stratify(sir, patches; contact=C)
@@ -58,14 +58,14 @@ using Odin
                     make_mig(:p2, :p3), make_mig(:p3, :p2)]
         sir_spatial = compose(sir_strat, mig_nets...)
 
-        gen = lower(sir_spatial; mode=:ode, frequency_dependent=true, N=:N,
+        gen = compile(sir_spatial; mode=:ode, frequency_dependent=true, N=:N,
                     params=Dict(:beta => 0.3, :gamma => 0.1, :mu => 0.01, :N => 1000.0))
-        @test gen isa DustSystemGenerator
+        @test gen isa OdinModel
 
-        sys = dust_system_create(gen, (beta=0.3, gamma=0.1, mu=0.01, N=1000.0))
-        dust_system_set_state_initial!(sys)
+        sys = System(gen, (beta=0.3, gamma=0.1, mu=0.01, N=1000.0))
+        reset!(sys)
         times = collect(0.0:1.0:100.0)
-        result = dust_system_simulate(sys, times)
+        result = simulate(sys, times)
 
         # Population conserved at all time points
         for t_idx in 1:length(times)
@@ -75,7 +75,7 @@ using Odin
     end
 
     @testset "Spatial composition — star vs ring produces different dynamics" begin
-        sir = sir_net(; S0=990.0, I0=10.0, R0=0.0)
+        sir = SIR(; S0=990.0, I0=10.0, R0=0.0)
         patches = [:p1, :p2, :p3]
 
         C_ring = [1.0 0.1 0.1; 0.1 1.0 0.1; 0.1 0.1 1.0]
@@ -84,21 +84,21 @@ using Odin
         sir_ring = stratify(sir, patches; contact=C_ring)
         sir_star = stratify(sir, patches; contact=C_star)
 
-        gen_ring = lower(sir_ring; mode=:ode, frequency_dependent=true, N=:N,
+        gen_ring = compile(sir_ring; mode=:ode, frequency_dependent=true, N=:N,
                          params=Dict(:beta => 0.3, :gamma => 0.1, :N => 1000.0))
-        gen_star = lower(sir_star; mode=:ode, frequency_dependent=true, N=:N,
+        gen_star = compile(sir_star; mode=:ode, frequency_dependent=true, N=:N,
                          params=Dict(:beta => 0.3, :gamma => 0.1, :N => 1000.0))
 
         pars = (beta=0.3, gamma=0.1, N=1000.0)
         times = collect(0.0:1.0:100.0)
 
-        sys_r = dust_system_create(gen_ring, pars)
-        dust_system_set_state_initial!(sys_r)
-        r_ring = dust_system_simulate(sys_r, times)
+        sys_r = System(gen_ring, pars)
+        reset!(sys_r)
+        r_ring = simulate(sys_r, times)
 
-        sys_s = dust_system_create(gen_star, pars)
-        dust_system_set_state_initial!(sys_s)
-        r_star = dust_system_simulate(sys_s, times)
+        sys_s = System(gen_star, pars)
+        reset!(sys_s)
+        r_star = simulate(sys_s, times)
 
         # Both topologies should differ in dynamics
         @test !(r_ring[:, 1, :] ≈ r_star[:, 1, :])
@@ -109,7 +109,7 @@ using Odin
     end
 
     @testset "Stratification — dimensions match" begin
-        sir = sir_net()
+        sir = SIR()
         groups2 = [:young, :old]
         groups3 = [:child, :adult, :elder]
         groups4 = [:g1, :g2, :g3, :g4]
@@ -123,24 +123,24 @@ using Odin
         @test nspecies(sir4) == 3 * 4
 
         # SEIR has 4 species
-        seir = seir_net()
+        seir = SEIR()
         seir3 = stratify(seir, groups3)
         @test nspecies(seir3) == 4 * 3
     end
 
     @testset "Stratification — assortative mixing equals independent" begin
-        sir = sir_net(; S0=990.0, I0=10.0, R0=0.0)
+        sir = SIR(; S0=990.0, I0=10.0, R0=0.0)
         groups = [:a, :b]
 
         # Assortative: identity contact matrix
         C_id = [1.0 0.0; 0.0 1.0]
         sir_assort = stratify(sir, groups; contact=C_id)
 
-        gen = lower(sir_assort; mode=:ode, frequency_dependent=true, N=:N,
+        gen = compile(sir_assort; mode=:ode, frequency_dependent=true, N=:N,
                     params=Dict(:beta => 0.3, :gamma => 0.1, :N => 1000.0))
-        sys = dust_system_create(gen, (beta=0.3, gamma=0.1, N=1000.0))
-        dust_system_set_state_initial!(sys)
-        result = dust_system_simulate(sys, collect(0.0:1.0:100.0))
+        sys = System(gen, (beta=0.3, gamma=0.1, N=1000.0))
+        reset!(sys)
+        result = simulate(sys, collect(0.0:1.0:100.0))
 
         sn = species_names(sir_assort)
         I_a = findfirst(==(:I_a), sn)
@@ -151,19 +151,19 @@ using Odin
     end
 
     @testset "Stratification — contact matrix affects dynamics" begin
-        sir = sir_net(; S0=990.0, I0=10.0, R0=0.0)
+        sir = SIR(; S0=990.0, I0=10.0, R0=0.0)
         groups = [:young, :old]
 
         # Young has much higher contact
         C = [3.0 0.5; 0.5 1.0]
         sir_age = stratify(sir, groups; contact=C)
 
-        gen = lower(sir_age; mode=:ode, frequency_dependent=true, N=:N,
+        gen = compile(sir_age; mode=:ode, frequency_dependent=true, N=:N,
                     params=Dict(:beta => 0.2, :gamma => 0.1, :N => 1000.0))
-        sys = dust_system_create(gen, (beta=0.2, gamma=0.1, N=1000.0))
-        dust_system_set_state_initial!(sys)
+        sys = System(gen, (beta=0.2, gamma=0.1, N=1000.0))
+        reset!(sys)
         times = collect(0.0:1.0:200.0)
-        result = dust_system_simulate(sys, times)
+        result = simulate(sys, times)
 
         sn = species_names(sir_age)
         R_young = result[findfirst(==(:R_young), sn), 1, end]
@@ -177,7 +177,7 @@ using Odin
     end
 
     @testset "Stratification with vaccination composition" begin
-        sir = sir_net(; S0=990.0, I0=10.0, R0=0.0)
+        sir = SIR(; S0=990.0, I0=10.0, R0=0.0)
         groups = [:child, :adult, :elder]
         C = [3.0 1.0 0.3; 1.0 2.0 0.5; 0.3 0.5 1.5]
         sir_strat = stratify(sir, groups; contact=C)
@@ -194,11 +194,11 @@ using Odin
         @test nspecies(sir_vax) == 10  # 9 from stratification + V_child
 
         # Simulate with vaccination
-        gen = lower(sir_vax; mode=:ode, frequency_dependent=true, N=:N,
+        gen = compile(sir_vax; mode=:ode, frequency_dependent=true, N=:N,
                     params=Dict(:beta => 0.15, :gamma => 0.1, :nu => 0.01, :N => 1000.0))
-        sys = dust_system_create(gen, (beta=0.15, gamma=0.1, nu=0.01, N=1000.0))
-        dust_system_set_state_initial!(sys)
-        result = dust_system_simulate(sys, collect(0.0:1.0:200.0))
+        sys = System(gen, (beta=0.15, gamma=0.1, nu=0.01, N=1000.0))
+        reset!(sys)
+        result = simulate(sys, collect(0.0:1.0:200.0))
 
         # Vaccinated compartment should have people
         V_idx = findfirst(==(:V_child), sn)
@@ -222,13 +222,13 @@ using Odin
         @test ntransitions(combined) == 4
         @test Set(species_names(combined)) == Set([:S_flu, :I_flu, :R_flu, :S_chl, :I_chl])
 
-        gen = lower(combined; mode=:ode, frequency_dependent=true, N=:N,
+        gen = compile(combined; mode=:ode, frequency_dependent=true, N=:N,
                     params=Dict(:beta_flu => 0.4, :gamma_flu => 0.15,
                                 :beta_chl => 0.3, :gamma_chl => 0.05, :N => 500.0))
-        sys = dust_system_create(gen, (beta_flu=0.4, gamma_flu=0.15,
+        sys = System(gen, (beta_flu=0.4, gamma_flu=0.15,
                                        beta_chl=0.3, gamma_chl=0.05, N=500.0))
-        dust_system_set_state_initial!(sys)
-        result = dust_system_simulate(sys, collect(0.0:1.0:200.0))
+        reset!(sys)
+        result = simulate(sys, collect(0.0:1.0:200.0))
 
         sn = species_names(combined)
 
@@ -277,9 +277,9 @@ using Odin
         end
 
         pars = (beta_flu=0.4, gamma_flu=0.15, beta_chl=0.3, gamma_chl=0.05, N=1000.0)
-        sys = dust_system_create(two_pathogen, pars)
-        dust_system_set_state_initial!(sys)
-        result = dust_system_simulate(sys, collect(0.0:1.0:300.0))
+        sys = System(two_pathogen, pars)
+        reset!(sys)
+        result = simulate(sys, collect(0.0:1.0:300.0))
 
         # Population conserved (total = 890)
         total = sum(result[:, 1, end])
@@ -294,7 +294,7 @@ using Odin
 
     @testset "Composed model matches manually written spatial model" begin
         # Build 2-patch SIR with composition
-        sir = sir_net(; S0=990.0, I0=10.0, R0=0.0)
+        sir = SIR(; S0=990.0, I0=10.0, R0=0.0)
         patches = [:a, :b]
         C = [1.0 0.0; 0.0 1.0]  # no cross-patch infection (simple case)
         sir_2p = stratify(sir, patches; contact=C)
@@ -306,7 +306,7 @@ using Odin
                         [:mig_b_a => ([:S_b] => [:S_a], :mu)])
         sir_composed = compose(sir_2p, mig_ab, mig_ba)
 
-        gen_c = lower(sir_composed; mode=:ode, frequency_dependent=true, N=:N,
+        gen_c = compile(sir_composed; mode=:ode, frequency_dependent=true, N=:N,
                       params=Dict(:beta => 0.3, :gamma => 0.1, :mu => 0.01, :N => 1000.0))
 
         # Manual equivalent
@@ -339,13 +339,13 @@ using Odin
         pars = (beta=0.3, gamma=0.1, mu=0.01, N=1000.0)
         times = collect(0.0:1.0:100.0)
 
-        sys_c = dust_system_create(gen_c, pars)
-        dust_system_set_state_initial!(sys_c)
-        r_c = dust_system_simulate(sys_c, times)
+        sys_c = System(gen_c, pars)
+        reset!(sys_c)
+        r_c = simulate(sys_c, times)
 
-        sys_m = dust_system_create(manual_2p, pars)
-        dust_system_set_state_initial!(sys_m)
-        r_m = dust_system_simulate(sys_m, times)
+        sys_m = System(manual_2p, pars)
+        reset!(sys_m)
+        r_m = simulate(sys_m, times)
 
         # Both should conserve population
         @test sum(r_c[:, 1, end]) ≈ 1000.0 atol=0.5

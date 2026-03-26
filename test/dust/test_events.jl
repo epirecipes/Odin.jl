@@ -24,7 +24,7 @@ end
         times = collect(0.0:1.0:50.0)
 
         # Without events
-        out_no_event = dust_system_simulate(gen, pars; times=times)
+        out_no_event = simulate(gen, pars; times=times)
 
         # With vaccination at t=5 (while S is still ~917): move 30% of S to R
         vax_event = TimedEvent([5.0], (u, pars, t) -> begin
@@ -34,9 +34,9 @@ end
         end)
         events = EventSet(timed=[vax_event])
 
-        sys = dust_system_create(gen, pars)
-        dust_system_set_state_initial!(sys)
-        out_event = dust_system_simulate(sys, times; events=events)
+        sys = System(gen, pars)
+        reset!(sys)
+        out_event = simulate(sys, times; events=events)
 
         # Conservation: S + I + R ≈ N
         for ti in 1:length(times)
@@ -73,9 +73,9 @@ end
         )
         events = EventSet(continuous=[cont_event])
 
-        sys = dust_system_create(gen, pars)
-        dust_system_set_state_initial!(sys)
-        out = dust_system_simulate(sys, times; events=events)
+        sys = System(gen, pars)
+        reset!(sys)
+        out = simulate(sys, times; events=events)
 
         # Conservation
         for ti in 1:length(times)
@@ -84,7 +84,7 @@ end
         end
 
         # Peak I should be reduced compared to no events
-        out_no = dust_system_simulate(gen, pars; times=times)
+        out_no = simulate(gen, pars; times=times)
         I_peak_event = maximum(out[2, 1, :])
         I_peak_no = maximum(out_no[2, 1, :])
         @test I_peak_event < I_peak_no
@@ -109,9 +109,9 @@ end
         )
         events = EventSet(discrete=[disc_event])
 
-        sys = dust_system_create(gen, pars)
-        dust_system_set_state_initial!(sys)
-        out = dust_system_simulate(sys, times; events=events)
+        sys = System(gen, pars)
+        reset!(sys)
+        out = simulate(sys, times; events=events)
 
         # Event should have triggered at least once
         @test triggered_count[] > 0
@@ -143,7 +143,7 @@ end
         )
         events = EventSet(continuous=[cont_event])
 
-        result, log = dp5_solve_events!(f!, u0, (0.0, 30.0), nothing, saveat;
+        result, log = Odin.dp5_solve_events!(f!, u0, (0.0, 30.0), nothing, saveat;
                                         events=events)
 
         # The event should fire at t ≈ 17.3
@@ -182,9 +182,9 @@ end
 
         events = EventSet(timed=[vax1, vax2], continuous=[treatment])
 
-        sys = dust_system_create(gen, pars)
-        dust_system_set_state_initial!(sys)
-        out = dust_system_simulate(sys, times; events=events)
+        sys = System(gen, pars)
+        reset!(sys)
+        out = simulate(sys, times; events=events)
 
         # Conservation
         for ti in 1:length(times)
@@ -193,7 +193,7 @@ end
         end
 
         # After both vaccinations, S should be reduced
-        out_no = dust_system_simulate(gen, pars; times=times)
+        out_no = simulate(gen, pars; times=times)
         idx_10 = findfirst(==(10.0), times)
         @test out[1, 1, idx_10] < out_no[1, 1, idx_10]
     end
@@ -205,12 +205,12 @@ end
         times = collect(0.0:1.0:100.0)
 
         # Simulate without events
-        out1 = dust_system_simulate(gen, pars; times=times)
+        out1 = simulate(gen, pars; times=times)
 
         # Simulate with empty EventSet
-        sys = dust_system_create(gen, pars)
-        dust_system_set_state_initial!(sys)
-        out2 = dust_system_simulate(sys, times; events=EventSet())
+        sys = System(gen, pars)
+        reset!(sys)
+        out2 = simulate(sys, times; events=EventSet())
 
         # Results should be essentially identical
         for ti in 1:length(times)
@@ -232,9 +232,9 @@ end
         end)
         events = EventSet(timed=[vax])
 
-        sys = dust_system_create(gen, pars)
-        dust_system_set_state_initial!(sys)
-        out = dust_system_simulate(sys, times; events=events)
+        sys = System(gen, pars)
+        reset!(sys)
+        out = simulate(sys, times; events=events)
 
         # Conservation
         for ti in 1:length(times)
@@ -299,8 +299,8 @@ end
         events_up = EventSet(continuous=[up_event])
         events_down = EventSet(continuous=[down_event])
 
-        dp5_solve_events!(f!, u0, (0.0, 10.0), nothing, saveat; events=events_up)
-        dp5_solve_events!(f!, u0, (0.0, 10.0), nothing, saveat; events=events_down)
+        Odin.dp5_solve_events!(f!, u0, (0.0, 10.0), nothing, saveat; events=events_up)
+        Odin.dp5_solve_events!(f!, u0, (0.0, 10.0), nothing, saveat; events=events_down)
 
         # sin(t) crosses 0.5 upward ~2 times in [0, 10] (around t≈π/6, t≈2π+π/6)
         @test up_count[] >= 1
@@ -338,7 +338,7 @@ end
         te = TimedEvent([5.0, 10.0, 15.0], (u, pars, t) -> nothing)
         events = EventSet(timed=[te])
 
-        result, log = dp5_solve_events!(f!, u0, (0.0, 20.0), nothing, saveat;
+        result, log = Odin.dp5_solve_events!(f!, u0, (0.0, 20.0), nothing, saveat;
                                         events=events)
 
         @test length(log) == 3

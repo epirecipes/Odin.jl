@@ -204,7 +204,7 @@ true_pars = (
 
 ```{julia}
 times = collect(0.0:1.0:1095.0)  # 3 years
-result = dust_system_simulate(malaria, true_pars; times=times, seed=1)
+result = simulate(malaria, true_pars; times=times, seed=1)
 ```
 
 ### Human dynamics
@@ -265,8 +265,8 @@ have a powerful, roughly quadratic effect on transmission.
 pars_itn50 = merge(true_pars, (itn_cov = 0.5,))
 pars_itn80 = merge(true_pars, (itn_cov = 0.8,))
 
-res_itn50 = dust_system_simulate(malaria, pars_itn50; times=times, seed=1)
-res_itn80 = dust_system_simulate(malaria, pars_itn80; times=times, seed=1)
+res_itn50 = simulate(malaria, pars_itn50; times=times, seed=1)
+res_itn80 = simulate(malaria, pars_itn80; times=times, seed=1)
 ```
 
 ```{julia}
@@ -408,7 +408,7 @@ p_data
 ### Prepare data for the unfilter
 
 ```{julia}
-data = dust_filter_data([
+data = ObservedData([
     (time=Float64(t), slide_positive=Float64(s), n_tested=Float64(n_tested_val))
     for (t, s) in zip(survey_times, obs_positive)
 ])
@@ -428,7 +428,7 @@ All other parameters are held fixed at their true values.
 ### Priors
 
 ```{julia}
-prior = @monty_prior begin
+prior = @prior begin
     a    ~ Gamma(3.0, 0.1)     # mean 0.3, moderate uncertainty
     b    ~ Beta(5.5, 4.5)      # mean 0.55, concentrated on (0, 1)
     K_m0 ~ Gamma(4.0, 50000.0) # mean 200000
@@ -439,7 +439,7 @@ end
 ### Packer and likelihood
 
 ```{julia}
-packer = monty_packer([:a, :b, :K_m0, :amp];
+packer = Packer([:a, :b, :K_m0, :amp];
     fixed = (
         c = 0.15,
         phi = 0.5,
@@ -459,8 +459,8 @@ packer = monty_packer([:a, :b, :K_m0, :amp];
         I_h0 = 100.0,
     ))
 
-uf = dust_unfilter_create(malaria_fit, data; time_start=0.0)
-ll = dust_likelihood_monty(uf, packer)
+uf = Likelihood(malaria_fit, data; time_start=0.0)
+ll = as_model(uf, packer)
 posterior = ll + prior
 ```
 
@@ -479,10 +479,10 @@ for efficient exploration of the posterior.
 
 ```{julia}
 vcv = diagm([0.0005, 0.001, 1e8, 0.001])
-sampler = monty_sampler_adaptive(vcv)
+sampler = adaptive_mh(vcv)
 
 initial = reshape(theta_true, 4, 1)
-samples = monty_sample(posterior, sampler, 5000;
+samples = sample(posterior, sampler, 5000;
     initial=initial, n_chains=1, n_burnin=1000, seed=42)
 ```
 
@@ -560,7 +560,7 @@ for j in 1:n_pred
         K_m0 = samples.pars[3, idx[j], 1],
         amp  = samples.pars[4, idx[j], 1],
     ))
-    r = dust_system_simulate(malaria, pars_j; times=pred_times, seed=j)
+    r = simulate(malaria, pars_j; times=pred_times, seed=j)
     prev_traj[j, :] = r[9, 1, :]
 end
 
@@ -632,8 +632,8 @@ both parameters contribute to the overall transmission intensity.
 | Step | API |
 |------|-----|
 | Define model | `@odin begin … end` with `~` for data comparison |
-| Prepare data | `dust_filter_data([(time=…, slide_positive=…, n_tested=…), …])` |
-| Likelihood | `dust_unfilter_create()` → `dust_likelihood_monty()` |
-| Prior | `@monty_prior begin … end` |
+| Prepare data | `ObservedData([(time=…, slide_positive=…, n_tested=…), …])` |
+| Likelihood | `Likelihood()` → `as_model()` |
+| Prior | `@prior begin … end` |
 | Posterior | `likelihood + prior` |
-| Sample | `monty_sample(posterior, sampler, n; …)` |
+| Sample | `sample(posterior, sampler, n; …)` |

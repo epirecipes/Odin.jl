@@ -26,7 +26,7 @@ using LinearAlgebra
 ## Base SIR Model
 
 ```{julia}
-sir = sir_net(; S0=990.0, I0=10.0, R0=0.0)
+sir = SIR(; S0=990.0, I0=10.0, R0=0.0)
 println("Base SIR: ", species_names(sir), " — ", transition_names(sir))
 ```
 
@@ -53,13 +53,13 @@ println("Transitions: ", ntransitions(sir_assort))
 ```
 
 ```{julia}
-gen_assort = lower(sir_assort; mode=:ode, frequency_dependent=true, N=:N,
+gen_assort = compile(sir_assort; mode=:ode, frequency_dependent=true, N=:N,
                    params=Dict(:beta => 0.3, :gamma => 0.1, :N => 1000.0))
 
-sys = dust_system_create(gen_assort, (beta=0.3, gamma=0.1, N=1000.0))
-dust_system_set_state_initial!(sys)
+sys = System(gen_assort, (beta=0.3, gamma=0.1, N=1000.0))
+reset!(sys)
 times = collect(0.0:0.5:200.0)
-result_assort = dust_system_simulate(sys, times)
+result_assort = simulate(sys, times)
 
 sn = species_names(sir_assort)
 p = plot(title="Assortative Mixing — Infected by Age",
@@ -88,12 +88,12 @@ println("Proportionate contact matrix:")
 display(round.(C_prop; digits=2))
 
 sir_prop = stratify(sir, age_groups; contact=C_prop)
-gen_prop = lower(sir_prop; mode=:ode, frequency_dependent=true, N=:N,
+gen_prop = compile(sir_prop; mode=:ode, frequency_dependent=true, N=:N,
                  params=Dict(:beta => 0.3, :gamma => 0.1, :N => 1000.0))
 
-sys = dust_system_create(gen_prop, (beta=0.3, gamma=0.1, N=1000.0))
-dust_system_set_state_initial!(sys)
-result_prop = dust_system_simulate(sys, times)
+sys = System(gen_prop, (beta=0.3, gamma=0.1, N=1000.0))
+reset!(sys)
+result_prop = simulate(sys, times)
 
 p = plot(title="Proportionate Mixing — Infected by Age",
          xlabel="Time (days)", ylabel="Infected", linewidth=2)
@@ -117,12 +117,12 @@ println("Realistic contact matrix:")
 display(C_real)
 
 sir_real = stratify(sir, age_groups; contact=C_real)
-gen_real = lower(sir_real; mode=:ode, frequency_dependent=true, N=:N,
+gen_real = compile(sir_real; mode=:ode, frequency_dependent=true, N=:N,
                  params=Dict(:beta => 0.15, :gamma => 0.1, :N => 1000.0))
 
-sys = dust_system_create(gen_real, (beta=0.15, gamma=0.1, N=1000.0))
-dust_system_set_state_initial!(sys)
-result_real = dust_system_simulate(sys, times)
+sys = System(gen_real, (beta=0.15, gamma=0.1, N=1000.0))
+reset!(sys)
+result_real = simulate(sys, times)
 
 p = plot(title="Realistic Contact — Infected by Age",
          xlabel="Time (days)", ylabel="Infected", linewidth=2)
@@ -193,20 +193,20 @@ println("Transitions: ", ntransitions(sir_vax))
 
 ```{julia}
 # Compare: no vaccination vs vaccinating children
-gen_vax = lower(sir_vax; mode=:ode, frequency_dependent=true, N=:N,
+gen_vax = compile(sir_vax; mode=:ode, frequency_dependent=true, N=:N,
                 params=Dict(:beta => 0.15, :gamma => 0.1, :nu => 0.0, :N => 1000.0))
 
 times = collect(0.0:0.5:200.0)
 
 # No vaccination
-sys_nv = dust_system_create(gen_vax, (beta=0.15, gamma=0.1, nu=0.0, N=1000.0))
-dust_system_set_state_initial!(sys_nv)
-r_nv = dust_system_simulate(sys_nv, times)
+sys_nv = System(gen_vax, (beta=0.15, gamma=0.1, nu=0.0, N=1000.0))
+reset!(sys_nv)
+r_nv = simulate(sys_nv, times)
 
 # With vaccination of children (ν = 0.01/day)
-sys_v = dust_system_create(gen_vax, (beta=0.15, gamma=0.1, nu=0.01, N=1000.0))
-dust_system_set_state_initial!(sys_v)
-r_v = dust_system_simulate(sys_v, times)
+sys_v = System(gen_vax, (beta=0.15, gamma=0.1, nu=0.01, N=1000.0))
+reset!(sys_v)
+r_v = simulate(sys_v, times)
 
 sn_vax = species_names(sir_vax)
 p = plot(layout=(1,2), size=(900, 400),

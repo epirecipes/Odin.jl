@@ -31,7 +31,7 @@ using Odin
             N = 10000.0, I0 = 10.0, gamma = 0.1,
         )
         times = collect(0.0:1.0:365.0)
-        result = dust_system_simulate(gen, pars; times = times, dt = 1.0,
+        result = simulate(gen, pars; times = times, dt = 1.0,
             seed = 1, n_particles = 1)
 
         @test size(result) == (3, 1, length(times))
@@ -68,7 +68,7 @@ using Odin
             N = 10000.0, I0 = 10.0, gamma = 0.1,
         )
         times = collect(0.0:1.0:365.0)
-        result = dust_system_simulate(gen, pars; times = times, dt = 1.0,
+        result = simulate(gen, pars; times = times, dt = 1.0,
             seed = 1, n_particles = 1)
 
         # S + I ≤ N always (recovered = N - S - I ≥ 0)
@@ -117,9 +117,9 @@ using Odin
         )
 
         times = collect(0.0:1.0:100.0)
-        res_low = dust_system_simulate(gen, pars_low;
+        res_low = simulate(gen, pars_low;
             times = times, dt = 1.0, seed = 1, n_particles = 1)
-        res_high = dust_system_simulate(gen, pars_high;
+        res_high = simulate(gen, pars_high;
             times = times, dt = 1.0, seed = 1, n_particles = 1)
 
         # Cumulative incidence (sum daily incidence) should be higher for high beta
@@ -162,7 +162,7 @@ using Odin
             N = 10000.0, I0 = 10.0, gamma = 0.1,
         )
         times = collect(0.0:1.0:100.0)
-        result = dust_system_simulate(gen, pars; times = times, dt = 1.0,
+        result = simulate(gen, pars; times = times, dt = 1.0,
             seed = 1, n_particles = 1)
 
         # After beta drops to 0 at t=50, incidence should be ~0
@@ -206,9 +206,9 @@ using Odin
         times = collect(0.0:1.0:365.0)
 
         # Different seeds should give identical results (no stochasticity)
-        r1 = dust_system_simulate(gen, pars; times = times, dt = 1.0,
+        r1 = simulate(gen, pars; times = times, dt = 1.0,
             seed = 1, n_particles = 1)
-        r2 = dust_system_simulate(gen, pars; times = times, dt = 1.0,
+        r2 = simulate(gen, pars; times = times, dt = 1.0,
             seed = 99, n_particles = 1)
 
         @test r1 ≈ r2 atol = 1e-10
@@ -246,13 +246,13 @@ using Odin
             N = 10000.0, I0 = 10.0, gamma = 0.1,
         )
 
-        data = dust_filter_data(
+        data = ObservedData(
             [(time = Float64(t), cases = max(1.0, round(50.0 * exp(-0.03 * t))))
              for t in 1:100]
         )
 
-        filter = dust_filter_create(gen, data; n_particles = 1, dt = 1.0, seed = 1)
-        ll = dust_likelihood_run!(filter, pars)
+        filter = Likelihood(gen, data; n_particles = 1, dt = 1.0, seed = 1)
+        ll = loglik(filter, pars)
 
         @test isfinite(ll)
         @test ll < 0  # log-likelihood should be negative

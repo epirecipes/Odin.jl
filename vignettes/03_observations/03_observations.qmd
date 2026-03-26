@@ -52,7 +52,7 @@ end
 pars = (beta=0.5, gamma=0.1, I0=10.0, N=1000.0)
 times = collect(0.0:1.0:100.0)
 
-result = dust_system_simulate(sir_inc, pars;
+result = simulate(sir_inc, pars;
     times=times, dt=1.0, seed=42, n_particles=5)
 ```
 

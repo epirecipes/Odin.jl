@@ -208,7 +208,7 @@ using Statistics
     out_offset = 6 * N_age
 
     @testset "compiles and runs" begin
-        result = dust_system_simulate(yf_seirv, pars;
+        result = simulate(yf_seirv, pars;
             times=times, dt=1.0, seed=42, n_particles=5)
         # 30 state vars (6 compartments × 5 ages) + 3 outputs = 33
         @test size(result, 1) == 33
@@ -218,9 +218,9 @@ using Statistics
     end
 
     @testset "initial conditions correct" begin
-        sys = Odin.dust_system_create(yf_seirv, pars; dt=1.0, seed=1)
-        Odin.dust_system_set_state_initial!(sys)
-        s = Odin.dust_system_state(sys)
+        sys = Odin.System(yf_seirv, pars; dt=1.0, seed=1)
+        Odin.reset!(sys)
+        s = Odin.state(sys)
 
         @test s[idx_S, 1] ≈ S_0
         @test s[idx_E, 1] ≈ E_0
@@ -230,7 +230,7 @@ using Statistics
     end
 
     @testset "no negative populations" begin
-        result = dust_system_simulate(yf_seirv, pars;
+        result = simulate(yf_seirv, pars;
             times=times, dt=1.0, seed=42, n_particles=10)
         # S, E, I, R, V should all be >= 0
         for idx in [idx_S, idx_E, idx_I, idx_R, idx_V]
@@ -239,7 +239,7 @@ using Statistics
     end
 
     @testset "population approximately conserved" begin
-        result = dust_system_simulate(yf_seirv, pars;
+        result = simulate(yf_seirv, pars;
             times=times, dt=1.0, seed=42, n_particles=5)
         for p in 1:5, t in 1:length(times)
             pop_t = sum(result[idx_S, p, t]) + sum(result[idx_E, p, t]) +
@@ -251,7 +251,7 @@ using Statistics
     end
 
     @testset "FOI_total bounded" begin
-        result = dust_system_simulate(yf_seirv, pars;
+        result = simulate(yf_seirv, pars;
             times=times, dt=1.0, seed=42, n_particles=5)
         foi = result[out_offset + 1, :, :]
         @test all(foi .>= 0.0)
@@ -263,14 +263,14 @@ using Statistics
         short_times = collect(0.0:1.0:50.0)
 
         # With vaccination
-        result_vacc = dust_system_simulate(yf_seirv, pars;
+        result_vacc = simulate(yf_seirv, pars;
             times=short_times, dt=1.0, seed=42, n_particles=20)
 
         # Without vaccination
         pars_novacc = merge(pars, (vacc_rate = zeros(N_age),
                                     V_0 = zeros(N_age),
                                     S_0 = pop .- R_0 .- I_0))
-        result_novacc = dust_system_simulate(yf_seirv, pars_novacc;
+        result_novacc = simulate(yf_seirv, pars_novacc;
             times=short_times, dt=1.0, seed=42, n_particles=20)
 
         # Vaccinated compartment should grow over time
@@ -284,7 +284,7 @@ using Statistics
     end
 
     @testset "stochastic particles diverge" begin
-        result = dust_system_simulate(yf_seirv, pars;
+        result = simulate(yf_seirv, pars;
             times=times, dt=1.0, seed=42, n_particles=10)
         # Cumulative cases C at midpoint should vary across particles
         mid = div(length(times), 2)
@@ -297,7 +297,7 @@ using Statistics
     end
 
     @testset "cases counter resets each step" begin
-        result = dust_system_simulate(yf_seirv, pars;
+        result = simulate(yf_seirv, pars;
             times=times, dt=1.0, seed=42, n_particles=1)
         # C values should be non-negative (new cases per step)
         @test all(result[idx_C, :, :] .>= 0.0)

@@ -15,7 +15,7 @@ import LogDensityProblems
     @testset "as_logdensity" begin
         @testset "MontyLogDensityWrapper (no gradient)" begin
             density = x -> logpdf(Normal(0, 1), x[1]) + logpdf(Normal(0, 1), x[2])
-            model = monty_model(density; parameters=["a", "b"])
+            model = DensityModel(density; parameters=["a", "b"])
 
             w = as_logdensity(model)
             @test w isa Odin.MontyLogDensityWrapper
@@ -28,7 +28,7 @@ import LogDensityProblems
         @testset "MontyLogDensityGradWrapper (with gradient)" begin
             density = x -> logpdf(Normal(0, 1), x[1]) + logpdf(Normal(0, 1), x[2])
             gradient = x -> -x
-            model = monty_model(density; parameters=["a", "b"], gradient=gradient)
+            model = DensityModel(density; parameters=["a", "b"], gradient=gradient)
 
             w = as_logdensity(model)
             @test w isa Odin.MontyLogDensityGradWrapper
@@ -52,7 +52,7 @@ import LogDensityProblems
             density = zeros(n_samples, n_chains)
             initial = pars[:, 1:1, :][:, :, 1]  # n_pars × n_chains
             pnames = ["alpha", "beta"]
-            ms = MontySamples(pars, density, initial, pnames, Dict{Symbol, Any}())
+            ms = Samples(pars, density, initial, pnames, Dict{Symbol, Any}())
 
             ch = to_chains(ms)
             @test ch isa Chains
@@ -60,7 +60,7 @@ import LogDensityProblems
             @test Base.names(ch, :parameters) == [Symbol("alpha"), Symbol("beta")]
 
             ms2 = from_chains(ch)
-            @test ms2 isa MontySamples
+            @test ms2 isa Samples
             @test ms2.pars ≈ pars
             @test ms2.parameter_names == pnames
         end
@@ -71,7 +71,7 @@ import LogDensityProblems
             density = zeros(n_samples, n_chains)
             initial = pars[:, 1, :]
             pnames = ["x", "y", "z"]
-            ms = MontySamples(pars, density, initial, pnames, Dict{Symbol, Any}())
+            ms = Samples(pars, density, initial, pnames, Dict{Symbol, Any}())
 
             ch = to_chains(ms)
             @test size(ch, 3) == n_chains
@@ -153,16 +153,16 @@ import LogDensityProblems
     end
 
     # Simulate reference data
-    sys = dust_system_create(sir, (beta=0.5, gamma=0.1, I0=10.0, N=1000.0))
-    dust_system_set_state_initial!(sys)
+    sys = System(sir, (beta=0.5, gamma=0.1, I0=10.0, N=1000.0))
+    reset!(sys)
     sim_times = collect(5.0:5.0:50.0)
-    sim_result = dust_system_simulate(sys, sim_times)
+    sim_result = simulate(sys, sim_times)
     # Build observation data from the I compartment (index 2)
     data_vec = [(time=sim_times[i], cases=max(1.0, sim_result[2, 1, i])) for i in eachindex(sim_times)]
-    fdata = Odin.dust_filter_data(data_vec)
+    fdata = Odin.ObservedData(data_vec)
 
-    unfilter = dust_unfilter_create(sir, fdata)
-    packer = monty_packer([:beta, :gamma]; fixed=(I0=10.0, N=1000.0))
+    unfilter = Likelihood(sir, fdata)
+    packer = Packer([:beta, :gamma]; fixed=(I0=10.0, N=1000.0))
 
     @testset "to_turing_model" begin
         dm = to_turing_model(unfilter, packer;
@@ -198,13 +198,13 @@ import LogDensityProblems
         )
 
         vcv = diagm([0.001, 0.0001])
-        sampler = monty_sampler_random_walk(vcv)
+        sampler = random_walk(vcv)
         initial = Float64[0.5 0.5; 0.1 0.1]  # 2 pars × 2 chains
 
         samples = turing_sample(dm, sampler, 100;
             n_chains=2, initial=initial, seed=42)
 
-        @test samples isa MontySamples
+        @test samples isa Samples
         @test size(samples.pars, 1) == 2   # n_pars
         @test size(samples.pars, 2) == 100 # n_steps
         @test size(samples.pars, 3) == 2   # n_chains

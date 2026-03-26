@@ -41,17 +41,17 @@ sir = @odin begin
 end
 ```
 
-The `@odin` macro compiles this into a `DustSystemGenerator` — a factory for creating runnable systems.
+The `@odin` macro compiles this into a `OdinModel` — a factory for creating runnable systems.
 
 ### 2. Create a system and simulate
 
 ```julia
 pars = (beta=0.5, gamma=0.1, N=1000.0, I0=10.0)
-sys = dust_system_create(sir, pars)
-dust_system_set_state_initial!(sys)
+sys = System(sir, pars)
+reset!(sys)
 
 times = 0.0:1.0:100.0
-result = dust_system_simulate(sys, times)
+result = simulate(sys, times)
 # result is a 3×101 matrix (3 states × 101 time points)
 ```
 
@@ -59,32 +59,32 @@ result = dust_system_simulate(sys, times)
 
 ```julia
 # Observed incidence data
-data = dust_filter_data(;
+data = ObservedData(;
     time = 1.0:1.0:50.0,
     cases = [3, 5, 8, 12, ...]  # your observed counts
 )
 
 # Create an unfilter (deterministic likelihood)
-uf = dust_unfilter_create(sir; data=data, time_start=0.0)
+uf = Likelihood(sir; data=data, time_start=0.0)
 
 # Pack parameters for MCMC
-packer = monty_packer([:beta, :gamma];
+packer = Packer([:beta, :gamma];
     fixed = (N=1000.0, I0=10.0))
 
 # Define priors
-prior = @monty_prior begin
+prior = @prior begin
     beta ~ Exponential(1.0)
     gamma ~ Exponential(1.0)
 end
 
 # Bridge to monty model and combine with prior
-likelihood = dust_likelihood_monty(uf, packer)
+likelihood = as_model(uf, packer)
 posterior = likelihood + prior
 
 # Sample with adaptive MCMC
-sampler = monty_sampler_adaptive(;
+sampler = adaptive_mh(;
     initial_vcv = [0.01 0.0; 0.0 0.01])
-samples = monty_sample(posterior, sampler, 5000;
+samples = sample(posterior, sampler, 5000;
     initial = Dict(:beta => 0.3, :gamma => 0.1),
     n_chains = 4)
 ```
@@ -123,9 +123,9 @@ sir_stoch = @odin begin
     I0 = parameter(10)
 end
 
-sys = dust_system_create(sir_stoch, pars; n_particles=100, dt=0.25)
-dust_system_set_state_initial!(sys)
-result = dust_system_simulate(sys, 0.0:1.0:100.0)
+sys = System(sir_stoch, pars; n_particles=100, dt=0.25)
+reset!(sys)
+result = simulate(sys, 0.0:1.0:100.0)
 # result is 3×101×100 (states × times × particles)
 ```
 

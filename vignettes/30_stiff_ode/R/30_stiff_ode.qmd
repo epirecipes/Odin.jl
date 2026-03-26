@@ -138,7 +138,7 @@ cat(sprintf("Robertson at t=1e5:\n  y1 = %.6f\n  y2 = %.2e\n  y3 = %.6f\n  Conse
 | Stiff solver | SDIRK4 (L-stable, order 4) | `lsoda` (auto), `radau`, `lsode` |
 | Jacobian | FD, ForwardDiff, analytical | FD, analytical |
 | Adaptive stepping | Yes | Yes |
-| Integration with inference | `dust_unfilter_create(solver=:sdirk)` | `dust2::dust_unfilter_create()` |
+| Integration with inference | `Likelihood(solver=:sdirk)` | `dust2::Likelihood()` |
 
 - R's `deSolve` is mature and well-tested for stiff systems
 - `lsoda` automatically detects stiffness and switches methods

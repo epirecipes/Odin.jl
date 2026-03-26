@@ -261,9 +261,9 @@ In practice, start with AIC/BIC for quick comparison, then use WAIC or LOO-CV fo
 
 | Criterion | R Package/Function | Julia/Odin |
 |-----------|-------------------|------------|
-| AIC | `-2*ll + 2*k` (manual) | `compute_aic()` |
-| AICc | Manual formula | `compute_aicc()` |
-| BIC | `-2*ll + k*log(n)` (manual) | `compute_bic()` |
-| WAIC | `loo::waic()` | `compute_waic()` |
-| LOO-CV | `loo::loo()` | `compute_loo()` |
-| Comparison | `loo::loo_compare()` | `compare_models()` |
+| AIC | `-2*ll + 2*k` (manual) | `aic()` |
+| AICc | Manual formula | `aicc()` |
+| BIC | `-2*ll + k*log(n)` (manual) | `bic()` |
+| WAIC | `loo::waic()` | `waic()` |
+| LOO-CV | `loo::loo()` | `loo()` |
+| Comparison | `loo::loo_compare()` | `compare()` |

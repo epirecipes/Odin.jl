@@ -17,11 +17,11 @@ This vignette demonstrates the full Bayesian fitting workflow with Odin.jl,
 covering three scenarios of increasing complexity:
 
 1. **Part 1 — Deterministic SIR fitting**: ODE model with Poisson observation
-   model, deterministic likelihood via `dust_unfilter_create`, and random-walk
+   model, deterministic likelihood via `Likelihood`, and random-walk
    MCMC.
 2. **Part 2 — Stochastic SIS fitting**: Discrete-time SIS model with
    time-varying school closure, stochastic likelihood via
-   `dust_filter_create`, and random-walk MCMC.
+   `Likelihood`, and random-walk MCMC.
 3. **Part 3 — Counterfactual projections**: Using the fitted posterior to
    simulate forward under alternative intervention scenarios.
 
@@ -97,21 +97,21 @@ The unfilter solves the ODE forward and evaluates the Poisson log-likelihood
 of the observed cases against the predicted infected count at each time point:
 
 ```{julia}
-sir_data = dust_filter_data(incidence_data)
-unfilter = dust_unfilter_create(sir_ode, sir_data)
+sir_data = ObservedData(incidence_data)
+unfilter = Likelihood(sir_ode, sir_data)
 
-ll = dust_unfilter_run!(unfilter, (beta=0.4, gamma=0.2, I0=10.0, N=1000.0))
+ll = loglik(unfilter, (beta=0.4, gamma=0.2, I0=10.0, N=1000.0))
 println("Log-likelihood (unfilter): ", round(ll, digits=2))
 ```
 
 ### Set Up MCMC
 
 ```{julia}
-packer = monty_packer([:beta, :gamma]; fixed=(I0=10.0, N=1000.0))
+packer = Packer([:beta, :gamma]; fixed=(I0=10.0, N=1000.0))
 
-likelihood = dust_likelihood_monty(unfilter, packer)
+likelihood = as_model(unfilter, packer)
 
-prior = @monty_prior begin
+prior = @prior begin
     beta ~ Exponential(0.5)
     gamma ~ Exponential(0.3)
 end
@@ -125,10 +125,10 @@ We use a random-walk sampler with 3 chains:
 
 ```{julia}
 vcv = [0.01 0.005; 0.005 0.005]
-sampler = monty_sampler_random_walk(vcv)
+sampler = random_walk(vcv)
 
 initial = repeat([0.3, 0.15], 1, 3)
-samples_det = monty_sample(posterior, sampler, 2000;
+samples_det = sample(posterior, sampler, 2000;
     n_chains=3, initial=initial, n_burnin=500, seed=42)
 ```
 
@@ -193,7 +193,7 @@ for j in 1:n_draws
     pars = (beta=beta_post[idx[j]], gamma=gamma_post[idx[j]],
             I0=10.0, N=1000.0)
     times = collect(0.0:0.5:20.0)
-    r = dust_system_simulate(sir_ode, pars; times=times)
+    r = simulate(sir_ode, pars; times=times)
     plot!(p_pred, times, r[2, 1, :], color=:gray, alpha=0.1)
 end
 
@@ -234,16 +234,16 @@ sir_discrete = @odin begin
     cases ~ Poisson(incidence + 1e-6)
 end
 
-filter = dust_filter_create(sir_discrete, sir_data;
+filter = Likelihood(sir_discrete, sir_data;
     n_particles=200, dt=0.25, seed=42)
 
-ll_stoch = dust_likelihood_run!(filter, (beta=0.4, gamma=0.2, I0=10.0, N=1000.0))
+ll_stoch = loglik(filter, (beta=0.4, gamma=0.2, I0=10.0, N=1000.0))
 println("Log-likelihood (filter, stochastic): ", round(ll_stoch, digits=2))
 
-likelihood_stoch = dust_likelihood_monty(filter, packer)
+likelihood_stoch = as_model(filter, packer)
 posterior_stoch = likelihood_stoch + prior
 
-samples_stoch = monty_sample(posterior_stoch, sampler, 2000;
+samples_stoch = sample(posterior_stoch, sampler, 2000;
     n_chains=3, initial=initial, n_burnin=500, seed=42)
 ```
 
@@ -278,7 +278,7 @@ schools_cases = [
     49,47,53,33,36,37,44,40,70,57,
 ]
 
-schools_data = dust_filter_data(
+schools_data = ObservedData(
     [(time=Float64(t), cases=Float64(c)) for (t, c) in enumerate(schools_cases)]
 )
 
@@ -333,7 +333,7 @@ schools_open = [1.0,  0.0,  1.0,   0.0,   1.0,   0.0,   1.0]
 ### Particle Filter Likelihood
 
 ```{julia}
-sis_filter = dust_filter_create(sis, schools_data;
+sis_filter = Likelihood(sis, schools_data;
     n_particles=200, dt=1.0, seed=42)
 
 test_pars = (
@@ -341,14 +341,14 @@ test_pars = (
     schools_time=schools_time, schools_open=schools_open,
     N=1000.0, I0=10.0,
 )
-ll = dust_likelihood_run!(sis_filter, test_pars)
+ll = loglik(sis_filter, test_pars)
 println("Log-likelihood at test parameters: ", round(ll, digits=2))
 ```
 
 ### MCMC Setup
 
 ```{julia}
-sis_packer = monty_packer(
+sis_packer = Packer(
     [:beta0, :gamma, :schools_modifier];
     fixed=(
         schools_time=schools_time,
@@ -357,9 +357,9 @@ sis_packer = monty_packer(
         I0=10.0,
     ))
 
-sis_likelihood = dust_likelihood_monty(sis_filter, sis_packer)
+sis_likelihood = as_model(sis_filter, sis_packer)
 
-sis_prior = @monty_prior begin
+sis_prior = @prior begin
     beta0 ~ Exponential(0.3)
     gamma ~ Exponential(0.1)
     schools_modifier ~ Uniform(0.0, 1.0)
@@ -372,10 +372,10 @@ sis_posterior = sis_likelihood + sis_prior
 
 ```{julia}
 sis_vcv = diagm([2e-4, 2e-4, 4e-4])
-sis_sampler = monty_sampler_random_walk(sis_vcv)
+sis_sampler = random_walk(sis_vcv)
 
 sis_initial = repeat([0.3, 0.1, 0.5], 1, 4)
-sis_samples = monty_sample(sis_posterior, sis_sampler, 500;
+sis_samples = sample(sis_posterior, sis_sampler, 500;
     n_chains=4, initial=sis_initial, n_burnin=100, seed=42)
 ```
 
@@ -429,10 +429,10 @@ for j in 1:n_draws
         schools_open=schools_open,
         N=1000.0, I0=10.0,
     )
-    sys = dust_system_create(sis, pars_j; dt=1.0, n_particles=1, seed=j)
-    dust_system_set_state_initial!(sys)
+    sys = System(sis, pars_j; dt=1.0, n_particles=1, seed=j)
+    reset!(sys)
     times = collect(0.0:1.0:150.0)
-    r = dust_system_simulate(sys, times)
+    r = simulate(sys, times)
     plot!(p_sis_pred, times, r[3, 1, :], color=:gray, alpha=0.1)
 end
 
@@ -462,10 +462,10 @@ for j in 1:min(100, n_proj)
         schools_time=schools_time, schools_open=schools_open,
         N=1000.0, I0=10.0,
     )
-    sys = dust_system_create(sis, pars_j; dt=1.0, n_particles=1, seed=j)
-    dust_system_set_state_initial!(sys)
+    sys = System(sis, pars_j; dt=1.0, n_particles=1, seed=j)
+    reset!(sys)
     full_times = collect(0.0:1.0:200.0)
-    r = dust_system_simulate(sys, full_times)
+    r = simulate(sys, full_times)
     plot!(p_proj, full_times, r[3, 1, :], color=:gray, alpha=0.08, label=nothing)
 end
 
@@ -499,10 +499,10 @@ for j in 1:n_proj
         schools_time=schools_time, schools_open=schools_open,
         N=1000.0, I0=10.0,
     )
-    sys_base = dust_system_create(sis, pars_base; dt=1.0, n_particles=1, seed=j)
-    dust_system_set_state_initial!(sys_base)
+    sys_base = System(sis, pars_base; dt=1.0, n_particles=1, seed=j)
+    reset!(sys_base)
     full_times = collect(0.0:1.0:200.0)
-    r_base = dust_system_simulate(sys_base, full_times)
+    r_base = simulate(sys_base, full_times)
 
     # Counterfactual (only first closure)
     pars_cf = (
@@ -511,9 +511,9 @@ for j in 1:n_proj
         schools_time=cf_schools_time, schools_open=cf_schools_open,
         N=1000.0, I0=10.0,
     )
-    sys_cf = dust_system_create(sis, pars_cf; dt=1.0, n_particles=1, seed=j)
-    dust_system_set_state_initial!(sys_cf)
-    r_cf = dust_system_simulate(sys_cf, full_times)
+    sys_cf = System(sis, pars_cf; dt=1.0, n_particles=1, seed=j)
+    reset!(sys_cf)
+    r_cf = simulate(sys_cf, full_times)
 
     plot!(p_cf, full_times, r_base[3, 1, :], color=:gray, alpha=0.05, label=nothing)
     plot!(p_cf, full_times, r_cf[3, 1, :], color=:blue, alpha=0.05, label=nothing)
@@ -543,10 +543,10 @@ for j in 1:n_proj
         schools_time=schools_time, schools_open=schools_open,
         N=1000.0, I0=10.0,
     )
-    sys_base = dust_system_create(sis, pars_base; dt=1.0, n_particles=1, seed=j)
-    dust_system_set_state_initial!(sys_base)
+    sys_base = System(sis, pars_base; dt=1.0, n_particles=1, seed=j)
+    reset!(sys_base)
     full_times = collect(0.0:1.0:200.0)
-    r_base = dust_system_simulate(sys_base, full_times)
+    r_base = simulate(sys_base, full_times)
 
     pars_no = (
         beta0=beta0_post[j], gamma=gamma_sis_post[j],
@@ -554,9 +554,9 @@ for j in 1:n_proj
         schools_time=no_closure_time, schools_open=no_closure_open,
         N=1000.0, I0=10.0,
     )
-    sys_no = dust_system_create(sis, pars_no; dt=1.0, n_particles=1, seed=j)
-    dust_system_set_state_initial!(sys_no)
-    r_no = dust_system_simulate(sys_no, full_times)
+    sys_no = System(sis, pars_no; dt=1.0, n_particles=1, seed=j)
+    reset!(sys_no)
+    r_no = simulate(sys_no, full_times)
 
     plot!(p_cf2, full_times, r_base[3, 1, :], color=:gray, alpha=0.05, label=nothing)
     plot!(p_cf2, full_times, r_no[3, 1, :], color=:orange, alpha=0.05, label=nothing)
@@ -573,14 +573,14 @@ p_cf2
 | Step | API | Description |
 |------|-----|-------------|
 | Define model | `@odin` | DSL for ODE/stochastic models |
-| Prepare data | `dust_filter_data()` | Time-series observations |
-| Deterministic likelihood | `dust_unfilter_create()` | ODE-based |
-| Stochastic likelihood | `dust_filter_create()` | Particle filter |
-| Bridge to MCMC | `dust_likelihood_monty()` | Wraps filter/unfilter as MontyModel |
-| Define prior | `@monty_prior` | Composable prior distributions |
+| Prepare data | `ObservedData()` | Time-series observations |
+| Deterministic likelihood | `Likelihood()` | ODE-based |
+| Stochastic likelihood | `Likelihood()` | Particle filter |
+| Bridge to MCMC | `as_model()` | Wraps filter/unfilter as MontyModel |
+| Define prior | `@prior` | Composable prior distributions |
 | Combine | `posterior = likelihood + prior` | Adds log-densities |
-| Sample | `monty_sample()` | Random-walk MCMC |
-| Counterfactuals | `dust_system_create()` + `dust_system_simulate()` | Scenario projections |
+| Sample | `sample()` | Random-walk MCMC |
+| Counterfactuals | `System()` + `simulate()` | Scenario projections |
 
 Key takeaways:
 

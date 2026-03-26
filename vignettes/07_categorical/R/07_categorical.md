@@ -79,10 +79,10 @@ sir <- odin({
 
 ``` r
 pars <- list(beta = 0.3, gamma = 0.1, I0 = 10, N = 1000)
-sys <- dust_system_create(sir, pars, ode_control = dust_ode_control())
+sys <- System(sir, pars, ode_control = dust_ode_control())
 dust_system_set_state_initial(sys)
 times <- seq(0, 200, by = 0.5)
-result <- dust_system_simulate(sys, times)
+result <- simulate(sys, times)
 
 plot(times, result[1, ], type = "l", col = "blue", lwd = 2,
      xlab = "Time", ylab = "Population", main = "SIR ODE Model",
@@ -167,10 +167,10 @@ sirs <- odin({
 
 ``` r
 pars <- list(beta = 0.3, gamma = 0.1, delta = 0.01, I0 = 10, N = 1000)
-sys <- dust_system_create(sirs, pars, ode_control = dust_ode_control())
+sys <- System(sirs, pars, ode_control = dust_ode_control())
 dust_system_set_state_initial(sys)
 times <- seq(0, 1000, by = 1)
-result <- dust_system_simulate(sys, times)
+result <- simulate(sys, times)
 
 plot(times, result[1, ], type = "l", col = "blue", lwd = 2,
      xlab = "Time", ylab = "Population",
@@ -255,10 +255,10 @@ seir <- odin({
 
 ``` r
 pars <- list(beta = 0.5, sigma = 0.2, gamma = 0.1, I0 = 10, N = 1000)
-sys <- dust_system_create(seir, pars, ode_control = dust_ode_control())
+sys <- System(seir, pars, ode_control = dust_ode_control())
 dust_system_set_state_initial(sys)
 times <- seq(0, 200, by = 0.5)
-result <- dust_system_simulate(sys, times)
+result <- simulate(sys, times)
 
 plot(times, result[1, ], type = "l", col = "blue", lwd = 2,
      xlab = "Time", ylab = "Population", main = "SEIR Model",
@@ -381,10 +381,10 @@ pars <- list(
   beta = 0.15, gamma = 0.1, N = 1000
 )
 
-sys <- dust_system_create(sir_age, pars, ode_control = dust_ode_control())
+sys <- System(sir_age, pars, ode_control = dust_ode_control())
 dust_system_set_state_initial(sys)
 times <- seq(0, 200, by = 0.5)
-result <- dust_system_simulate(sys, times)
+result <- simulate(sys, times)
 
 cols <- c("blue", "red", "green")
 groups <- c("Child", "Adult", "Elder")
@@ -471,18 +471,18 @@ sir_vax <- odin({
 times <- seq(0, 200, by = 0.5)
 
 # Without vaccination
-sys1 <- dust_system_create(sir_vax, list(beta = 0.3, gamma = 0.1, nu = 0,
+sys1 <- System(sir_vax, list(beta = 0.3, gamma = 0.1, nu = 0,
                                           I0 = 10, N = 1000),
                            ode_control = dust_ode_control())
 dust_system_set_state_initial(sys1)
-r1 <- dust_system_simulate(sys1, times)
+r1 <- simulate(sys1, times)
 
 # With vaccination
-sys2 <- dust_system_create(sir_vax, list(beta = 0.3, gamma = 0.1, nu = 0.005,
+sys2 <- System(sir_vax, list(beta = 0.3, gamma = 0.1, nu = 0.005,
                                           I0 = 10, N = 1000),
                            ode_control = dust_ode_control())
 dust_system_set_state_initial(sys2)
-r2 <- dust_system_simulate(sys2, times)
+r2 <- simulate(sys2, times)
 
 plot(times, r1[2, ], type = "l", col = "red", lwd = 2,
      xlab = "Time", ylab = "Infected",

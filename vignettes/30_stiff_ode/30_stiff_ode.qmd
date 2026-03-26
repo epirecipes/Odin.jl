@@ -87,31 +87,31 @@ Both solvers reach the same answer, but SDIRK4 can take much larger steps
 on stiff systems because its L-stability prevents the instability that forces
 DP5 to use tiny steps.
 
-## Solver selection in `dust_system_simulate`
+## Solver selection in `simulate`
 
-When using the odin DSL with `dust_system_simulate`, you can select the solver
+When using the odin DSL with `simulate`, you can select the solver
 via the `solver` keyword argument:
 
 ```julia
 # Non-stiff model (default DP5)
-output = dust_system_simulate(sys, times)
+output = simulate(sys, times)
 
 # Stiff model (use SDIRK4)
-output = dust_system_simulate(sys, times; solver=:sdirk)
+output = simulate(sys, times; solver=:sdirk)
 ```
 
-## Solver selection in `dust_unfilter_create`
+## Solver selection in `Likelihood`
 
-For likelihood computation with `dust_unfilter_create`, pass the solver
-through `DustODEControl`:
+For likelihood computation with `Likelihood`, pass the solver
+through `ODEControl`:
 
 ```julia
 # Default (DP5)
-ctrl = DustODEControl(atol=1e-8, rtol=1e-8)
+ctrl = ODEControl(atol=1e-8, rtol=1e-8)
 
 # Stiff solver
-ctrl = DustODEControl(atol=1e-8, rtol=1e-8, solver=:sdirk)
-unfilter = dust_unfilter_create(generator, data; ode_control=ctrl)
+ctrl = ODEControl(atol=1e-8, rtol=1e-8, solver=:sdirk)
+unfilter = Likelihood(generator, data; ode_control=ctrl)
 ```
 
 ## Classic stiff test: Robertson chemical kinetics
@@ -180,4 +180,4 @@ first. This significantly reduces cost for large systems.
 - Use `solver=:sdirk` for stiff models with widely separated timescales
 - The SDIRK4 solver is L-stable, 4th order, with adaptive step size control
 - Supports finite-difference, ForwardDiff, and user-provided Jacobians
-- Fully integrated with `dust_system_simulate` and `dust_unfilter_create`
+- Fully integrated with `simulate` and `Likelihood`

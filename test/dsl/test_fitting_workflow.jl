@@ -28,13 +28,13 @@ using LinearAlgebra
 
     # Generate synthetic data from the ODE model
     sir_times_sim = collect(0.0:1.0:20.0)
-    sir_sim = dust_system_simulate(sir_ode, sir_pars; times=sir_times_sim)
+    sir_sim = simulate(sir_ode, sir_pars; times=sir_times_sim)
     sir_obs = [(time=sir_times_sim[i], cases=max(1.0, sir_sim[2,1,i]))
                for i in 2:length(sir_times_sim)]
-    sir_data = dust_filter_data(sir_obs)
+    sir_data = ObservedData(sir_obs)
 
     @testset "SIR ODE model creation and simulation" begin
-        result = dust_system_simulate(sir_ode, sir_pars; times=sir_times_sim)
+        result = simulate(sir_ode, sir_pars; times=sir_times_sim)
 
         @test size(result, 1) == 3  # S, I, R
         @test all(isfinite, result)
@@ -46,27 +46,27 @@ using LinearAlgebra
     end
 
     @testset "Unfilter likelihood computation" begin
-        unfilter = dust_unfilter_create(sir_ode, sir_data)
+        unfilter = Likelihood(sir_ode, sir_data)
 
-        ll = dust_unfilter_run!(unfilter, sir_pars)
+        ll = loglik(unfilter, sir_pars)
         @test isfinite(ll)
         @test ll < 0
 
         # Deterministic: repeated calls give same result
-        ll2 = dust_unfilter_run!(unfilter, sir_pars)
+        ll2 = loglik(unfilter, sir_pars)
         @test ll ≈ ll2 atol=1e-10
 
         # Bad parameters should give worse likelihood
-        ll_bad = dust_unfilter_run!(unfilter, (beta=0.01, gamma=0.5, I0=10.0, N=1000.0))
+        ll_bad = loglik(unfilter, (beta=0.01, gamma=0.5, I0=10.0, N=1000.0))
         @test ll_bad < ll
     end
 
     @testset "Unfilter MCMC runs" begin
-        unfilter = dust_unfilter_create(sir_ode, sir_data)
-        packer = monty_packer([:beta, :gamma]; fixed=(I0=10.0, N=1000.0))
-        likelihood = dust_likelihood_monty(unfilter, packer)
+        unfilter = Likelihood(sir_ode, sir_data)
+        packer = Packer([:beta, :gamma]; fixed=(I0=10.0, N=1000.0))
+        likelihood = as_model(unfilter, packer)
 
-        prior = @monty_prior begin
+        prior = @prior begin
             beta ~ Exponential(0.5)
             gamma ~ Exponential(0.3)
         end
@@ -74,10 +74,10 @@ using LinearAlgebra
         posterior = likelihood + prior
 
         vcv = [0.01 0.005; 0.005 0.005]
-        sampler = monty_sampler_random_walk(vcv)
+        sampler = random_walk(vcv)
         initial = repeat([0.3, 0.15], 1, 2)
 
-        samples = monty_sample(posterior, sampler, 200;
+        samples = sample(posterior, sampler, 200;
             n_chains=2, initial=initial, n_burnin=50, seed=42)
 
         @test size(samples.pars, 1) == 2   # 2 parameters
@@ -143,13 +143,13 @@ using LinearAlgebra
         49,47,53,33,36,37,44,40,70,57,
     ]
 
-    sis_data = dust_filter_data(
+    sis_data = ObservedData(
         [(time=Float64(t), cases=c) for (t, c) in enumerate(schools_cases)]
     )
 
     @testset "SIS model with interpolation" begin
         times = collect(0.0:1.0:200.0)
-        result = dust_system_simulate(sis, sis_pars;
+        result = simulate(sis, sis_pars;
             times=times, dt=1.0, n_particles=5, seed=42)
 
         @test size(result) == (3, 5, length(times))
@@ -170,28 +170,28 @@ using LinearAlgebra
     end
 
     @testset "Particle filter likelihood" begin
-        filter = dust_filter_create(sis, sis_data;
+        filter = Likelihood(sis, sis_data;
             n_particles=50, dt=1.0, seed=42)
 
-        ll = dust_likelihood_run!(filter, sis_pars)
+        ll = loglik(filter, sis_pars)
         @test isfinite(ll)
         @test ll < 0
 
         # Stochastic: repeated calls may differ
-        ll2 = dust_likelihood_run!(filter, sis_pars)
+        ll2 = loglik(filter, sis_pars)
         @test isfinite(ll2)
 
         # Very bad parameters should give much worse likelihood
         bad_pars = merge(sis_pars, (beta0=5.0, gamma=0.001))
-        ll_bad = dust_likelihood_run!(filter, bad_pars)
+        ll_bad = loglik(filter, bad_pars)
         @test ll_bad < ll
     end
 
     @testset "Particle filter MCMC runs" begin
-        filter = dust_filter_create(sis, sis_data;
+        filter = Likelihood(sis, sis_data;
             n_particles=50, dt=1.0, seed=42)
 
-        packer = monty_packer(
+        packer = Packer(
             [:beta0, :gamma, :schools_modifier];
             fixed=(
                 schools_time=schools_time,
@@ -199,9 +199,9 @@ using LinearAlgebra
                 N=1000.0, I0=10.0,
             ))
 
-        likelihood = dust_likelihood_monty(filter, packer)
+        likelihood = as_model(filter, packer)
 
-        prior = @monty_prior begin
+        prior = @prior begin
             beta0 ~ Exponential(0.3)
             gamma ~ Exponential(0.1)
             schools_modifier ~ Uniform(0.0, 1.0)
@@ -210,10 +210,10 @@ using LinearAlgebra
         posterior = likelihood + prior
 
         vcv = diagm([2e-4, 2e-4, 4e-4])
-        sampler = monty_sampler_random_walk(vcv)
+        sampler = random_walk(vcv)
         initial = repeat([0.3, 0.1, 0.5], 1, 2)
 
-        samples = monty_sample(posterior, sampler, 200;
+        samples = sample(posterior, sampler, 200;
             n_chains=2, initial=initial, n_burnin=50, seed=42)
 
         @test size(samples.pars, 1) == 3   # 3 parameters
@@ -240,7 +240,7 @@ using LinearAlgebra
         # Simulate with original and modified school schedules
         times = collect(0.0:1.0:200.0)
 
-        result_base = dust_system_simulate(sis, sis_pars;
+        result_base = simulate(sis, sis_pars;
             times=times, dt=1.0, n_particles=5, seed=42)
 
         # No closures
@@ -248,7 +248,7 @@ using LinearAlgebra
             schools_time=[0.0],
             schools_open=[1.0],
         ))
-        result_no_closure = dust_system_simulate(sis, pars_no_closure;
+        result_no_closure = simulate(sis, pars_no_closure;
             times=times, dt=1.0, n_particles=5, seed=42)
 
         @test size(result_base) == size(result_no_closure)
