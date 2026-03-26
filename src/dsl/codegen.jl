@@ -147,23 +147,44 @@ function _gen_intermediate_arrays(intermediates, dims; use_workspace::Bool=false
         vq = QuoteNode(v)
         if use_workspace
             # Reuse pre-allocated arrays from model._workspace (zero-alloc hot path)
-            # haskey + getindex avoids closure allocation from get!
+            # Check both existence AND size — dimensions may come from parameters
+            # that change between calls (e.g. dim(E) = k_E).
             if length(ds) == 1
-                push!(stmts, :($v = if haskey(model._workspace, $vq)
-                    model._workspace[$vq]::Vector{Float64}
-                else
-                    _v = Vector{Float64}(undef, $(ds[1]))
-                    model._workspace[$vq] = _v
-                    _v
+                dim_expr = ds[1]
+                push!(stmts, :($v = let _dim = $dim_expr
+                    if haskey(model._workspace, $vq)
+                        _cached = model._workspace[$vq]::Vector{Float64}
+                        if length(_cached) == _dim
+                            _cached
+                        else
+                            _v = Vector{Float64}(undef, _dim)
+                            model._workspace[$vq] = _v
+                            _v
+                        end
+                    else
+                        _v = Vector{Float64}(undef, _dim)
+                        model._workspace[$vq] = _v
+                        _v
+                    end
                 end))
             else
                 ndim = length(ds)
-                push!(stmts, :($v = if haskey(model._workspace, $vq)
-                    model._workspace[$vq]::Array{Float64, $ndim}
-                else
-                    _v = Array{Float64}(undef, $(ds...))
-                    model._workspace[$vq] = _v
-                    _v
+                dims_tuple = Expr(:tuple, ds...)
+                push!(stmts, :($v = let _dims = $dims_tuple
+                    if haskey(model._workspace, $vq)
+                        _cached = model._workspace[$vq]::Array{Float64, $ndim}
+                        if size(_cached) == _dims
+                            _cached
+                        else
+                            _v = Array{Float64}(undef, _dims...)
+                            model._workspace[$vq] = _v
+                            _v
+                        end
+                    else
+                        _v = Array{Float64}(undef, _dims...)
+                        model._workspace[$vq] = _v
+                        _v
+                    end
                 end))
             end
         else
@@ -920,17 +941,34 @@ function _gen_compare(phases, cl, sv_set)
     for ex in phases.compare_eqs
         cinfo = ex.rhs::CompareInfo
         args_julia = Any[_translate_expr(a, cl, sv_set, :pars) for a in cinfo.args]
-        data_val = :(data.$(ex.name))
+
+        is_array_compare = !isempty(ex.indices) && haskey(dims, ex.name)
+
+        if is_array_compare
+            # Array comparison: cases[i] ~ Poisson(lambda[i])
+            # Index into data field: data.cases[i]
+            data_val = Expr(:ref, :(data.$(ex.name)), ex.indices...)
+        else
+            # Scalar comparison: obs ~ Poisson(lambda)
+            data_val = :(data.$(ex.name))
+        end
 
         if haskey(_FAST_LOGPDF, cinfo.distribution)
             # Use allocation-free inline logpdf
             fast_fn = _FAST_LOGPDF[cinfo.distribution]
-            push!(stmts, :(ll += Odin.$fast_fn($(args_julia...), $data_val)))
+            logpdf_stmt = :(ll += Odin.$fast_fn($(args_julia...), $data_val))
         else
             # Fallback to Distributions.jl for unsupported distributions
             dist_entry = DISTRIBUTION_MAP[cinfo.distribution]
             dist_expr = :($(dist_entry.dist)($(args_julia...)))
-            push!(stmts, :(ll += Odin.Distributions.logpdf($dist_expr, $data_val)))
+            logpdf_stmt = :(ll += Odin.Distributions.logpdf($dist_expr, $data_val))
+        end
+
+        if is_array_compare
+            push!(stmts, _wrap_loop(logpdf_stmt, ex.indices, dims[ex.name];
+                                     range_bounds=ex.range_bounds))
+        else
+            push!(stmts, logpdf_stmt)
         end
     end
     push!(stmts, :(return ll))
