@@ -28,6 +28,6 @@ makedocs(;
 
 deploydocs(;
     repo = "github.com/epirecipes/Odin.jl.git",
-    devbranch = "main",
+    devbranch = "master",
     push_preview = true,
 )
