@@ -343,7 +343,6 @@ function _dp5_solve_dde_core!(
     k5 = ws.k5; k6 = ws.k6; k7 = ws.k7
 
     f!(k1, u, pars, t0)
-    dde_history_push!(hist, u, k1, t0)
 
     h = _dp5_initial_step(f!, u, k1, pars, t0, tf, abstol, reltol, n,
                           ws.init_u1, ws.init_f1)
@@ -352,6 +351,14 @@ function _dp5_solve_dde_core!(
     t = t0
     out_idx = 1
     step_count = 0
+
+    # Save initial outputs
+    while out_idx <= nt_out && t_out[out_idx] <= t0 + 10*eps(t0)
+        @inbounds for j in 1:n
+            ws.result_matrix[j, out_idx] = u[j]
+        end
+        out_idx += 1
+    end
 
     a21 = T(1)/T(5)
     a31 = T(3)/T(40);    a32 = T(9)/T(40)
@@ -370,8 +377,9 @@ function _dp5_solve_dde_core!(
         h = min(h, tf - t)
         h = min(h, h_max)
 
-        # Save state for potential rollback
+        # Save state for potential rollback and history recording
         @inbounds for i in 1:n; u_prev[i] = u[i]; end
+        t_start = t
 
         @inbounds for i in 1:n
             u_new[i] = u[i] + h * a21 * k1[i]
@@ -398,6 +406,7 @@ function _dp5_solve_dde_core!(
         end
         f!(k6, u_new, pars, t + h)
 
+        # 5th-order solution
         @inbounds for i in 1:n
             u[i] = u[i] + h * (b1*k1[i] + b3*k3[i] + b4*k4[i] + b5*k5[i] + b6*k6[i])
         end
@@ -405,19 +414,22 @@ function _dp5_solve_dde_core!(
         t_new = t + h
         f!(k7, u, pars, t_new)
 
+        # Error estimate
         err = T(0)
         @inbounds for i in 1:n
-            sc = abstol + reltol * max(abs(u[i]), abs(u[i] - h*(b1*k1[i]+b3*k3[i]+b4*k4[i]+b5*k5[i]+b6*k6[i])))
+            sc = abstol + reltol * max(abs(u[i]), abs(u_prev[i]))
             ei = h * (e1*k1[i] + e3*k3[i] + e4*k4[i] + e5*k5[i] + e6*k6[i] + e7*k7[i])
             err += (ei / sc)^2
         end
         err = sqrt(err / n)
 
         if err <= T(1)
+            # Step accepted — record in history
+            dde_history_push!(hist, t_start, t_new, h, u_prev, u, k1, k7)
             t = t_new
-            dde_history_push!(hist, u, k7, t)
-            copyto!(k1, k7)
+            copyto!(k1, k7)  # FSAL
 
+            # Record output at required times
             while out_idx <= nt_out && t_out[out_idx] <= t + 10*eps(t)
                 if abs(t_out[out_idx] - t) < 10*eps(t)
                     @inbounds for j in 1:n
@@ -432,10 +444,12 @@ function _dp5_solve_dde_core!(
                 out_idx += 1
             end
 
+            # Step size control
             factor = err > T(0) ? T(0.9) * err^(T(-1)/T(5)) : T(5)
             factor = clamp(factor, T(0.2), T(5))
             h = min(h * factor, h_max)
         else
+            # Step rejected — rollback
             factor = T(0.9) * err^(T(-1)/T(5))
             factor = max(factor, T(0.2))
             h *= factor
@@ -443,6 +457,7 @@ function _dp5_solve_dde_core!(
         end
     end
 
+    # Fill remaining outputs
     while out_idx <= nt_out
         @inbounds for j in 1:n
             ws.result_matrix[j, out_idx] = u[j]
