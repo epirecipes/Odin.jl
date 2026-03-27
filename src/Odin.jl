@@ -115,7 +115,7 @@ export nuts, random_walk, hmc, adaptive_mh, mala, slice
 export parallel_tempering, gibbs
 
 # Runners
-export Serial, Threaded, Simultaneous
+export Serial, Threaded, Simultaneous, DistributedRunner
 
 # Sampling
 export sample, sample_continue

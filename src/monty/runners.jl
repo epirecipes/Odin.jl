@@ -49,3 +49,19 @@ struct MontySimultaneousRunner <: AbstractMontyRunner end
 Create a simultaneous runner that advances all chains in lock-step.
 """
 monty_runner_simultaneous() = MontySimultaneousRunner()
+
+"""
+    MontyDistributedRunner
+
+Run chains on distributed workers using `Distributed.jl`.
+Requires workers to be added via `addprocs()` and `@everywhere using Odin`.
+Falls back to serial execution if no workers are available.
+"""
+struct MontyDistributedRunner <: AbstractMontyRunner end
+
+"""
+    monty_runner_distributed()
+
+Create a distributed runner that executes chains on remote workers.
+"""
+monty_runner_distributed() = MontyDistributedRunner()

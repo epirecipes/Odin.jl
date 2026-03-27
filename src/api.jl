@@ -472,6 +472,15 @@ Enables cross-chain interactions (e.g., parallel tempering swaps).
 """
 Simultaneous() = monty_runner_simultaneous()
 
+"""
+    DistributedRunner()
+
+Run MCMC chains on distributed workers via `Distributed.jl`.
+Requires `addprocs()` and `@everywhere using Odin` before use.
+Falls back to threaded execution if no workers are available.
+"""
+DistributedRunner() = monty_runner_distributed()
+
 
 # ═══════════════════════════════════════════════════════════════
 # Sampling

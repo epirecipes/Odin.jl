@@ -74,6 +74,8 @@ function monty_sample(
         return _run_threaded(model, sampler, n_steps, n_chains, n_burnin, thinning, n_samples, n_pars, initial, chain_rngs, observer)
     elseif runner isa MontySimultaneousRunner
         return _run_simultaneous(model, sampler, n_steps, n_chains, n_burnin, thinning, n_samples, n_pars, initial, chain_rngs, observer)
+    elseif runner isa MontyDistributedRunner
+        return _run_distributed(model, sampler, n_steps, n_chains, n_burnin, thinning, n_samples, n_pars, initial, chain_rngs, observer)
     else
         error("Unknown runner type: $(typeof(runner))")
     end
@@ -232,6 +234,69 @@ function _run_simultaneous(model, sampler, n_steps, n_chains, n_burnin, thinning
         if !isempty(finalized)
             combined_obs = observer.combine(finalized)
         end
+    end
+
+    return MontySamples(all_pars, all_density, initial, model.parameters, details, combined_obs)
+end
+
+
+"""Run chains on distributed workers using Distributed.jl.
+Falls back to threaded execution if no workers are available."""
+function _run_distributed(model, sampler, n_steps, n_chains, n_burnin, thinning,
+                          n_samples, n_pars, initial, chain_rngs, observer=nothing)
+    # Dynamically check for Distributed module
+    dist_mod = try
+        Base.loaded_modules[Base.PkgId(Base.UUID("8ba89e20-285c-5b6f-9357-94700520ee1b"), "Distributed")]
+    catch
+        nothing
+    end
+
+    if dist_mod === nothing
+        @warn "Distributed.jl not loaded, falling back to threaded execution"
+        return _run_threaded(model, sampler, n_steps, n_chains, n_burnin, thinning,
+                            n_samples, n_pars, initial, chain_rngs, observer)
+    end
+
+    available_workers = Base.filter(wid -> wid != 1, dist_mod.workers())
+
+    if isempty(available_workers)
+        @warn "No distributed workers available, falling back to threaded execution"
+        return _run_threaded(model, sampler, n_steps, n_chains, n_burnin, thinning,
+                            n_samples, n_pars, initial, chain_rngs, observer)
+    end
+
+    # Distribute chains across workers round-robin
+    futures = Vector{Any}(undef, n_chains)
+    for c in 1:n_chains
+        worker_id = available_workers[mod1(c, length(available_workers))]
+        chain_init = copy(initial[:, c])
+        chain_rng = chain_rngs[c]
+        futures[c] = dist_mod.remotecall(
+            _run_chain, worker_id,
+            model, sampler, n_steps, n_burnin, thinning,
+            n_samples, n_pars, chain_init, chain_rng, observer
+        )
+    end
+
+    # Collect results
+    all_pars = zeros(Float64, n_pars, n_samples, n_chains)
+    all_density = zeros(Float64, n_samples, n_chains)
+    details = Dict{Symbol, Any}(:acceptance_rate => zeros(Float64, n_chains))
+
+    chain_observations = []
+    for c in 1:n_chains
+        pars_c, density_c, acc_rate, obs_c = fetch(futures[c])
+        all_pars[:, :, c] .= pars_c
+        all_density[:, c] .= density_c
+        details[:acceptance_rate][c] = acc_rate
+        if obs_c !== nothing
+            push!(chain_observations, obs_c)
+        end
+    end
+
+    combined_obs = nothing
+    if observer !== nothing && !isempty(chain_observations)
+        combined_obs = observer.combine(chain_observations)
     end
 
     return MontySamples(all_pars, all_density, initial, model.parameters, details, combined_obs)
