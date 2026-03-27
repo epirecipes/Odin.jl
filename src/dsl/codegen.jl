@@ -1023,6 +1023,10 @@ function _gen_compare(phases, cl, sv_set)
         :Exponential => :_logpdf_exponential,
         :Beta => :_logpdf_beta,
         :Uniform => :_logpdf_uniform,
+        :ZIPoisson => :_logpdf_zipoisson,
+        :ZINegativeBinomial => :_logpdf_zinegbinomial,
+        :ZINegBinomial => :_logpdf_zinegbinomial,
+        :TruncatedNormal => :_logpdf_truncnormal,
     )
 
     for ex in phases.compare_eqs

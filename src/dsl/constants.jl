@@ -37,6 +37,12 @@ const DISTRIBUTION_MAP = Dict{Symbol, NamedTuple{(:dist, :nargs, :samplable), Tu
     :Hypergeometric => (dist=Distributions.Hypergeometric, nargs=3, samplable=true),
     :BetaBinomial => (dist=Distributions.BetaBinomial,  nargs=3, samplable=true),
     :Multinomial  => (dist=Distributions.Multinomial,   nargs=2, samplable=true),
+    # Zero-inflated distributions (3 args: original params + zero-inflation probability)
+    :ZIPoisson          => (dist=nothing, nargs=2, samplable=false),
+    :ZINegativeBinomial => (dist=nothing, nargs=3, samplable=false),
+    :ZINegBinomial      => (dist=nothing, nargs=3, samplable=false),
+    # Truncated normal (4 args: mu, sigma, lower, upper)
+    :TruncatedNormal    => (dist=nothing, nargs=4, samplable=false),
 )
 
 """

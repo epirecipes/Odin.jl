@@ -3,6 +3,7 @@
 
 # Use loggamma from SpecialFunctions (re-exported by Distributions)
 const _loggamma = Distributions.SpecialFunctions.loggamma
+const _erfc = Distributions.SpecialFunctions.erfc
 
 """Poisson log-pdf: k*log(λ) - λ - _loggamma(k+1)"""
 @inline function _logpdf_poisson(lambda::Real, k::Real)
@@ -60,4 +61,55 @@ end
 @inline function _logpdf_uniform(a::Real, b::Real, x::Real)
     (x < a || x > b) && return -Inf
     return -log(b - a)
+end
+
+"""Zero-inflated Poisson log-pdf.
+Args: lambda (rate), p0 (zero-inflation probability), k (observed count).
+P(k=0) = p0 + (1-p0)*Poisson(0|λ), P(k>0) = (1-p0)*Poisson(k|λ)."""
+@inline function _logpdf_zipoisson(lambda::Real, p0::Real, k::Real)
+    k_int = round(Int, k)
+    k_int < 0 && return -Inf
+    if k_int == 0
+        # log(p0 + (1-p0)*exp(-lambda))
+        log_pois0 = -lambda
+        return _log_sum_exp(log(p0), log(1 - p0) + log_pois0)
+    else
+        # log(1-p0) + Poisson(k|lambda)
+        return log(1 - p0) + _logpdf_poisson(lambda, k)
+    end
+end
+
+"""Zero-inflated NegativeBinomial log-pdf.
+Args: r (size), p (success prob), p0 (zero-inflation probability), k (observed count).
+P(k=0) = p0 + (1-p0)*NB(0|r,p), P(k>0) = (1-p0)*NB(k|r,p)."""
+@inline function _logpdf_zinegbinomial(r::Real, p::Real, p0::Real, k::Real)
+    k_int = round(Int, k)
+    k_int < 0 && return -Inf
+    if k_int == 0
+        log_nb0 = r * log(p)  # NB(0|r,p) = p^r
+        return _log_sum_exp(log(p0), log(1 - p0) + log_nb0)
+    else
+        return log(1 - p0) + _logpdf_negbinomial(r, p, k)
+    end
+end
+
+"""Truncated Normal log-pdf.
+Args: mu, sigma, lower, upper, x."""
+@inline function _logpdf_truncnormal(mu::Real, sigma::Real, lower::Real, upper::Real, x::Real)
+    (x < lower || x > upper) && return -Inf
+    sigma <= 0 && return -Inf
+    # log-pdf of Normal - log(Φ(upper) - Φ(lower))
+    logpdf_normal = -0.5 * ((x - mu) / sigma)^2 - log(sigma) - 0.9189385332046727
+    # CDF: Φ((b-μ)/σ) - Φ((a-μ)/σ) using erfc for numerical stability
+    z_lo = (lower - mu) / (sigma * sqrt(2.0))
+    z_hi = (upper - mu) / (sigma * sqrt(2.0))
+    log_norm = log(0.5 * (_erfc(z_lo) - _erfc(z_hi)))
+    return logpdf_normal - log_norm
+end
+
+"""Numerically stable log(exp(a) + exp(b))."""
+@inline function _log_sum_exp(a::Real, b::Real)
+    m = max(a, b)
+    isinf(m) && return m
+    return m + log(exp(a - m) + exp(b - m))
 end
