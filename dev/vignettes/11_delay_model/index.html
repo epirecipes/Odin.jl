@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width, initial-scale=1.0"/><title>Delay Compartments · Odin.jl</title><meta name="title" content="Delay Compartments · Odin.jl"/><meta property="og:title" content="Delay Compartments · Odin.jl"/><meta property="twitter:title" content="Delay Compartments · Odin.jl"/><meta name="description" content="Documentation for Odin.jl."/><meta property="og:description" content="Documentation for Odin.jl."/><meta property="twitter:description" content="Documentation for Odin.jl."/><script data-outdated-warner src="../../assets/warner.js"></script><link href="https://cdnjs.cloudflare.com/ajax/libs/lato-font/3.0.0/css/lato-font.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/juliamono/0.050/juliamono.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/fontawesome.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/solid.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/brands.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.8/katex.min.css" rel="stylesheet" type="text/css"/><script>documenterBaseURL="../.."</script><script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.6/require.min.js" data-main="../../assets/documenter.js"></script><script src="../../search_index.js"></script><script src="../../siteinfo.js"></script><script src="../../../versions.js"></script><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/catppuccin-mocha.css" data-theme-name="catppuccin-mocha"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/catppuccin-macchiato.css" data-theme-name="catppuccin-macchiato"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/catppuccin-frappe.css" data-theme-name="catppuccin-frappe"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/catppuccin-latte.css" data-theme-name="catppuccin-latte"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/documenter-dark.css" data-theme-name="documenter-dark" data-theme-primary-dark/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/documenter-light.css" data-theme-name="documenter-light" data-theme-primary/><script src="../../assets/themeswap.js"></script></head><body><div id="documenter"><nav class="docs-sidebar"><div class="docs-package-name"><span class="docs-autofit"><a href="../../">Odin.jl</a></span></div><button class="docs-search-query input is-rounded is-small is-clickable my-2 mx-auto py-1 px-2" id="documenter-search-query">Search docs (Ctrl + /)</button><ul class="docs-menu"><li><a class="tocitem" href="../../">Home</a></li><li><a class="tocitem" href="../../getting_started/">Getting Started</a></li><li><span class="tocitem">Guide</span><ul><li><a class="tocitem" href="../../dsl/">DSL Reference</a></li><li><a class="tocitem" href="../../simulation/">Simulation</a></li><li><a class="tocitem" href="../../filtering/">Filtering &amp; Likelihood</a></li><li><a class="tocitem" href="../../inference/">Inference</a></li><li><a class="tocitem" href="../../solvers/">ODE Solvers</a></li><li><a class="tocitem" href="../../gpu/">GPU Acceleration</a></li><li><a class="tocitem" href="../../categorical/">Categorical Models</a></li></ul></li><li><span class="tocitem">Vignettes</span><ul><li><input class="collapse-toggle" id="menuitem-4-1" type="checkbox"/><label class="tocitem" for="menuitem-4-1"><span class="docs-label">Basics</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../01_basic_ode/">Basic ODE Model: SIR</a></li><li><a class="tocitem" href="../02_stochastic/">Stochastic Discrete-Time SIR</a></li><li><a class="tocitem" href="../03_observations/">Incidence Tracking with zero_every</a></li><li><a class="tocitem" href="../04_arrays/">Age-Structured SIR with Arrays</a></li><li><a class="tocitem" href="../05_particle_filter/">Particle Filter and Likelihood</a></li><li><a class="tocitem" href="../06_inference/">Bayesian Inference with MCMC</a></li></ul></li><li><input class="collapse-toggle" id="menuitem-4-2" type="checkbox" checked/><label class="tocitem" for="menuitem-4-2"><span class="docs-label">Intermediate</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../07_categorical/">Compositional Model Building</a></li><li><a class="tocitem" href="../08_time_varying/">Time-Varying Parameters</a></li><li><a class="tocitem" href="../09_advanced/">SEIR with Vaccination and Waning</a></li><li><a class="tocitem" href="../10_projections/">Counterfactual Projections</a></li><li class="is-active"><a class="tocitem" href>Delay Compartments</a><ul class="internal"><li><a class="tocitem" href="#Introduction"><span>Introduction</span></a></li><li><a class="tocitem" href="#Model:-SEIR-with-Delay-Compartments"><span>Model: SEIR with Delay Compartments</span></a></li><li><a class="tocitem" href="#Effect-of-Chain-Length-on-Epidemic-Dynamics"><span>Effect of Chain Length on Epidemic Dynamics</span></a></li><li><a class="tocitem" href="#Stochastic-Variability"><span>Stochastic Variability</span></a></li><li><a class="tocitem" href="#Fitting-to-Synthetic-Data"><span>Fitting to Synthetic Data</span></a></li><li><a class="tocitem" href="#Summary"><span>Summary</span></a></li></ul></li><li><a class="tocitem" href="../12_reactive_policy/">Reactive Vaccination Policy</a></li><li><a class="tocitem" href="../13_dynamicppl/">DynamicPPL Integration</a></li><li><a class="tocitem" href="../14_delay_vaccination/">SEIR with Delay and Vaccination</a></li><li><a class="tocitem" href="../15_vector_borne/">Vector-Borne Disease Dynamics</a></li></ul></li><li><input class="collapse-toggle" id="menuitem-4-3" type="checkbox"/><label class="tocitem" for="menuitem-4-3"><span class="docs-label">Advanced Models</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../16_multi_stream/">Multi-Stream Outbreak</a></li><li><a class="tocitem" href="../17_mpox_seir/">Mpox SEIR: Age-Structured</a></li><li><a class="tocitem" href="../18_malaria_simple/">Malaria: Ross-Macdonald</a></li><li><a class="tocitem" href="../19_sarscov2_multiregion/">SARS-CoV-2 Multi-Region</a></li><li><a class="tocitem" href="../20_yellowfever/">Yellow Fever SEIRV</a></li><li><a class="tocitem" href="../21_school_closure/">SIS with School Closure</a></li><li><a class="tocitem" href="../22_beta_blocks/">Beta Blocks</a></li><li><a class="tocitem" href="../23_orov/">OROV Vector-Borne</a></li><li><a class="tocitem" href="../24_yf_delay/">Yellow Fever with Erlang Delay</a></li><li><a class="tocitem" href="../25_yf_vtrack/">Yellow Fever 2-Track Vaccination</a></li><li><a class="tocitem" href="../26_fitting_workflow/">Complete Fitting Workflow</a></li><li><a class="tocitem" href="../27_spatial_composition/">Spatial Composition</a></li><li><a class="tocitem" href="../28_stratification/">Age Stratification</a></li><li><a class="tocitem" href="../29_multi_pathogen/">Multi-Pathogen Composition</a></li></ul></li><li><input class="collapse-toggle" id="menuitem-4-4" type="checkbox"/><label class="tocitem" for="menuitem-4-4"><span class="docs-label">Techniques</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../30_stiff_ode/">Stiff ODEs: SDIRK4 Solver</a></li><li><a class="tocitem" href="../31_gpu_filter/">GPU-Accelerated Filtering</a></li><li><a class="tocitem" href="../32_advanced_samplers/">Advanced MCMC Samplers</a></li><li><a class="tocitem" href="../33_sensitivity/">Sensitivity Analysis</a></li><li><a class="tocitem" href="../34_events/">Event Handling</a></li><li><a class="tocitem" href="../35_sde/">Stochastic Differential Equations</a></li><li><a class="tocitem" href="../36_model_selection/">Model Selection</a></li><li><a class="tocitem" href="../37_model_validation/">Model Validation</a></li></ul></li></ul></li><li><a class="tocitem" href="../../api/">API Reference</a></li></ul><div class="docs-version-selector field has-addons"><div class="control"><span class="docs-label button is-static is-size-7">Version</span></div><div class="docs-selector control is-expanded"><div class="select is-fullwidth is-size-7"><select id="documenter-version-selector"></select></div></div></div></nav><div class="docs-main"><header class="docs-navbar"><a class="docs-sidebar-button docs-navbar-link fa-solid fa-bars is-hidden-desktop" id="documenter-sidebar-button" href="#"></a><nav class="breadcrumb"><ul class="is-hidden-mobile"><li><a class="is-disabled">Vignettes</a></li><li><a class="is-disabled">Intermediate</a></li><li class="is-active"><a href>Delay Compartments</a></li></ul><ul class="is-hidden-tablet"><li class="is-active"><a href>Delay Compartments</a></li></ul></nav><div class="docs-right"><a class="docs-navbar-link" href="https://github.com/epirecipes/Odin.jl" title="View the repository on GitHub"><span class="docs-icon fa-brands"></span><span class="docs-label is-hidden-touch">GitHub</span></a><a class="docs-settings-button docs-navbar-link fa-solid fa-gear" id="documenter-settings-button" href="#" title="Settings"></a><a class="docs-article-toggle-button fa-solid fa-chevron-up" id="documenter-article-toggle-button" href="javascript:;" title="Collapse all docstrings"></a></div></header><article class="content" id="documenter-page"><h1 id="Delay-Compartments-for-Erlang-Distributed-Durations"><a class="docs-heading-anchor" href="#Delay-Compartments-for-Erlang-Distributed-Durations">Delay Compartments for Erlang-Distributed Durations</a><a id="Delay-Compartments-for-Erlang-Distributed-Durations-1"></a><a class="docs-heading-anchor-permalink" href="#Delay-Compartments-for-Erlang-Distributed-Durations" title="Permalink"></a></h1><h2 id="Introduction"><a class="docs-heading-anchor" href="#Introduction">Introduction</a><a id="Introduction-1"></a><a class="docs-heading-anchor-permalink" href="#Introduction" title="Permalink"></a></h2><p>Many infectious disease models assume exponentially distributed sojourn times in each compartment. This is mathematically convenient but biologically unrealistic: real latent and infectious periods are concentrated around a mean duration, not memoryless.</p><p><strong>Delay compartments</strong> (also called the <em>linear chain trick</em>) address this by splitting a single compartment into a chain of <span>$k$</span> sub-compartments. An individual must pass through all <span>$k$</span> stages sequentially, producing an <strong>Erlang-distributed</strong> total sojourn time:</p><table><tr><th style="text-align: right">Property</th><th style="text-align: right">Formula</th></tr><tr><td style="text-align: right">Distribution</td><td style="text-align: right"><span>$\text{Erlang}(k,\; k\sigma)$</span></td></tr><tr><td style="text-align: right">Mean</td><td style="text-align: right"><span>$1/\sigma$</span> (independent of <span>$k$</span>)</td></tr><tr><td style="text-align: right">Variance</td><td style="text-align: right"><span>$1/(k\sigma^2)$</span></td></tr><tr><td style="text-align: right">CV</td><td style="text-align: right"><span>$1/\sqrt{k}$</span></td></tr></table><ul><li>At <span>$k = 1$</span> we recover the standard <strong>exponential</strong> distribution (maximum variance).</li><li>As <span>$k$</span> increases the distribution concentrates around the mean, approaching a <strong>fixed delay</strong> as <span>$k \to \infty$</span>.</li></ul><p>This technique is widely used in malaria modelling (for the extrinsic incubation period in mosquitoes), influenza (serial interval shaping), and any process where the shape of the sojourn-time distribution materially affects transmission dynamics.</p><h2 id="Model:-SEIR-with-Delay-Compartments"><a class="docs-heading-anchor" href="#Model:-SEIR-with-Delay-Compartments">Model: SEIR with Delay Compartments</a><a id="Model:-SEIR-with-Delay-Compartments-1"></a><a class="docs-heading-anchor-permalink" href="#Model:-SEIR-with-Delay-Compartments" title="Permalink"></a></h2><p>We define a stochastic discrete-time SEIR model where:</p><ul><li>The <strong>latent (E)</strong> compartment is a chain of <code>k_E</code> sub-compartments, each with transition rate <code>k_E * sigma</code> so the mean latent period remains <code>1/sigma</code>.</li><li>The <strong>infectious (I)</strong> compartment is a chain of <code>k_I</code> sub-compartments, each with rate <code>k_I * gamma</code>, preserving mean infectious period <code>1/gamma</code>.</li></ul><pre><code class="language-julia hljs">using Odin
+using Plots
+using Statistics
+
+seir_delay = @odin begin
+    # Dimensions for delay compartment chains
+    dim(E) = k_E
+    dim(I) = k_I
+    dim(n_EE) = k_E
+    dim(n_II) = k_I
+
+    # Force of infection and stochastic transitions
+    n_SE = Binomial(S, 1 - exp(-beta * I_total / N * dt))
+    n_EE[i] = Binomial(E[i], 1 - exp(-k_E * sigma * dt))
+    n_II[i] = Binomial(I[i], 1 - exp(-k_I * gamma * dt))
+
+    I_total = sum(I)
+
+    # State updates — chain progression
+    update(S) = S - n_SE
+    update(E[1]) = E[1] + n_SE - n_EE[1]
+    update(E[2:k_E]) = E[i] + n_EE[i - 1] - n_EE[i]
+    update(I[1]) = I[1] + n_EE[k_E] - n_II[1]
+    update(I[2:k_I]) = I[i] + n_II[i - 1] - n_II[i]
+    update(R) = R + n_II[k_I]
+
+    # Incidence tracking (daily reset)
+    initial(incidence, zero_every = 1) = 0
+    update(incidence) = incidence + n_SE
+
+    # Data comparison
+    cases = data()
+    cases ~ Poisson(incidence + 1e-6)
+
+    # Initial conditions
+    initial(S) = N - I0
+    initial(E[i]) = 0
+    initial(I[1]) = I0
+    initial(I[2:k_I]) = 0
+    initial(R) = 0
+
+    # Parameters
+    beta = parameter(0.8)
+    sigma = parameter(0.2)     # 1/sigma = 5-day mean latent period
+    gamma = parameter(0.1)     # 1/gamma = 10-day mean infectious period
+    k_E = parameter(4)         # latent sub-compartments
+    k_I = parameter(4)         # infectious sub-compartments
+    I0 = parameter(5)
+    N = parameter(10000)
+end</code></pre><pre><code class="nohighlight hljs">Odin.DustSystemGenerator{var&quot;##OdinModel#277&quot;}(var&quot;##OdinModel#277&quot;(0, [:incidence, :S, :E, :I, :R], [:beta, :sigma, :gamma, :k_E, :k_I, :I0, :N], false, false, true, false, false, Dict{Symbol, Array}()))</code></pre><p>The key insight is that every sub-compartment in the E chain has rate <span>$k_E \sigma$</span>, so the total time spent traversing all <span>$k_E$</span> stages is <span>$\text{Erlang}(k_E, k_E \sigma)$</span> with mean <span>$1/\sigma$</span> regardless of <span>$k_E$</span>. The same logic applies to the I chain.</p><h2 id="Effect-of-Chain-Length-on-Epidemic-Dynamics"><a class="docs-heading-anchor" href="#Effect-of-Chain-Length-on-Epidemic-Dynamics">Effect of Chain Length on Epidemic Dynamics</a><a id="Effect-of-Chain-Length-on-Epidemic-Dynamics-1"></a><a class="docs-heading-anchor-permalink" href="#Effect-of-Chain-Length-on-Epidemic-Dynamics" title="Permalink"></a></h2><p>Increasing <span>$k$</span> sharpens the sojourn-time distribution while keeping the mean constant. This changes the timing and height of the epidemic peak because individuals progress through compartments more synchronously.</p><p>We compare <span>$k = 1$</span> (standard exponential), <span>$k = 4$</span>, and <span>$k = 10$</span>:</p><pre><code class="language-julia hljs">times = collect(0.0:1.0:150.0)
+k_values = [1, 4, 10]
+colors = [:blue, :red, :green]
+
+p1 = plot(xlabel=&quot;Day&quot;, ylabel=&quot;Mean Total Infected&quot;,
+          title=&quot;Effect of Delay Compartments on Epidemic Curve&quot;,
+          legend=:topright)
+
+for (idx, k) in enumerate(k_values)
+    pars = (beta=0.8, sigma=0.2, gamma=0.1,
+            k_E=Float64(k), k_I=Float64(k), I0=5.0, N=10000.0)
+
+    I_mean = zeros(length(times))
+    n_runs = 50
+    i_start = 2 + k       # first I index: 1 (S) + k (E compartments) + 1
+    i_end = 1 + k + k     # last I index:  1 + k_E + k_I
+
+    for seed in 1:n_runs
+        sys = System(seir_delay, pars; dt=1.0, seed=seed)
+        reset!(sys)
+        r = simulate(sys, times)
+        for t_idx in 1:length(times)
+            I_mean[t_idx] += sum(r[i_start:i_end, 1, t_idx])
+        end
+    end
+    I_mean ./= n_runs
+    plot!(p1, times, I_mean, label=&quot;k = $k&quot;, color=colors[idx], lw=2)
+end
+p1</code></pre><p><img src="11_delay_model_files/figure-commonmark/cell-3-output-1.svg" alt/></p><p>Higher <span>$k$</span> produces a sharper, slightly earlier peak. The reduced variance in sojourn times leads to more synchronised progression through compartments, concentrating the infected population into a narrower window.</p><h2 id="Stochastic-Variability"><a class="docs-heading-anchor" href="#Stochastic-Variability">Stochastic Variability</a><a id="Stochastic-Variability-1"></a><a class="docs-heading-anchor-permalink" href="#Stochastic-Variability" title="Permalink"></a></h2><p>Individual realisations show how <span>$k$</span> also affects run-to-run variability:</p><pre><code class="language-julia hljs">ps = []
+for (idx, k) in enumerate(k_values)
+    pars = (beta=0.8, sigma=0.2, gamma=0.1,
+            k_E=Float64(k), k_I=Float64(k), I0=5.0, N=10000.0)
+    i_start = 2 + k
+    i_end = 1 + k + k
+
+    pk = plot(xlabel=&quot;Day&quot;, ylabel=&quot;Total Infected&quot;,
+              title=&quot;k = $k&quot;, legend=false, ylim=(0, 3000))
+
+    for seed in 1:20
+        sys = System(seir_delay, pars; dt=1.0, seed=seed)
+        reset!(sys)
+        r = simulate(sys, times)
+        I_total = [sum(r[i_start:i_end, 1, t]) for t in 1:length(times)]
+        plot!(pk, times, I_total, color=colors[idx], alpha=0.3, lw=0.8)
+    end
+    push!(ps, pk)
+end
+plot(ps..., layout=(1, 3), size=(900, 300))</code></pre><p><img src="11_delay_model_files/figure-commonmark/cell-4-output-1.svg" alt/></p><p>With <span>$k = 1$</span> the exponential sojourn times introduce substantial inter-realisation spread. As <span>$k$</span> increases, individual trajectories cluster more tightly around the mean.</p><h2 id="Fitting-to-Synthetic-Data"><a class="docs-heading-anchor" href="#Fitting-to-Synthetic-Data">Fitting to Synthetic Data</a><a id="Fitting-to-Synthetic-Data-1"></a><a class="docs-heading-anchor-permalink" href="#Fitting-to-Synthetic-Data" title="Permalink"></a></h2><p>We now demonstrate parameter recovery: generate data from the model with known parameters, then estimate <span>$\beta$</span>, <span>$\sigma$</span>, and <span>$\gamma$</span> using a particle filter likelihood and MCMC.</p><h3 id="Generate-synthetic-observations"><a class="docs-heading-anchor" href="#Generate-synthetic-observations">Generate synthetic observations</a><a id="Generate-synthetic-observations-1"></a><a class="docs-heading-anchor-permalink" href="#Generate-synthetic-observations" title="Permalink"></a></h3><pre><code class="language-julia hljs">true_pars = (beta=0.8, sigma=0.2, gamma=0.1,
+             k_E=4.0, k_I=4.0, I0=5.0, N=10000.0)
+
+obs_times = collect(0.0:1.0:100.0)
+sys_true = System(seir_delay, true_pars; dt=1.0, seed=1)
+reset!(sys_true)
+true_result = simulate(sys_true, obs_times)
+
+# Incidence is the last state: index = 1 (S) + k_E + k_I + 1 (R) + 1 = 11
+inc_idx = 3 + 4 + 4
+obs_cases = max.(1, round.(Int, true_result[inc_idx, 1, 2:end]))
+
+plot(1:length(obs_cases), obs_cases, seriestype=:bar,
+     xlabel=&quot;Day&quot;, ylabel=&quot;Cases&quot;, title=&quot;Synthetic Observed Data&quot;,
+     label=&quot;&quot;, color=:steelblue, alpha=0.7)</code></pre><p><img src="11_delay_model_files/figure-commonmark/cell-5-output-1.svg" alt/></p><h3 id="Set-up-inference"><a class="docs-heading-anchor" href="#Set-up-inference">Set up inference</a><a id="Set-up-inference-1"></a><a class="docs-heading-anchor-permalink" href="#Set-up-inference" title="Permalink"></a></h3><p>We fix the chain lengths (<span>$k_E = k_I = 4$</span>) and initial conditions, estimating only the transmission and progression rates:</p><pre><code class="language-julia hljs">data = ObservedData(
+    [(time=Float64(t), cases=Float64(obs_cases[t]))
+     for t in 1:length(obs_cases)]
+)
+
+filter = Likelihood(seir_delay, data;
+    n_particles=100, dt=1.0, seed=42)
+
+packer = Packer([:beta, :sigma, :gamma];
+    fixed=(k_E=4.0, k_I=4.0, I0=5.0, N=10000.0))
+
+likelihood = as_model(filter, packer)
+
+prior = @prior begin
+    beta ~ Gamma(4.0, 0.2)
+    sigma ~ Gamma(2.0, 0.1)
+    gamma ~ Gamma(2.0, 0.05)
+end
+
+posterior = likelihood + prior</code></pre><pre><code class="nohighlight hljs">MontyModel{Odin.var&quot;#monty_model_combine##0#monty_model_combine##1&quot;{MontyModel{Odin.var&quot;#dust_likelihood_monty##0#dust_likelihood_monty##1&quot;{DustFilter{var&quot;##OdinModel#277&quot;, Float64, @NamedTuple{cases::Float64}}, MontyPacker}, Nothing, Nothing, Nothing}, MontyModel{var&quot;#10#11&quot;, var&quot;#12#13&quot;{var&quot;#10#11&quot;}, var&quot;#14#15&quot;, Matrix{Float64}}}, Odin.var&quot;#monty_model_combine##4#monty_model_combine##5&quot;{Odin.var&quot;#monty_model_combine##0#monty_model_combine##1&quot;{MontyModel{Odin.var&quot;#dust_likelihood_monty##0#dust_likelihood_monty##1&quot;{DustFilter{var&quot;##OdinModel#277&quot;, Float64, @NamedTuple{cases::Float64}}, MontyPacker}, Nothing, Nothing, Nothing}, MontyModel{var&quot;#10#11&quot;, var&quot;#12#13&quot;{var&quot;#10#11&quot;}, var&quot;#14#15&quot;, Matrix{Float64}}}}, Nothing, Matrix{Float64}}([&quot;beta&quot;, &quot;sigma&quot;, &quot;gamma&quot;], Odin.var&quot;#monty_model_combine##0#monty_model_combine##1&quot;{MontyModel{Odin.var&quot;#dust_likelihood_monty##0#dust_likelihood_monty##1&quot;{DustFilter{var&quot;##OdinModel#277&quot;, Float64, @NamedTuple{cases::Float64}}, MontyPacker}, Nothing, Nothing, Nothing}, MontyModel{var&quot;#10#11&quot;, var&quot;#12#13&quot;{var&quot;#10#11&quot;}, var&quot;#14#15&quot;, Matrix{Float64}}}(MontyModel{Odin.var&quot;#dust_likelihood_monty##0#dust_likelihood_monty##1&quot;{DustFilter{var&quot;##OdinModel#277&quot;, Float64, @NamedTuple{cases::Float64}}, MontyPacker}, Nothing, Nothing, Nothing}([&quot;beta&quot;, &quot;sigma&quot;, &quot;gamma&quot;], Odin.var&quot;#dust_likelihood_monty##0#dust_likelihood_monty##1&quot;{DustFilter{var&quot;##OdinModel#277&quot;, Float64, @NamedTuple{cases::Float64}}, MontyPacker}(DustFilter{var&quot;##OdinModel#277&quot;, Float64, @NamedTuple{cases::Float64}}(Odin.DustSystemGenerator{var&quot;##OdinModel#277&quot;}(var&quot;##OdinModel#277&quot;(0, [:incidence, :S, :E, :I, :R], [:beta, :sigma, :gamma, :k_E, :k_I, :I0, :N], false, false, true, false, false, Dict{Symbol, Array}(:n_EE =&gt; [0.0, 0.0, 0.0, 0.0], :n_II =&gt; [0.0, 0.0, 0.0, 0.0]))), Odin.FilterData{@NamedTuple{cases::Float64}}([1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0, 10.0  …  91.0, 92.0, 93.0, 94.0, 95.0, 96.0, 97.0, 98.0, 99.0, 100.0], [(cases = 1.0,), (cases = 1.0,), (cases = 1.0,), (cases = 1.0,), (cases = 1.0,), (cases = 1.0,), (cases = 1.0,), (cases = 1.0,), (cases = 1.0,), (cases = 1.0,)  …  (cases = 9999.0,), (cases = 9999.0,), (cases = 9999.0,), (cases = 9999.0,), (cases = 9999.0,), (cases = 9999.0,), (cases = 9999.0,), (cases = 9999.0,), (cases = 9999.0,), (cases = 9999.0,)]), 0.0, 100, 1.0, 42, false, nothing), MontyPacker([:beta, :sigma, :gamma], [:beta, :sigma, :gamma], Symbol[], Dict{Symbol, Tuple}(), Dict{Symbol, UnitRange{Int64}}(:beta =&gt; 1:1, :gamma =&gt; 3:3, :sigma =&gt; 2:2), 3, (k_E = 4.0, k_I = 4.0, I0 = 5.0, N = 10000.0), nothing)), nothing, nothing, nothing, Odin.MontyModelProperties(false, false, true, false)), MontyModel{var&quot;#10#11&quot;, var&quot;#12#13&quot;{var&quot;#10#11&quot;}, var&quot;#14#15&quot;, Matrix{Float64}}([&quot;beta&quot;, &quot;sigma&quot;, &quot;gamma&quot;], var&quot;#10#11&quot;(), var&quot;#12#13&quot;{var&quot;#10#11&quot;}(var&quot;#10#11&quot;()), var&quot;#14#15&quot;(), [0.0 Inf; 0.0 Inf; 0.0 Inf], Odin.MontyModelProperties(true, true, false, false))), Odin.var&quot;#monty_model_combine##4#monty_model_combine##5&quot;{Odin.var&quot;#monty_model_combine##0#monty_model_combine##1&quot;{MontyModel{Odin.var&quot;#dust_likelihood_monty##0#dust_likelihood_monty##1&quot;{DustFilter{var&quot;##OdinModel#277&quot;, Float64, @NamedTuple{cases::Float64}}, MontyPacker}, Nothing, Nothing, Nothing}, MontyModel{var&quot;#10#11&quot;, var&quot;#12#13&quot;{var&quot;#10#11&quot;}, var&quot;#14#15&quot;, Matrix{Float64}}}}(Odin.var&quot;#monty_model_combine##0#monty_model_combine##1&quot;{MontyModel{Odin.var&quot;#dust_likelihood_monty##0#dust_likelihood_monty##1&quot;{DustFilter{var&quot;##OdinModel#277&quot;, Float64, @NamedTuple{cases::Float64}}, MontyPacker}, Nothing, Nothing, Nothing}, MontyModel{var&quot;#10#11&quot;, var&quot;#12#13&quot;{var&quot;#10#11&quot;}, var&quot;#14#15&quot;, Matrix{Float64}}}(MontyModel{Odin.var&quot;#dust_likelihood_monty##0#dust_likelihood_monty##1&quot;{DustFilter{var&quot;##OdinModel#277&quot;, Float64, @NamedTuple{cases::Float64}}, MontyPacker}, Nothing, Nothing, Nothing}([&quot;beta&quot;, &quot;sigma&quot;, &quot;gamma&quot;], Odin.var&quot;#dust_likelihood_monty##0#dust_likelihood_monty##1&quot;{DustFilter{var&quot;##OdinModel#277&quot;, Float64, @NamedTuple{cases::Float64}}, MontyPacker}(DustFilter{var&quot;##OdinModel#277&quot;, Float64, @NamedTuple{cases::Float64}}(Odin.DustSystemGenerator{var&quot;##OdinModel#277&quot;}(var&quot;##OdinModel#277&quot;(0, [:incidence, :S, :E, :I, :R], [:beta, :sigma, :gamma, :k_E, :k_I, :I0, :N], false, false, true, false, false, Dict{Symbol, Array}(:n_EE =&gt; [0.0, 0.0, 0.0, 0.0], :n_II =&gt; [0.0, 0.0, 0.0, 0.0]))), Odin.FilterData{@NamedTuple{cases::Float64}}([1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0, 10.0  …  91.0, 92.0, 93.0, 94.0, 95.0, 96.0, 97.0, 98.0, 99.0, 100.0], [(cases = 1.0,), (cases = 1.0,), (cases = 1.0,), (cases = 1.0,), (cases = 1.0,), (cases = 1.0,), (cases = 1.0,), (cases = 1.0,), (cases = 1.0,), (cases = 1.0,)  …  (cases = 9999.0,), (cases = 9999.0,), (cases = 9999.0,), (cases = 9999.0,), (cases = 9999.0,), (cases = 9999.0,), (cases = 9999.0,), (cases = 9999.0,), (cases = 9999.0,), (cases = 9999.0,)]), 0.0, 100, 1.0, 42, false, nothing), MontyPacker([:beta, :sigma, :gamma], [:beta, :sigma, :gamma], Symbol[], Dict{Symbol, Tuple}(), Dict{Symbol, UnitRange{Int64}}(:beta =&gt; 1:1, :gamma =&gt; 3:3, :sigma =&gt; 2:2), 3, (k_E = 4.0, k_I = 4.0, I0 = 5.0, N = 10000.0), nothing)), nothing, nothing, nothing, Odin.MontyModelProperties(false, false, true, false)), MontyModel{var&quot;#10#11&quot;, var&quot;#12#13&quot;{var&quot;#10#11&quot;}, var&quot;#14#15&quot;, Matrix{Float64}}([&quot;beta&quot;, &quot;sigma&quot;, &quot;gamma&quot;], var&quot;#10#11&quot;(), var&quot;#12#13&quot;{var&quot;#10#11&quot;}(var&quot;#10#11&quot;()), var&quot;#14#15&quot;(), [0.0 Inf; 0.0 Inf; 0.0 Inf], Odin.MontyModelProperties(true, true, false, false)))), nothing, [0.0 Inf; 0.0 Inf; 0.0 Inf], Odin.MontyModelProperties(true, false, true, false))</code></pre><h3 id="Run-MCMC"><a class="docs-heading-anchor" href="#Run-MCMC">Run MCMC</a><a id="Run-MCMC-1"></a><a class="docs-heading-anchor-permalink" href="#Run-MCMC" title="Permalink"></a></h3><pre><code class="language-julia hljs">vcv = [0.005 0.0  0.0;
+       0.0   0.002 0.0;
+       0.0   0.0  0.001]
+sampler = random_walk(vcv)
+
+initial_theta = reshape([0.6, 0.15, 0.08], 3, 1)
+samples = sample(posterior, sampler, 3000;
+    initial=initial_theta, n_chains=1)</code></pre><pre><code class="nohighlight hljs">Odin.MontySamples([0.6 0.648356287486356 … 0.6142633577334465 0.6142633577334465; 0.15 0.15755402497282567 … 0.0279239043866717 0.0279239043866717; 0.08 0.1105313038292357 … 0.013373532856527046 0.013373532856527046;;;], [-7.495934924878691e6; -7.483557688649121e6; … ; -1.3384643683627895e6; -1.3384643683627895e6;;], [0.6; 0.15; 0.08;;], [&quot;beta&quot;, &quot;sigma&quot;, &quot;gamma&quot;], Dict{Symbol, Any}(:acceptance_rate =&gt; [0.006666666666666667]))</code></pre><h3 id="Posterior-distributions"><a class="docs-heading-anchor" href="#Posterior-distributions">Posterior distributions</a><a id="Posterior-distributions-1"></a><a class="docs-heading-anchor-permalink" href="#Posterior-distributions" title="Permalink"></a></h3><pre><code class="language-julia hljs">burnin = 500
+beta_post  = samples.pars[1, burnin:end, 1]
+sigma_post = samples.pars[2, burnin:end, 1]
+gamma_post = samples.pars[3, burnin:end, 1]
+
+println(&quot;Parameter estimates (posterior mean ± std):&quot;)
+for (name, vals, truth) in [(&quot;β&quot;, beta_post, 0.8),
+                             (&quot;σ&quot;, sigma_post, 0.2),
+                             (&quot;γ&quot;, gamma_post, 0.1)]
+    println(&quot;  $name: $(round(mean(vals), digits=3)) ± &quot; *
+            &quot;$(round(std(vals), digits=3)) (true: $truth)&quot;)
+end</code></pre><pre><code class="nohighlight hljs">Parameter estimates (posterior mean ± std):
+  β: 0.602 ± 0.012 (true: 0.8)
+  σ: 0.028 ± 0.001 (true: 0.2)
+  γ: 0.015 ± 0.004 (true: 0.1)</code></pre><pre><code class="language-julia hljs">p1 = histogram(beta_post, bins=30, normalize=true, label=&quot;&quot;,
+               xlabel=&quot;β&quot;, ylabel=&quot;Density&quot;, title=&quot;Posterior: β&quot;)
+vline!(p1, [0.8], color=:red, lw=2, label=&quot;True&quot;)
+
+p2 = histogram(sigma_post, bins=30, normalize=true, label=&quot;&quot;,
+               xlabel=&quot;σ&quot;, ylabel=&quot;Density&quot;, title=&quot;Posterior: σ&quot;)
+vline!(p2, [0.2], color=:red, lw=2, label=&quot;True&quot;)
+
+p3 = histogram(gamma_post, bins=30, normalize=true, label=&quot;&quot;,
+               xlabel=&quot;γ&quot;, ylabel=&quot;Density&quot;, title=&quot;Posterior: γ&quot;)
+vline!(p3, [0.1], color=:red, lw=2, label=&quot;True&quot;)
+
+plot(p1, p2, p3, layout=(1, 3), size=(900, 300))</code></pre><p><img src="11_delay_model_files/figure-commonmark/cell-9-output-1.svg" alt/></p><h3 id="Trace-plots"><a class="docs-heading-anchor" href="#Trace-plots">Trace plots</a><a id="Trace-plots-1"></a><a class="docs-heading-anchor-permalink" href="#Trace-plots" title="Permalink"></a></h3><pre><code class="language-julia hljs">p1 = plot(beta_post, xlabel=&quot;Iteration&quot;, ylabel=&quot;β&quot;,
+          title=&quot;Trace: β&quot;, label=&quot;&quot;)
+hline!(p1, [0.8], color=:red, lw=1.5, label=&quot;True&quot;)
+
+p2 = plot(sigma_post, xlabel=&quot;Iteration&quot;, ylabel=&quot;σ&quot;,
+          title=&quot;Trace: σ&quot;, label=&quot;&quot;)
+hline!(p2, [0.2], color=:red, lw=1.5, label=&quot;True&quot;)
+
+p3 = plot(gamma_post, xlabel=&quot;Iteration&quot;, ylabel=&quot;γ&quot;,
+          title=&quot;Trace: γ&quot;, label=&quot;&quot;)
+hline!(p3, [0.1], color=:red, lw=1.5, label=&quot;True&quot;)
+
+plot(p1, p2, p3, layout=(3, 1), size=(700, 500))</code></pre><p><img src="11_delay_model_files/figure-commonmark/cell-10-output-1.svg" alt/></p><h2 id="Summary"><a class="docs-heading-anchor" href="#Summary">Summary</a><a id="Summary-1"></a><a class="docs-heading-anchor-permalink" href="#Summary" title="Permalink"></a></h2><table><tr><th style="text-align: right">Feature</th><th style="text-align: right">Description</th></tr><tr><td style="text-align: right">Delay compartments</td><td style="text-align: right">Chain of <span>$k$</span> sub-compartments for Erlang-distributed sojourn times</td></tr><tr><td style="text-align: right"><code>dim(E) = k_E</code></td><td style="text-align: right">Parameterised array dimensions</td></tr><tr><td style="text-align: right">Erlang(<span>$k$</span>, <span>$k\sigma$</span>)</td><td style="text-align: right">Mean <span>$1/\sigma$</span> preserved; variance <span>$1/(k\sigma^2)$</span> decreases with <span>$k$</span></td></tr><tr><td style="text-align: right">Particle filter</td><td style="text-align: right">Likelihood estimation for stochastic model</td></tr><tr><td style="text-align: right">MCMC</td><td style="text-align: right">Posterior inference on <span>$\beta$</span>, <span>$\sigma$</span>, <span>$\gamma$</span></td></tr></table><p>The delay compartment technique is essential for realistic disease modelling — particularly for malaria (extrinsic incubation period), influenza (serial interval), and any process where the exponential assumption is too dispersed.</p></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../10_projections/">« Counterfactual Projections</a><a class="docs-footer-nextpage" href="../12_reactive_policy/">Reactive Vaccination Policy »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="auto">Automatic (OS)</option><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option><option value="catppuccin-latte">catppuccin-latte</option><option value="catppuccin-frappe">catppuccin-frappe</option><option value="catppuccin-macchiato">catppuccin-macchiato</option><option value="catppuccin-mocha">catppuccin-mocha</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 1.17.0 on <span class="colophon-date" title="Friday 27 March 2026 16:28">Friday 27 March 2026</span>. Using Julia version 1.12.5.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>

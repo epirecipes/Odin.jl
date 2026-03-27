@@ -1,0 +1,392 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width, initial-scale=1.0"/><title>Yellow Fever 2-Track Vaccination · Odin.jl</title><meta name="title" content="Yellow Fever 2-Track Vaccination · Odin.jl"/><meta property="og:title" content="Yellow Fever 2-Track Vaccination · Odin.jl"/><meta property="twitter:title" content="Yellow Fever 2-Track Vaccination · Odin.jl"/><meta name="description" content="Documentation for Odin.jl."/><meta property="og:description" content="Documentation for Odin.jl."/><meta property="twitter:description" content="Documentation for Odin.jl."/><script data-outdated-warner src="../../assets/warner.js"></script><link href="https://cdnjs.cloudflare.com/ajax/libs/lato-font/3.0.0/css/lato-font.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/juliamono/0.050/juliamono.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/fontawesome.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/solid.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/brands.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.8/katex.min.css" rel="stylesheet" type="text/css"/><script>documenterBaseURL="../.."</script><script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.6/require.min.js" data-main="../../assets/documenter.js"></script><script src="../../search_index.js"></script><script src="../../siteinfo.js"></script><script src="../../../versions.js"></script><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/catppuccin-mocha.css" data-theme-name="catppuccin-mocha"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/catppuccin-macchiato.css" data-theme-name="catppuccin-macchiato"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/catppuccin-frappe.css" data-theme-name="catppuccin-frappe"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/catppuccin-latte.css" data-theme-name="catppuccin-latte"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/documenter-dark.css" data-theme-name="documenter-dark" data-theme-primary-dark/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/documenter-light.css" data-theme-name="documenter-light" data-theme-primary/><script src="../../assets/themeswap.js"></script></head><body><div id="documenter"><nav class="docs-sidebar"><div class="docs-package-name"><span class="docs-autofit"><a href="../../">Odin.jl</a></span></div><button class="docs-search-query input is-rounded is-small is-clickable my-2 mx-auto py-1 px-2" id="documenter-search-query">Search docs (Ctrl + /)</button><ul class="docs-menu"><li><a class="tocitem" href="../../">Home</a></li><li><a class="tocitem" href="../../getting_started/">Getting Started</a></li><li><span class="tocitem">Guide</span><ul><li><a class="tocitem" href="../../dsl/">DSL Reference</a></li><li><a class="tocitem" href="../../simulation/">Simulation</a></li><li><a class="tocitem" href="../../filtering/">Filtering &amp; Likelihood</a></li><li><a class="tocitem" href="../../inference/">Inference</a></li><li><a class="tocitem" href="../../solvers/">ODE Solvers</a></li><li><a class="tocitem" href="../../gpu/">GPU Acceleration</a></li><li><a class="tocitem" href="../../categorical/">Categorical Models</a></li></ul></li><li><span class="tocitem">Vignettes</span><ul><li><input class="collapse-toggle" id="menuitem-4-1" type="checkbox"/><label class="tocitem" for="menuitem-4-1"><span class="docs-label">Basics</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../01_basic_ode/">Basic ODE Model: SIR</a></li><li><a class="tocitem" href="../02_stochastic/">Stochastic Discrete-Time SIR</a></li><li><a class="tocitem" href="../03_observations/">Incidence Tracking with zero_every</a></li><li><a class="tocitem" href="../04_arrays/">Age-Structured SIR with Arrays</a></li><li><a class="tocitem" href="../05_particle_filter/">Particle Filter and Likelihood</a></li><li><a class="tocitem" href="../06_inference/">Bayesian Inference with MCMC</a></li></ul></li><li><input class="collapse-toggle" id="menuitem-4-2" type="checkbox"/><label class="tocitem" for="menuitem-4-2"><span class="docs-label">Intermediate</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../07_categorical/">Compositional Model Building</a></li><li><a class="tocitem" href="../08_time_varying/">Time-Varying Parameters</a></li><li><a class="tocitem" href="../09_advanced/">SEIR with Vaccination and Waning</a></li><li><a class="tocitem" href="../10_projections/">Counterfactual Projections</a></li><li><a class="tocitem" href="../11_delay_model/">Delay Compartments</a></li><li><a class="tocitem" href="../12_reactive_policy/">Reactive Vaccination Policy</a></li><li><a class="tocitem" href="../13_dynamicppl/">DynamicPPL Integration</a></li><li><a class="tocitem" href="../14_delay_vaccination/">SEIR with Delay and Vaccination</a></li><li><a class="tocitem" href="../15_vector_borne/">Vector-Borne Disease Dynamics</a></li></ul></li><li><input class="collapse-toggle" id="menuitem-4-3" type="checkbox" checked/><label class="tocitem" for="menuitem-4-3"><span class="docs-label">Advanced Models</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../16_multi_stream/">Multi-Stream Outbreak</a></li><li><a class="tocitem" href="../17_mpox_seir/">Mpox SEIR: Age-Structured</a></li><li><a class="tocitem" href="../18_malaria_simple/">Malaria: Ross-Macdonald</a></li><li><a class="tocitem" href="../19_sarscov2_multiregion/">SARS-CoV-2 Multi-Region</a></li><li><a class="tocitem" href="../20_yellowfever/">Yellow Fever SEIRV</a></li><li><a class="tocitem" href="../21_school_closure/">SIS with School Closure</a></li><li><a class="tocitem" href="../22_beta_blocks/">Beta Blocks</a></li><li><a class="tocitem" href="../23_orov/">OROV Vector-Borne</a></li><li><a class="tocitem" href="../24_yf_delay/">Yellow Fever with Erlang Delay</a></li><li class="is-active"><a class="tocitem" href>Yellow Fever 2-Track Vaccination</a><ul class="internal"><li><a class="tocitem" href="#Introduction"><span>Introduction</span></a></li><li><a class="tocitem" href="#Model-Description"><span>Model Description</span></a></li><li><a class="tocitem" href="#Model-Definition"><span>Model Definition</span></a></li><li><a class="tocitem" href="#Parameter-Setup"><span>Parameter Setup</span></a></li><li><a class="tocitem" href="#Simulation"><span>Simulation</span></a></li><li><a class="tocitem" href="#Visualization"><span>Visualization</span></a></li><li><a class="tocitem" href="#Population-Conservation-Check"><span>Population Conservation Check</span></a></li><li><a class="tocitem" href="#Scenario:-No-Vaccination"><span>Scenario: No Vaccination</span></a></li><li><a class="tocitem" href="#Particle-Filter"><span>Particle Filter</span></a></li><li><a class="tocitem" href="#Summary"><span>Summary</span></a></li></ul></li><li><a class="tocitem" href="../26_fitting_workflow/">Complete Fitting Workflow</a></li><li><a class="tocitem" href="../27_spatial_composition/">Spatial Composition</a></li><li><a class="tocitem" href="../28_stratification/">Age Stratification</a></li><li><a class="tocitem" href="../29_multi_pathogen/">Multi-Pathogen Composition</a></li></ul></li><li><input class="collapse-toggle" id="menuitem-4-4" type="checkbox"/><label class="tocitem" for="menuitem-4-4"><span class="docs-label">Techniques</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../30_stiff_ode/">Stiff ODEs: SDIRK4 Solver</a></li><li><a class="tocitem" href="../31_gpu_filter/">GPU-Accelerated Filtering</a></li><li><a class="tocitem" href="../32_advanced_samplers/">Advanced MCMC Samplers</a></li><li><a class="tocitem" href="../33_sensitivity/">Sensitivity Analysis</a></li><li><a class="tocitem" href="../34_events/">Event Handling</a></li><li><a class="tocitem" href="../35_sde/">Stochastic Differential Equations</a></li><li><a class="tocitem" href="../36_model_selection/">Model Selection</a></li><li><a class="tocitem" href="../37_model_validation/">Model Validation</a></li></ul></li></ul></li><li><a class="tocitem" href="../../api/">API Reference</a></li></ul><div class="docs-version-selector field has-addons"><div class="control"><span class="docs-label button is-static is-size-7">Version</span></div><div class="docs-selector control is-expanded"><div class="select is-fullwidth is-size-7"><select id="documenter-version-selector"></select></div></div></div></nav><div class="docs-main"><header class="docs-navbar"><a class="docs-sidebar-button docs-navbar-link fa-solid fa-bars is-hidden-desktop" id="documenter-sidebar-button" href="#"></a><nav class="breadcrumb"><ul class="is-hidden-mobile"><li><a class="is-disabled">Vignettes</a></li><li><a class="is-disabled">Advanced Models</a></li><li class="is-active"><a href>Yellow Fever 2-Track Vaccination</a></li></ul><ul class="is-hidden-tablet"><li class="is-active"><a href>Yellow Fever 2-Track Vaccination</a></li></ul></nav><div class="docs-right"><a class="docs-navbar-link" href="https://github.com/epirecipes/Odin.jl" title="View the repository on GitHub"><span class="docs-icon fa-brands"></span><span class="docs-label is-hidden-touch">GitHub</span></a><a class="docs-settings-button docs-navbar-link fa-solid fa-gear" id="documenter-settings-button" href="#" title="Settings"></a><a class="docs-article-toggle-button fa-solid fa-chevron-up" id="documenter-article-toggle-button" href="javascript:;" title="Collapse all docstrings"></a></div></header><article class="content" id="documenter-page"><h1 id="Yellow-Fever-SEIR-with-2-Track-Vaccination"><a class="docs-heading-anchor" href="#Yellow-Fever-SEIR-with-2-Track-Vaccination">Yellow Fever SEIR with 2-Track Vaccination</a><a id="Yellow-Fever-SEIR-with-2-Track-Vaccination-1"></a><a class="docs-heading-anchor-permalink" href="#Yellow-Fever-SEIR-with-2-Track-Vaccination" title="Permalink"></a></h1><h2 id="Introduction"><a class="docs-heading-anchor" href="#Introduction">Introduction</a><a id="Introduction-1"></a><a class="docs-heading-anchor-permalink" href="#Introduction" title="Permalink"></a></h2><p>Standard compartmental vaccination models use a single V compartment for vaccinated individuals. A <strong>2-track</strong> approach instead replicates the full disease progression (S → E → I → R) into two parallel tracks:</p><table><tr><th style="text-align: right">Track</th><th style="text-align: right">Population</th><th style="text-align: right">Susceptibility</th></tr><tr><td style="text-align: right">Track 1</td><td style="text-align: right">Unvaccinated</td><td style="text-align: right">Full (FOI)</td></tr><tr><td style="text-align: right">Track 2</td><td style="text-align: right">Vaccinated</td><td style="text-align: right">Reduced by vaccine efficacy</td></tr></table><p>This structure captures several realistic features:</p><ul><li><strong>Vaccinated individuals can still become infected</strong> (imperfect vaccine)</li><li><strong>Different infection rates</strong> for vaccinated vs unvaccinated</li><li><strong>Separate tracking</strong> of outcomes by vaccination status</li><li><strong>Extensibility</strong> to waning immunity, dose-specific effects, etc.</li></ul><p>This vignette ports the <a href="https://github.com/mrc-ide/YEP">YEP</a> <code>SEIRModelVtrack</code> model from R odin to Odin.jl, using 2D arrays <code>(N_age × 2)</code> for each compartment.</p><pre><code class="language-julia hljs">using Odin
+using Plots
+using Statistics
+using Random</code></pre><h2 id="Model-Description"><a class="docs-heading-anchor" href="#Model-Description">Model Description</a><a id="Model-Description-1"></a><a class="docs-heading-anchor-permalink" href="#Model-Description" title="Permalink"></a></h2><h3 id="State-variables"><a class="docs-heading-anchor" href="#State-variables">State variables</a><a id="State-variables-1"></a><a class="docs-heading-anchor-permalink" href="#State-variables" title="Permalink"></a></h3><p>For each of <span>$a = 1, \ldots, N_\text{age}$</span> age groups and <span>$j \in \{1, 2\}$</span> tracks:</p><ul><li><p class="math-container">\[S_{a,j}\]</p>— Susceptible</li><li><p class="math-container">\[E_{a,j}\]</p>— Exposed (latent)</li><li><p class="math-container">\[I_{a,j}\]</p>— Infectious</li><li><p class="math-container">\[R_{a,j}\]</p>— Recovered (immune)</li><li><p class="math-container">\[C_a\]</p>— New cases per time step (summed across tracks)</li></ul><h3 id="Force-of-infection"><a class="docs-heading-anchor" href="#Force-of-infection">Force of infection</a><a id="Force-of-infection-1"></a><a class="docs-heading-anchor-permalink" href="#Force-of-infection" title="Permalink"></a></h3><p class="math-container">\[\lambda(t) = \min\!\left(1,\;\frac{R_0(t)}{t_\text{inf}} \cdot
+\frac{\sum_{a,j} I_{a,j}}{P_\text{tot}} + \text{FOI}_\text{spill}(t)\right)\]</p><p>Infection probabilities differ by track:</p><ul><li><strong>Unvaccinated</strong>: <span>$p_\text{inf} = 1 - e^{-\lambda \cdot \Delta t}$</span></li><li><strong>Vaccinated</strong>: <span>$p_\text{inf,v} = 1 - e^{-\lambda (1-\varepsilon) \cdot \Delta t}$</span></li></ul><p>where <span>$\varepsilon$</span> is vaccine efficacy.</p><h3 id="Vaccination"><a class="docs-heading-anchor" href="#Vaccination">Vaccination</a><a id="Vaccination-1"></a><a class="docs-heading-anchor-permalink" href="#Vaccination" title="Permalink"></a></h3><p>At each step, a proportion of unvaccinated S and R individuals move to track 2:</p><p class="math-container">\[S_\text{vax}[a] = v_a \cdot S_{a,1} \cdot \Delta t, \quad
+R_\text{vax}[a] = v_a \cdot R_{a,1} \cdot \Delta t\]</p><h3 id="Aging"><a class="docs-heading-anchor" href="#Aging">Aging</a><a id="Aging-1"></a><a class="docs-heading-anchor-permalink" href="#Aging" title="Permalink"></a></h3><p>Individuals age between groups via demographic flows <code>dP1</code> (inflow) and <code>dP2</code> (outflow), distributed proportionally across compartments within each age group.</p><h2 id="Model-Definition"><a class="docs-heading-anchor" href="#Model-Definition">Model Definition</a><a id="Model-Definition-1"></a><a class="docs-heading-anchor-permalink" href="#Model-Definition" title="Permalink"></a></h2><pre><code class="language-julia hljs">yf_vtrack = @odin begin
+    # === Configuration ===
+    N_age = parameter(5)
+
+    # === Dimensions: 2D arrays (age × vaccination track) ===
+    dim(S) = c(N_age, 2)
+    dim(E) = c(N_age, 2)
+    dim(I) = c(N_age, 2)
+    dim(R) = c(N_age, 2)
+    dim(C) = N_age
+
+    dim(S_0) = c(N_age, 2)
+    dim(E_0) = c(N_age, 2)
+    dim(I_0) = c(N_age, 2)
+    dim(R_0) = c(N_age, 2)
+
+    dim(E_new) = c(N_age, 2)
+    dim(I_new) = c(N_age, 2)
+    dim(R_new) = c(N_age, 2)
+    dim(S_new_V) = N_age
+    dim(R_new_V) = N_age
+
+    dim(P_nV) = N_age
+    dim(inv_P_nV) = N_age
+    dim(P) = N_age
+    dim(inv_P) = N_age
+    dim(dP1) = N_age
+    dim(dP2) = N_age
+
+    # === Epidemiological parameters ===
+    t_latent = parameter(5.0)
+    t_infectious = parameter(5.0)
+    vaccine_efficacy = parameter(0.95)
+    rate1 = 1.0 / t_latent
+    rate2 = 1.0 / t_infectious
+
+    # === Time-varying R0 and spillover ===
+    R0_t = interpolate(R0_time, R0_value, :linear)
+    FOI_sp = interpolate(sp_time, sp_value, :linear)
+    beta = R0_t / t_infectious
+
+    # === Population totals (S + R only, as in the original model) ===
+    P_nV[i] = max(S[i, 1] + R[i, 1], 1e-99)
+    inv_P_nV[i] = 1.0 / P_nV[i]
+    P[i] = max(S[i, 1] + R[i, 1] + S[i, 2] + R[i, 2], 1e-99)
+    inv_P[i] = 1.0 / P[i]
+    P_tot = sum(P)
+    I_tot = sum(I)
+
+    # === Force of infection ===
+    FOI_raw = beta * I_tot / max(P_tot, 1.0) + FOI_sp
+    FOI_sum = min(1.0, FOI_raw)
+
+    # === Transition probabilities ===
+    p_inf = 1 - exp(-FOI_sum * dt)
+    p_inf_vacc = 1 - exp(-FOI_sum * (1.0 - vaccine_efficacy) * dt)
+    p_lat = 1 - exp(-rate1 * dt)
+    p_rec = 1 - exp(-rate2 * dt)
+
+    # === Stochastic transitions (track-dependent infection probability) ===
+    E_new[i, j] = if (j == 1) Binomial(S[i, j], p_inf) else Binomial(S[i, j], p_inf_vacc) end
+    I_new[i, j] = Binomial(E[i, j], p_lat)
+    R_new[i, j] = Binomial(I[i, j], p_rec)
+
+    # === Vaccination flows (track 1 → track 2) ===
+    S_new_V[i] = vacc_rate[i] * S[i, 1] * dt
+    R_new_V[i] = vacc_rate[i] * R[i, 1] * dt
+
+    # === Demographic flows ===
+    dP1_rate = interpolate(dP1_time, dP1_value, :constant)
+    dP2_rate = interpolate(dP2_time, dP2_value, :constant)
+    dP1[i] = dP1_rate * 0.01
+    dP2[i] = dP2_rate * 0.01
+
+    # === State updates: S track 1 (unvaccinated) ===
+    update(S[1, 1]) = max(0.0, S[1, 1] - E_new[1, 1] - S_new_V[1]
+                          + dP1[1] - dP2[1] * S[1, 1] * inv_P[1])
+    update(S[2:N_age, 1]) = max(0.0, S[i, 1] - E_new[i, 1] - S_new_V[i]
+                                + dP1[i] * S[i - 1, 1] * inv_P[i - 1]
+                                - dP2[i] * S[i, 1] * inv_P[i])
+
+    # === State updates: S track 2 (vaccinated) ===
+    update(S[1, 2]) = max(0.0, S[1, 2] - E_new[1, 2] + S_new_V[1]
+                          - dP2[1] * S[1, 2] * inv_P[1])
+    update(S[2:N_age, 2]) = max(0.0, S[i, 2] - E_new[i, 2] + S_new_V[i]
+                                + dP1[i] * S[i - 1, 2] * inv_P[i - 1]
+                                - dP2[i] * S[i, 2] * inv_P[i])
+
+    # === E and I: same rule for both tracks ===
+    update(E[1:N_age, 1:2]) = max(0.0, E[i, j] + E_new[i, j] - I_new[i, j])
+    update(I[1:N_age, 1:2]) = max(0.0, I[i, j] + I_new[i, j] - R_new[i, j])
+
+    # === R track 1 (unvaccinated) ===
+    update(R[1, 1]) = max(0.0, R[1, 1] + R_new[1, 1] - R_new_V[1]
+                          - dP2[1] * R[1, 1] * inv_P[1])
+    update(R[2:N_age, 1]) = max(0.0, R[i, 1] + R_new[i, 1] - R_new_V[i]
+                                + dP1[i] * R[i - 1, 1] * inv_P[i - 1]
+                                - dP2[i] * R[i, 1] * inv_P[i])
+
+    # === R track 2 (vaccinated) ===
+    update(R[1, 2]) = max(0.0, R[1, 2] + R_new[1, 2] + R_new_V[1]
+                          - dP2[1] * R[1, 2] * inv_P[1])
+    update(R[2:N_age, 2]) = max(0.0, R[i, 2] + R_new[i, 2] + R_new_V[i]
+                                + dP1[i] * R[i - 1, 2] * inv_P[i - 1]
+                                - dP2[i] * R[i, 2] * inv_P[i])
+
+    # === New cases per step (both tracks) ===
+    initial(C[i], zero_every = 1) = 0
+    update(C[i]) = I_new[i, 1] + I_new[i, 2]
+
+    # === Outputs ===
+    output(FOI_total) = FOI_sum
+    output(total_I) = I_tot
+    output(total_pop) = P_tot
+
+    # === Data comparison for particle filter ===
+    cases = data()
+    C_total = sum(C)
+    cases ~ Poisson(max(C_total, 1e-6))
+
+    # === Initial conditions ===
+    initial(S[i, j]) = S_0[i, j]
+    initial(E[i, j]) = E_0[i, j]
+    initial(I[i, j]) = I_0[i, j]
+    initial(R[i, j]) = R_0[i, j]
+
+    # === Parameters ===
+    S_0 = parameter()
+    E_0 = parameter()
+    I_0 = parameter()
+    R_0 = parameter()
+    vacc_rate = parameter(rank = 1)
+
+    R0_time = parameter(rank = 1)
+    R0_value = parameter(rank = 1)
+    sp_time = parameter(rank = 1)
+    sp_value = parameter(rank = 1)
+    dP1_time = parameter(rank = 1)
+    dP1_value = parameter(rank = 1)
+    dP2_time = parameter(rank = 1)
+    dP2_value = parameter(rank = 1)
+end</code></pre><pre><code class="nohighlight hljs">Odin.DustSystemGenerator{var&quot;##OdinModel#277&quot;}(var&quot;##OdinModel#277&quot;(0, [:C, :S, :E, :I, :R], [:N_age, :t_latent, :t_infectious, :vaccine_efficacy, :S_0, :E_0, :I_0, :R_0, :vacc_rate, :R0_time, :R0_value, :sp_time, :sp_value, :dP1_time, :dP1_value, :dP2_time, :dP2_value], false, false, true, true, true, Dict{Symbol, Array}()))</code></pre><h2 id="Parameter-Setup"><a class="docs-heading-anchor" href="#Parameter-Setup">Parameter Setup</a><a id="Parameter-Setup-1"></a><a class="docs-heading-anchor-permalink" href="#Parameter-Setup" title="Permalink"></a></h2><h3 id="Demographics"><a class="docs-heading-anchor" href="#Demographics">Demographics</a><a id="Demographics-1"></a><a class="docs-heading-anchor-permalink" href="#Demographics" title="Permalink"></a></h3><p>Five age groups representing a typical sub-Saharan African distribution:</p><pre><code class="language-julia hljs">N_age = 5
+age_labels = [&quot;0–4&quot;, &quot;5–14&quot;, &quot;15–24&quot;, &quot;25–49&quot;, &quot;50+&quot;]
+age_colors = [:blue, :red, :green, :orange, :purple]
+
+pop = [150_000.0, 250_000.0, 200_000.0, 150_000.0, 100_000.0]
+N_total = sum(pop)
+println(&quot;Total population: &quot;, Int(N_total))</code></pre><pre><code class="nohighlight hljs">Total population: 850000</code></pre><h3 id="Initial-conditions"><a class="docs-heading-anchor" href="#Initial-conditions">Initial conditions</a><a id="Initial-conditions-1"></a><a class="docs-heading-anchor-permalink" href="#Initial-conditions" title="Permalink"></a></h3><p>Most of the population starts unvaccinated (track 1). A fraction is pre-vaccinated (track 2), and some have prior immunity:</p><pre><code class="language-julia hljs">S_0 = zeros(N_age, 2)
+E_0 = zeros(N_age, 2)
+I_0 = zeros(N_age, 2)
+R_0 = zeros(N_age, 2)
+
+# Pre-existing immunity in track 1 (unvaccinated recovered)
+immun_frac = [0.05, 0.10, 0.15, 0.20, 0.30]
+for i in 1:N_age
+    R_0[i, 1] = round(pop[i] * immun_frac[i])
+end
+
+# Pre-existing vaccination: fraction starts in track 2 (susceptible vaccinated)
+vacc_frac = [0.20, 0.30, 0.15, 0.10, 0.05]
+for i in 1:N_age
+    S_0[i, 2] = round(pop[i] * vacc_frac[i])
+end
+
+# Remaining population is unvaccinated susceptible (track 1)
+for i in 1:N_age
+    S_0[i, 1] = pop[i] - R_0[i, 1] - S_0[i, 2]
+end
+
+# Seed 50 infections in age group 3 (15–24), unvaccinated track
+I_0[3, 1] = 50.0
+S_0[3, 1] -= 50.0
+
+println(&quot;S_0 (unvacc): &quot;, S_0[:, 1])
+println(&quot;S_0 (vacc):   &quot;, S_0[:, 2])
+println(&quot;R_0 (unvacc): &quot;, R_0[:, 1])
+println(&quot;I_0 (unvacc): &quot;, I_0[:, 1])</code></pre><pre><code class="nohighlight hljs">S_0 (unvacc): [112500.0, 150000.0, 139950.0, 105000.0, 65000.0]
+S_0 (vacc):   [30000.0, 75000.0, 30000.0, 15000.0, 5000.0]
+R_0 (unvacc): [7500.0, 25000.0, 30000.0, 30000.0, 30000.0]
+I_0 (unvacc): [0.0, 0.0, 50.0, 0.0, 0.0]</code></pre><h3 id="Time-varying-parameters"><a class="docs-heading-anchor" href="#Time-varying-parameters">Time-varying parameters</a><a id="Time-varying-parameters-1"></a><a class="docs-heading-anchor-permalink" href="#Time-varying-parameters" title="Permalink"></a></h3><pre><code class="language-julia hljs">n_years = 5
+t_end = 365.0 * n_years
+
+# R0: seasonal pattern (range 2–5)
+R0_time = collect(0.0:30.0:(t_end + 30.0))
+R0_value = [3.5 + 1.5 * sin(2π * t / 365) for t in R0_time]
+
+# Spillover FOI: background + seasonal pulses
+sp_time = collect(0.0:30.0:(t_end + 30.0))
+sp_value = [1e-6 + 5e-5 * max(0, sin(2π * t / 365 - π/3))^3 for t in sp_time]
+
+# Simple constant demographic rates
+dP1_time = [0.0, t_end + 1.0]
+dP1_value = [1.0, 1.0]
+dP2_time = [0.0, t_end + 1.0]
+dP2_value = [1.0, 1.0]
+
+# Vaccination rates by age group (daily per-capita)
+vacc_rate = [0.001, 0.0008, 0.0005, 0.0003, 0.0001]
+
+plot(R0_time[1:25], R0_value[1:25], lw=2, color=:steelblue,
+     xlabel=&quot;Day&quot;, ylabel=&quot;R0&quot;, title=&quot;Time-varying R0 (first 2 years)&quot;,
+     label=&quot;R0&quot;, legend=:topright)</code></pre><p><img src="../25_yf_vtrack_files/figure-commonmark/cell-6-output-1.svg" alt/></p><h3 id="Assemble-parameters"><a class="docs-heading-anchor" href="#Assemble-parameters">Assemble parameters</a><a id="Assemble-parameters-1"></a><a class="docs-heading-anchor-permalink" href="#Assemble-parameters" title="Permalink"></a></h3><pre><code class="language-julia hljs">pars = (
+    N_age = Float64(N_age),
+    t_latent = 5.0,
+    t_infectious = 5.0,
+    vaccine_efficacy = 0.95,
+    S_0 = S_0,
+    E_0 = E_0,
+    I_0 = I_0,
+    R_0 = R_0,
+    vacc_rate = vacc_rate,
+    R0_time = R0_time,
+    R0_value = R0_value,
+    sp_time = sp_time,
+    sp_value = sp_value,
+    dP1_time = dP1_time,
+    dP1_value = dP1_value,
+    dP2_time = dP2_time,
+    dP2_value = dP2_value,
+)</code></pre><pre><code class="nohighlight hljs">(N_age = 5.0, t_latent = 5.0, t_infectious = 5.0, vaccine_efficacy = 0.95, S_0 = [112500.0 30000.0; 150000.0 75000.0; … ; 105000.0 15000.0; 65000.0 5000.0], E_0 = [0.0 0.0; 0.0 0.0; … ; 0.0 0.0; 0.0 0.0], I_0 = [0.0 0.0; 0.0 0.0; … ; 0.0 0.0; 0.0 0.0], R_0 = [7500.0 0.0; 25000.0 0.0; … ; 30000.0 0.0; 30000.0 0.0], vacc_rate = [0.001, 0.0008, 0.0005, 0.0003, 0.0001], R0_time = [0.0, 30.0, 60.0, 90.0, 120.0, 150.0, 180.0, 210.0, 240.0, 270.0  …  1560.0, 1590.0, 1620.0, 1650.0, 1680.0, 1710.0, 1740.0, 1770.0, 1800.0, 1830.0], R0_value = [3.5, 4.240663325239966, 4.788145937413704, 4.999652752969836, 4.8200183059603035, 4.2960950722429, 3.564533349506796, 2.8161399597373116, 2.246111780872045, 2.003124258701912  …  4.983016385348511, 4.678474782618075, 4.066561947805955, 3.3068777338211284, 2.5975639051626143, 2.1236245609109092, 2.008673139659072, 2.2826914114889583, 2.874209596081522, 3.628947198106164], sp_time = [0.0, 30.0, 60.0, 90.0, 120.0, 150.0, 180.0, 210.0, 240.0, 270.0  …  1560.0, 1590.0, 1620.0, 1650.0, 1680.0, 1710.0, 1740.0, 1770.0, 1800.0, 1830.0], sp_value = [1.0e-6, 1.0e-6, 1.0e-6, 6.5729391399279415e-6, 3.185015736396266e-5, 5.0903611113164396e-5, 3.586190273481683e-5, 8.997773041104356e-6, 1.0094308797359557e-6, 1.0e-6  …  1.3165510956508187e-5, 4.103779800864081e-5, 4.962210888744134e-5, 2.6070287784826442e-5, 3.98770453944338e-6, 1.0e-6, 1.0e-6, 1.0e-6, 1.0e-6, 1.0e-6], dP1_time = [0.0, 1826.0], dP1_value = [1.0, 1.0], dP2_time = [0.0, 1826.0], dP2_value = [1.0, 1.0])</code></pre><h2 id="Simulation"><a class="docs-heading-anchor" href="#Simulation">Simulation</a><a id="Simulation-1"></a><a class="docs-heading-anchor-permalink" href="#Simulation" title="Permalink"></a></h2><pre><code class="language-julia hljs">n_particles = 10
+sim_times = collect(0.0:1.0:t_end)
+
+result = simulate(yf_vtrack, pars;
+    times=sim_times, dt=1.0, seed=42, n_particles=n_particles)
+
+println(&quot;Result shape: &quot;, size(result),
+        &quot;  (n_state+n_output × n_particles × n_times)&quot;)</code></pre><pre><code class="nohighlight hljs">Result shape: (48, 10, 1826)  (n_state+n_output × n_particles × n_times)</code></pre><h3 id="State-layout"><a class="docs-heading-anchor" href="#State-layout">State layout</a><a id="State-layout-1"></a><a class="docs-heading-anchor-permalink" href="#State-layout" title="Permalink"></a></h3><p>The 2D arrays are stored column-major: all of column 1 (unvaccinated), then column 2 (vaccinated). With <code>N_age=5</code>:</p><pre><code class="language-julia hljs"># State order follows initial() declaration:
+# C[1:5], S[6:15] (5 unvacc + 5 vacc), E[16:25], I[26:35], R[36:45]
+idx_C = 1:N_age
+idx_S = (N_age + 1):(3 * N_age)
+idx_E = (3 * N_age + 1):(5 * N_age)
+idx_I = (5 * N_age + 1):(7 * N_age)
+idx_R = (7 * N_age + 1):(9 * N_age)
+out_offset = 9 * N_age
+
+# Within each 2D block: first N_age = track 1, next N_age = track 2
+idx_S1 = (N_age + 1):(2 * N_age)      # S unvaccinated
+idx_S2 = (2 * N_age + 1):(3 * N_age)  # S vaccinated
+idx_I1 = (5 * N_age + 1):(6 * N_age)  # I unvaccinated
+idx_I2 = (6 * N_age + 1):(7 * N_age)  # I vaccinated
+idx_R1 = (7 * N_age + 1):(8 * N_age)  # R unvaccinated
+idx_R2 = (8 * N_age + 1):(9 * N_age)  # R vaccinated
+
+println(&quot;State variables: &quot;, 9 * N_age, &quot; + 3 outputs&quot;)</code></pre><pre><code class="nohighlight hljs">State variables: 45 + 3 outputs</code></pre><h2 id="Visualization"><a class="docs-heading-anchor" href="#Visualization">Visualization</a><a id="Visualization-1"></a><a class="docs-heading-anchor-permalink" href="#Visualization" title="Permalink"></a></h2><h3 id="SEIR-by-track"><a class="docs-heading-anchor" href="#SEIR-by-track">SEIR by track</a><a id="SEIR-by-track-1"></a><a class="docs-heading-anchor-permalink" href="#SEIR-by-track" title="Permalink"></a></h3><pre><code class="language-julia hljs">S1_total = vec(mean(sum(result[idx_S1, :, :], dims=1), dims=2))
+S2_total = vec(mean(sum(result[idx_S2, :, :], dims=1), dims=2))
+I1_total = vec(mean(sum(result[idx_I1, :, :], dims=1), dims=2))
+I2_total = vec(mean(sum(result[idx_I2, :, :], dims=1), dims=2))
+
+p = plot(xlabel=&quot;Day&quot;, ylabel=&quot;Population&quot;,
+         title=&quot;Susceptible by Vaccination Track&quot;,
+         legend=:right, size=(900, 400))
+plot!(p, sim_times, S1_total, lw=2, label=&quot;S unvaccinated&quot;, color=:blue)
+plot!(p, sim_times, S2_total, lw=2, label=&quot;S vaccinated&quot;, color=:cyan)
+p</code></pre><p><img src="../25_yf_vtrack_files/figure-commonmark/cell-10-output-1.svg" alt/></p><h3 id="Infectious-by-track"><a class="docs-heading-anchor" href="#Infectious-by-track">Infectious by track</a><a id="Infectious-by-track-1"></a><a class="docs-heading-anchor-permalink" href="#Infectious-by-track" title="Permalink"></a></h3><pre><code class="language-julia hljs">p = plot(xlabel=&quot;Day&quot;, ylabel=&quot;Mean Infectious&quot;,
+         title=&quot;Infectious: Unvaccinated vs Vaccinated&quot;,
+         legend=:topright, size=(900, 400))
+plot!(p, sim_times, I1_total, lw=2, label=&quot;I unvaccinated&quot;, color=:red)
+plot!(p, sim_times, I2_total, lw=2, label=&quot;I vaccinated&quot;, color=:salmon)
+p</code></pre><p><img src="../25_yf_vtrack_files/figure-commonmark/cell-11-output-1.svg" alt/></p><h3 id="Infectious-by-age-group-(total)"><a class="docs-heading-anchor" href="#Infectious-by-age-group-(total)">Infectious by age group (total)</a><a id="Infectious-by-age-group-(total)-1"></a><a class="docs-heading-anchor-permalink" href="#Infectious-by-age-group-(total)" title="Permalink"></a></h3><pre><code class="language-julia hljs">p = plot(xlabel=&quot;Day&quot;, ylabel=&quot;Mean Infectious&quot;,
+         title=&quot;Infectious by Age Group (both tracks)&quot;,
+         legend=:topright, size=(900, 400))
+for a in 1:N_age
+    I_a = vec(mean(result[idx_I1[a], :, :] .+ result[idx_I2[a], :, :], dims=1))
+    plot!(p, sim_times, I_a, lw=2, color=age_colors[a], label=age_labels[a])
+end
+p</code></pre><p><img src="../25_yf_vtrack_files/figure-commonmark/cell-12-output-1.svg" alt/></p><h3 id="Force-of-infection-2"><a class="docs-heading-anchor" href="#Force-of-infection-2">Force of infection</a><a class="docs-heading-anchor-permalink" href="#Force-of-infection-2" title="Permalink"></a></h3><pre><code class="language-julia hljs">FOI = vec(mean(result[out_offset + 1, :, :], dims=1))
+
+plot(sim_times, FOI, lw=1.5, color=:darkred,
+     xlabel=&quot;Day&quot;, ylabel=&quot;FOI&quot;,
+     title=&quot;Total Force of Infection (mean across particles)&quot;,
+     label=&quot;FOI&quot;, legend=:topright, size=(900, 350))</code></pre><p><img src="../25_yf_vtrack_files/figure-commonmark/cell-13-output-1.svg" alt/></p><h3 id="Vaccination-coverage-over-time"><a class="docs-heading-anchor" href="#Vaccination-coverage-over-time">Vaccination coverage over time</a><a id="Vaccination-coverage-over-time-1"></a><a class="docs-heading-anchor-permalink" href="#Vaccination-coverage-over-time" title="Permalink"></a></h3><p>Track how the vaccinated pool grows and unvaccinated shrinks:</p><pre><code class="language-julia hljs">p = plot(xlabel=&quot;Day&quot;, ylabel=&quot;Population&quot;,
+         title=&quot;Track Populations Over Time&quot;,
+         legend=:right, size=(900, 400))
+
+# Sum S+R across ages for each track (the &quot;targetable&quot; pool)
+SR1 = vec(mean(sum(result[idx_S1, :, :], dims=1) .+
+               sum(result[idx_R1, :, :], dims=1), dims=2))
+SR2 = vec(mean(sum(result[idx_S2, :, :], dims=1) .+
+               sum(result[idx_R2, :, :], dims=1), dims=2))
+
+plot!(p, sim_times, SR1, lw=2, label=&quot;S+R unvaccinated&quot;, color=:blue)
+plot!(p, sim_times, SR2, lw=2, label=&quot;S+R vaccinated&quot;, color=:green)
+p</code></pre><p><img src="../25_yf_vtrack_files/figure-commonmark/cell-14-output-1.svg" alt/></p><h3 id="Cumulative-cases-by-age"><a class="docs-heading-anchor" href="#Cumulative-cases-by-age">Cumulative cases by age</a><a id="Cumulative-cases-by-age-1"></a><a class="docs-heading-anchor-permalink" href="#Cumulative-cases-by-age" title="Permalink"></a></h3><pre><code class="language-julia hljs">cum_cases = zeros(N_age, length(sim_times))
+for a in 1:N_age
+    daily = vec(mean(result[idx_C[a], :, :], dims=1))
+    cum_cases[a, :] = cumsum(daily)
+end
+
+p = plot(xlabel=&quot;Day&quot;, ylabel=&quot;Cumulative Cases&quot;,
+         title=&quot;Cumulative Cases by Age Group&quot;,
+         legend=:topleft, size=(900, 400))
+for a in 1:N_age
+    plot!(p, sim_times, cum_cases[a, :], lw=2,
+          color=age_colors[a], label=age_labels[a])
+end
+p</code></pre><p><img src="../25_yf_vtrack_files/figure-commonmark/cell-15-output-1.svg" alt/></p><h3 id="Stochastic-variability"><a class="docs-heading-anchor" href="#Stochastic-variability">Stochastic variability</a><a id="Stochastic-variability-1"></a><a class="docs-heading-anchor-permalink" href="#Stochastic-variability" title="Permalink"></a></h3><pre><code class="language-julia hljs">p = plot(xlabel=&quot;Day&quot;, ylabel=&quot;Total Infectious&quot;,
+         title=&quot;Stochastic Variability ($n_particles realisations)&quot;,
+         legend=false, size=(900, 400))
+for i in 1:n_particles
+    I_tot = sum(result[idx_I, i, :], dims=1)[:]
+    plot!(p, sim_times, I_tot, color=:red, alpha=0.4, lw=0.8)
+end
+I_mean = vec(mean(sum(result[idx_I, :, :], dims=1), dims=2))
+plot!(p, sim_times, I_mean, color=:black, lw=3)
+p</code></pre><p><img src="../25_yf_vtrack_files/figure-commonmark/cell-16-output-1.svg" alt/></p><h2 id="Population-Conservation-Check"><a class="docs-heading-anchor" href="#Population-Conservation-Check">Population Conservation Check</a><a id="Population-Conservation-Check-1"></a><a class="docs-heading-anchor-permalink" href="#Population-Conservation-Check" title="Permalink"></a></h2><pre><code class="language-julia hljs">pop_t = zeros(n_particles, length(sim_times))
+for i in 1:n_particles
+    pop_t[i, :] = sum(result[idx_S, i, :], dims=1)[:] .+
+                  sum(result[idx_E, i, :], dims=1)[:] .+
+                  sum(result[idx_I, i, :], dims=1)[:] .+
+                  sum(result[idx_R, i, :], dims=1)[:]
+end
+
+p = plot(xlabel=&quot;Day&quot;, ylabel=&quot;Total Population&quot;,
+         title=&quot;Population Conservation Check&quot;, legend=:topright,
+         size=(900, 350))
+for i in 1:min(5, n_particles)
+    plot!(p, sim_times, pop_t[i, :], lw=1, alpha=0.6,
+          label=(i == 1 ? &quot;Particles&quot; : &quot;&quot;))
+end
+hline!(p, [N_total], color=:black, lw=2, ls=:dash, label=&quot;Initial total&quot;)
+p</code></pre><p><img src="../25_yf_vtrack_files/figure-commonmark/cell-17-output-1.svg" alt/></p><pre><code class="language-julia hljs">println(&quot;Population at t=0: &quot;, mean(pop_t[:, 1]))
+println(&quot;Population at t=end: &quot;, mean(pop_t[:, end]))
+rel_change = abs(mean(pop_t[:, end]) - N_total) / N_total * 100
+println(&quot;Relative change: &quot;, round(rel_change, digits=4), &quot;%&quot;)</code></pre><pre><code class="nohighlight hljs">Population at t=0: 850000.0
+Population at t=end: 850000.0
+Relative change: 0.0%</code></pre><h2 id="Scenario:-No-Vaccination"><a class="docs-heading-anchor" href="#Scenario:-No-Vaccination">Scenario: No Vaccination</a><a id="Scenario:-No-Vaccination-1"></a><a class="docs-heading-anchor-permalink" href="#Scenario:-No-Vaccination" title="Permalink"></a></h2><p>Compare the epidemic with and without ongoing vaccination:</p><pre><code class="language-julia hljs">S_0_nv = zeros(N_age, 2)
+E_0_nv = zeros(N_age, 2)
+I_0_nv = copy(I_0)
+R_0_nv = zeros(N_age, 2)
+
+# All population in track 1 (unvaccinated)
+for i in 1:N_age
+    R_0_nv[i, 1] = round(pop[i] * immun_frac[i])
+    S_0_nv[i, 1] = pop[i] - R_0_nv[i, 1] - I_0_nv[i, 1]
+end
+
+pars_novacc = merge(pars, (
+    vacc_rate = zeros(N_age),
+    S_0 = S_0_nv,
+    E_0 = E_0_nv,
+    R_0 = R_0_nv,
+))
+
+result_nv = simulate(yf_vtrack, pars_novacc;
+    times=sim_times, dt=1.0, seed=42, n_particles=n_particles)
+
+I_vacc = vec(mean(sum(result[idx_I, :, :], dims=1), dims=2))
+I_novacc = vec(mean(sum(result_nv[idx_I, :, :], dims=1), dims=2))
+
+plot(sim_times, I_novacc, lw=2, color=:red, label=&quot;No vaccination&quot;,
+     xlabel=&quot;Day&quot;, ylabel=&quot;Mean Total Infectious&quot;,
+     title=&quot;Impact of 2-Track Vaccination on Yellow Fever&quot;,
+     legend=:topright, size=(900, 400))
+plot!(sim_times, I_vacc, lw=2, color=:blue, label=&quot;With vaccination&quot;)</code></pre><p><img src="../25_yf_vtrack_files/figure-commonmark/cell-19-output-1.svg" alt/></p><h2 id="Particle-Filter"><a class="docs-heading-anchor" href="#Particle-Filter">Particle Filter</a><a id="Particle-Filter-1"></a><a class="docs-heading-anchor-permalink" href="#Particle-Filter" title="Permalink"></a></h2><p>We generate synthetic case data from the model, then run a bootstrap particle filter to estimate the log-likelihood:</p><pre><code class="language-julia hljs"># Generate synthetic data from a single run
+syn_times = collect(7.0:7.0:min(365.0, t_end))
+syn_result = simulate(yf_vtrack, pars;
+    times=syn_times, dt=1.0, seed=123, n_particles=1)
+
+# Total new cases per week
+syn_cases = [max(1.0, sum(syn_result[idx_C, 1, t])) for t in 1:length(syn_times)]
+
+data_vec = [(time=syn_times[i], cases=syn_cases[i]) for i in 1:length(syn_times)]
+fdata = Odin.ObservedData(data_vec)
+
+println(&quot;Data points: &quot;, length(syn_times))
+println(&quot;Total observed cases: &quot;, sum(syn_cases))
+
+plot(syn_times, syn_cases, seriestype=:bar, color=:steelblue, alpha=0.7,
+     xlabel=&quot;Day&quot;, ylabel=&quot;Cases&quot;, title=&quot;Synthetic Weekly Case Data&quot;,
+     label=&quot;Observed cases&quot;, legend=:topright, size=(900, 350))</code></pre><pre><code class="nohighlight hljs">Data points: 52
+Total observed cases: 83457.0</code></pre><p><img src="../25_yf_vtrack_files/figure-commonmark/cell-20-output-2.svg" alt/></p><pre><code class="language-julia hljs"># Create and run particle filter
+filter = Likelihood(yf_vtrack, fdata;
+    n_particles=100, dt=1.0, seed=42)
+
+ll = loglik(filter, pars)
+println(&quot;Log-likelihood (true pars): &quot;, round(ll, digits=2))
+
+# Perturbed parameters should give worse log-likelihood
+pars_bad = merge(pars, (t_infectious = 20.0,))
+ll_bad = loglik(filter, pars_bad)
+println(&quot;Log-likelihood (bad pars):  &quot;, round(ll_bad, digits=2))
+
+@assert ll &gt; ll_bad &quot;True parameters should have higher likelihood&quot;
+println(&quot;✓ True parameters preferred over misspecified&quot;)</code></pre><pre><code class="nohighlight hljs">Log-likelihood (true pars): -270.82
+Log-likelihood (bad pars):  -298501.07
+✓ True parameters preferred over misspecified</code></pre><h2 id="Summary"><a class="docs-heading-anchor" href="#Summary">Summary</a><a id="Summary-1"></a><a class="docs-heading-anchor-permalink" href="#Summary" title="Permalink"></a></h2><table><tr><th style="text-align: right">Component</th><th style="text-align: right">Value</th></tr><tr><td style="text-align: right"><strong>Age groups</strong></td><td style="text-align: right">5 (0–4, 5–14, 15–24, 25–49, 50+)</td></tr><tr><td style="text-align: right"><strong>Tracks</strong></td><td style="text-align: right">2 (unvaccinated, vaccinated)</td></tr><tr><td style="text-align: right"><strong>Compartments</strong></td><td style="text-align: right">SEIR × 2 tracks + cumulative cases</td></tr><tr><td style="text-align: right"><strong>State variables</strong></td><td style="text-align: right">45 (4 × 5 × 2 + 5)</td></tr><tr><td style="text-align: right"><strong>Time step</strong></td><td style="text-align: right">1 day</td></tr><tr><td style="text-align: right"><strong>Stochastic draws</strong></td><td style="text-align: right">Binomial for all transitions</td></tr><tr><td style="text-align: right"><strong>Vaccination</strong></td><td style="text-align: right">Moves S,R from track 1 → track 2</td></tr><tr><td style="text-align: right"><strong>Vaccine efficacy</strong></td><td style="text-align: right">Reduces FOI for track 2 by 95%</td></tr></table><h3 id="Key-features-of-the-2-track-approach"><a class="docs-heading-anchor" href="#Key-features-of-the-2-track-approach">Key features of the 2-track approach</a><a id="Key-features-of-the-2-track-approach-1"></a><a class="docs-heading-anchor-permalink" href="#Key-features-of-the-2-track-approach" title="Permalink"></a></h3><ol><li><p><strong>Separate infection tracking</strong> — vaccinated individuals can still  be infected but at a reduced rate, allowing monitoring of  breakthrough infections.</p></li><li><p><strong>2D array structure</strong> — <code>dim(S) = c(N_age, 2)</code> naturally extends to  more tracks (e.g., 1-dose vs 2-dose, waning immunity stages).</p></li><li><p><strong>Partial array updates</strong> — different update rules for track 1 vs  track 2 handle the asymmetric vaccination flows (out of track 1,  into track 2).</p></li><li><p><strong>Shared FOI</strong> — both tracks contribute to and are affected by the  same force of infection, ensuring epidemiological consistency.</p></li></ol><table><tr><th style="text-align: right">Step</th><th style="text-align: right">API</th></tr><tr><td style="text-align: right">Define model</td><td style="text-align: right"><code>@odin begin … end</code> with 2D arrays <code>c(N_age, 2)</code></td></tr><tr><td style="text-align: right">Simulate</td><td style="text-align: right"><code>simulate(gen, pars; times, dt, seed, n_particles)</code></td></tr><tr><td style="text-align: right">Filter</td><td style="text-align: right"><code>Likelihood()</code> → <code>loglik()</code></td></tr><tr><td style="text-align: right">Scenario comparison</td><td style="text-align: right">Re-run with <code>vacc_rate = zeros(N_age)</code></td></tr></table></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../24_yf_delay/">« Yellow Fever with Erlang Delay</a><a class="docs-footer-nextpage" href="../26_fitting_workflow/">Complete Fitting Workflow »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="auto">Automatic (OS)</option><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option><option value="catppuccin-latte">catppuccin-latte</option><option value="catppuccin-frappe">catppuccin-frappe</option><option value="catppuccin-macchiato">catppuccin-macchiato</option><option value="catppuccin-mocha">catppuccin-mocha</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 1.17.0 on <span class="colophon-date" title="Friday 27 March 2026 16:28">Friday 27 March 2026</span>. Using Julia version 1.12.5.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>

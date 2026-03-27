@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width, initial-scale=1.0"/><title>Time-Varying Parameters · Odin.jl</title><meta name="title" content="Time-Varying Parameters · Odin.jl"/><meta property="og:title" content="Time-Varying Parameters · Odin.jl"/><meta property="twitter:title" content="Time-Varying Parameters · Odin.jl"/><meta name="description" content="Documentation for Odin.jl."/><meta property="og:description" content="Documentation for Odin.jl."/><meta property="twitter:description" content="Documentation for Odin.jl."/><script data-outdated-warner src="../../assets/warner.js"></script><link href="https://cdnjs.cloudflare.com/ajax/libs/lato-font/3.0.0/css/lato-font.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/juliamono/0.050/juliamono.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/fontawesome.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/solid.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/brands.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.8/katex.min.css" rel="stylesheet" type="text/css"/><script>documenterBaseURL="../.."</script><script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.6/require.min.js" data-main="../../assets/documenter.js"></script><script src="../../search_index.js"></script><script src="../../siteinfo.js"></script><script src="../../../versions.js"></script><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/catppuccin-mocha.css" data-theme-name="catppuccin-mocha"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/catppuccin-macchiato.css" data-theme-name="catppuccin-macchiato"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/catppuccin-frappe.css" data-theme-name="catppuccin-frappe"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/catppuccin-latte.css" data-theme-name="catppuccin-latte"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/documenter-dark.css" data-theme-name="documenter-dark" data-theme-primary-dark/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/documenter-light.css" data-theme-name="documenter-light" data-theme-primary/><script src="../../assets/themeswap.js"></script></head><body><div id="documenter"><nav class="docs-sidebar"><div class="docs-package-name"><span class="docs-autofit"><a href="../../">Odin.jl</a></span></div><button class="docs-search-query input is-rounded is-small is-clickable my-2 mx-auto py-1 px-2" id="documenter-search-query">Search docs (Ctrl + /)</button><ul class="docs-menu"><li><a class="tocitem" href="../../">Home</a></li><li><a class="tocitem" href="../../getting_started/">Getting Started</a></li><li><span class="tocitem">Guide</span><ul><li><a class="tocitem" href="../../dsl/">DSL Reference</a></li><li><a class="tocitem" href="../../simulation/">Simulation</a></li><li><a class="tocitem" href="../../filtering/">Filtering &amp; Likelihood</a></li><li><a class="tocitem" href="../../inference/">Inference</a></li><li><a class="tocitem" href="../../solvers/">ODE Solvers</a></li><li><a class="tocitem" href="../../gpu/">GPU Acceleration</a></li><li><a class="tocitem" href="../../categorical/">Categorical Models</a></li></ul></li><li><span class="tocitem">Vignettes</span><ul><li><input class="collapse-toggle" id="menuitem-4-1" type="checkbox"/><label class="tocitem" for="menuitem-4-1"><span class="docs-label">Basics</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../01_basic_ode/">Basic ODE Model: SIR</a></li><li><a class="tocitem" href="../02_stochastic/">Stochastic Discrete-Time SIR</a></li><li><a class="tocitem" href="../03_observations/">Incidence Tracking with zero_every</a></li><li><a class="tocitem" href="../04_arrays/">Age-Structured SIR with Arrays</a></li><li><a class="tocitem" href="../05_particle_filter/">Particle Filter and Likelihood</a></li><li><a class="tocitem" href="../06_inference/">Bayesian Inference with MCMC</a></li></ul></li><li><input class="collapse-toggle" id="menuitem-4-2" type="checkbox" checked/><label class="tocitem" for="menuitem-4-2"><span class="docs-label">Intermediate</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../07_categorical/">Compositional Model Building</a></li><li class="is-active"><a class="tocitem" href>Time-Varying Parameters</a><ul class="internal"><li><a class="tocitem" href="#Introduction"><span>Introduction</span></a></li><li><a class="tocitem" href="#Constant-Interpolation-(Step-Function)"><span>Constant Interpolation (Step Function)</span></a></li><li><a class="tocitem" href="#Linear-Interpolation"><span>Linear Interpolation</span></a></li><li><a class="tocitem" href="#Spline-Interpolation"><span>Spline Interpolation</span></a></li><li><a class="tocitem" href="#Comparing-All-Three"><span>Comparing All Three</span></a></li><li><a class="tocitem" href="#Stochastic-Model-with-Time-Varying-β"><span>Stochastic Model with Time-Varying β</span></a></li><li><a class="tocitem" href="#Summary"><span>Summary</span></a></li></ul></li><li><a class="tocitem" href="../09_advanced/">SEIR with Vaccination and Waning</a></li><li><a class="tocitem" href="../10_projections/">Counterfactual Projections</a></li><li><a class="tocitem" href="../11_delay_model/">Delay Compartments</a></li><li><a class="tocitem" href="../12_reactive_policy/">Reactive Vaccination Policy</a></li><li><a class="tocitem" href="../13_dynamicppl/">DynamicPPL Integration</a></li><li><a class="tocitem" href="../14_delay_vaccination/">SEIR with Delay and Vaccination</a></li><li><a class="tocitem" href="../15_vector_borne/">Vector-Borne Disease Dynamics</a></li></ul></li><li><input class="collapse-toggle" id="menuitem-4-3" type="checkbox"/><label class="tocitem" for="menuitem-4-3"><span class="docs-label">Advanced Models</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../16_multi_stream/">Multi-Stream Outbreak</a></li><li><a class="tocitem" href="../17_mpox_seir/">Mpox SEIR: Age-Structured</a></li><li><a class="tocitem" href="../18_malaria_simple/">Malaria: Ross-Macdonald</a></li><li><a class="tocitem" href="../19_sarscov2_multiregion/">SARS-CoV-2 Multi-Region</a></li><li><a class="tocitem" href="../20_yellowfever/">Yellow Fever SEIRV</a></li><li><a class="tocitem" href="../21_school_closure/">SIS with School Closure</a></li><li><a class="tocitem" href="../22_beta_blocks/">Beta Blocks</a></li><li><a class="tocitem" href="../23_orov/">OROV Vector-Borne</a></li><li><a class="tocitem" href="../24_yf_delay/">Yellow Fever with Erlang Delay</a></li><li><a class="tocitem" href="../25_yf_vtrack/">Yellow Fever 2-Track Vaccination</a></li><li><a class="tocitem" href="../26_fitting_workflow/">Complete Fitting Workflow</a></li><li><a class="tocitem" href="../27_spatial_composition/">Spatial Composition</a></li><li><a class="tocitem" href="../28_stratification/">Age Stratification</a></li><li><a class="tocitem" href="../29_multi_pathogen/">Multi-Pathogen Composition</a></li></ul></li><li><input class="collapse-toggle" id="menuitem-4-4" type="checkbox"/><label class="tocitem" for="menuitem-4-4"><span class="docs-label">Techniques</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../30_stiff_ode/">Stiff ODEs: SDIRK4 Solver</a></li><li><a class="tocitem" href="../31_gpu_filter/">GPU-Accelerated Filtering</a></li><li><a class="tocitem" href="../32_advanced_samplers/">Advanced MCMC Samplers</a></li><li><a class="tocitem" href="../33_sensitivity/">Sensitivity Analysis</a></li><li><a class="tocitem" href="../34_events/">Event Handling</a></li><li><a class="tocitem" href="../35_sde/">Stochastic Differential Equations</a></li><li><a class="tocitem" href="../36_model_selection/">Model Selection</a></li><li><a class="tocitem" href="../37_model_validation/">Model Validation</a></li></ul></li></ul></li><li><a class="tocitem" href="../../api/">API Reference</a></li></ul><div class="docs-version-selector field has-addons"><div class="control"><span class="docs-label button is-static is-size-7">Version</span></div><div class="docs-selector control is-expanded"><div class="select is-fullwidth is-size-7"><select id="documenter-version-selector"></select></div></div></div></nav><div class="docs-main"><header class="docs-navbar"><a class="docs-sidebar-button docs-navbar-link fa-solid fa-bars is-hidden-desktop" id="documenter-sidebar-button" href="#"></a><nav class="breadcrumb"><ul class="is-hidden-mobile"><li><a class="is-disabled">Vignettes</a></li><li><a class="is-disabled">Intermediate</a></li><li class="is-active"><a href>Time-Varying Parameters</a></li></ul><ul class="is-hidden-tablet"><li class="is-active"><a href>Time-Varying Parameters</a></li></ul></nav><div class="docs-right"><a class="docs-navbar-link" href="https://github.com/epirecipes/Odin.jl" title="View the repository on GitHub"><span class="docs-icon fa-brands"></span><span class="docs-label is-hidden-touch">GitHub</span></a><a class="docs-settings-button docs-navbar-link fa-solid fa-gear" id="documenter-settings-button" href="#" title="Settings"></a><a class="docs-article-toggle-button fa-solid fa-chevron-up" id="documenter-article-toggle-button" href="javascript:;" title="Collapse all docstrings"></a></div></header><article class="content" id="documenter-page"><h1 id="Time-Varying-Parameters"><a class="docs-heading-anchor" href="#Time-Varying-Parameters">Time-Varying Parameters</a><a id="Time-Varying-Parameters-1"></a><a class="docs-heading-anchor-permalink" href="#Time-Varying-Parameters" title="Permalink"></a></h1><h2 id="Introduction"><a class="docs-heading-anchor" href="#Introduction">Introduction</a><a id="Introduction-1"></a><a class="docs-heading-anchor-permalink" href="#Introduction" title="Permalink"></a></h2><p>Many epidemic models require time-varying parameters — for example, a transmission rate that changes due to interventions or seasonality. Odin.jl supports this via the <code>interpolate()</code> function in the DSL.</p><pre><code class="language-julia hljs">using Odin
+using Plots</code></pre><h2 id="Constant-Interpolation-(Step-Function)"><a class="docs-heading-anchor" href="#Constant-Interpolation-(Step-Function)">Constant Interpolation (Step Function)</a><a id="Constant-Interpolation-(Step-Function)-1"></a><a class="docs-heading-anchor-permalink" href="#Constant-Interpolation-(Step-Function)" title="Permalink"></a></h2><p>A common pattern: β drops when an intervention is implemented.</p><pre><code class="language-julia hljs">sir_step = @odin begin
+    deriv(S) = -beta * S * I / N
+    deriv(I) = beta * S * I / N - gamma * I
+    deriv(R) = gamma * I
+    initial(S) = N - I0
+    initial(I) = I0
+    initial(R) = 0
+
+    beta = interpolate(beta_time, beta_value, :constant)
+    beta_time = parameter(rank=1)
+    beta_value = parameter(rank=1)
+    gamma = parameter(0.1)
+    I0 = parameter(10)
+    N = parameter(1000)
+end
+
+pars = (
+    beta_time = [0.0, 30.0, 60.0],
+    beta_value = [0.5, 0.15, 0.3],
+    gamma = 0.1, I0 = 10.0, N = 1000.0,
+)
+
+sys = System(sir_step, pars; dt = 1.0)
+reset!(sys)
+times = collect(0.0:0.5:120.0)
+result = simulate(sys, times)
+
+plot(times, result[1, 1, :], label=&quot;S&quot;, lw=2, color=:blue)
+plot!(times, result[2, 1, :], label=&quot;I&quot;, lw=2, color=:red)
+plot!(times, result[3, 1, :], label=&quot;R&quot;, lw=2, color=:green)
+vline!([30.0, 60.0], ls=:dash, color=:gray, label=&quot;β changes&quot;)
+xlabel!(&quot;Time&quot;)
+ylabel!(&quot;Population&quot;)
+title!(&quot;SIR with Step-Function β&quot;)</code></pre><p><img src="../08_time_varying_files/figure-commonmark/cell-3-output-1.svg" alt/></p><h2 id="Linear-Interpolation"><a class="docs-heading-anchor" href="#Linear-Interpolation">Linear Interpolation</a><a id="Linear-Interpolation-1"></a><a class="docs-heading-anchor-permalink" href="#Linear-Interpolation" title="Permalink"></a></h2><p>A smoother transition — β decreases linearly as awareness grows.</p><pre><code class="language-julia hljs">sir_linear = @odin begin
+    deriv(S) = -beta * S * I / N
+    deriv(I) = beta * S * I / N - gamma * I
+    deriv(R) = gamma * I
+    initial(S) = N - I0
+    initial(I) = I0
+    initial(R) = 0
+
+    beta = interpolate(beta_time, beta_value, :linear)
+    beta_time = parameter(rank=1)
+    beta_value = parameter(rank=1)
+    gamma = parameter(0.1)
+    I0 = parameter(10)
+    N = parameter(1000)
+end
+
+pars_linear = (
+    beta_time = [0.0, 40.0, 80.0, 120.0],
+    beta_value = [0.5, 0.3, 0.1, 0.2],
+    gamma = 0.1, I0 = 10.0, N = 1000.0,
+)
+
+sys_l = System(sir_linear, pars_linear; dt = 1.0)
+reset!(sys_l)
+result_l = simulate(sys_l, times)
+
+plot(times, result_l[2, 1, :], label=&quot;I (linear β)&quot;, lw=2, color=:red)
+xlabel!(&quot;Time&quot;)
+ylabel!(&quot;Infected&quot;)
+title!(&quot;SIR with Linearly Varying β&quot;)</code></pre><p><img src="../08_time_varying_files/figure-commonmark/cell-4-output-1.svg" alt/></p><h2 id="Spline-Interpolation"><a class="docs-heading-anchor" href="#Spline-Interpolation">Spline Interpolation</a><a id="Spline-Interpolation-1"></a><a class="docs-heading-anchor-permalink" href="#Spline-Interpolation" title="Permalink"></a></h2><p>For smoothly varying seasonal forcing:</p><pre><code class="language-julia hljs">sir_spline = @odin begin
+    deriv(S) = -beta * S * I / N
+    deriv(I) = beta * S * I / N - gamma * I
+    deriv(R) = gamma * I
+    initial(S) = N - I0
+    initial(I) = I0
+    initial(R) = 0
+
+    beta = interpolate(beta_time, beta_value, :spline)
+    beta_time = parameter(rank=1)
+    beta_value = parameter(rank=1)
+    gamma = parameter(0.1)
+    I0 = parameter(10)
+    N = parameter(1000)
+end
+
+pars_spline = (
+    beta_time = collect(0.0:30.0:120.0),
+    beta_value = [0.4, 0.6, 0.2, 0.5, 0.3],
+    gamma = 0.1, I0 = 10.0, N = 1000.0,
+)
+
+sys_s = System(sir_spline, pars_spline; dt = 1.0)
+reset!(sys_s)
+result_s = simulate(sys_s, times)
+
+plot(times, result_s[2, 1, :], label=&quot;I (spline β)&quot;, lw=2, color=:purple)
+xlabel!(&quot;Time&quot;)
+ylabel!(&quot;Infected&quot;)
+title!(&quot;SIR with Spline-Interpolated β&quot;)</code></pre><p><img src="../08_time_varying_files/figure-commonmark/cell-5-output-1.svg" alt/></p><h2 id="Comparing-All-Three"><a class="docs-heading-anchor" href="#Comparing-All-Three">Comparing All Three</a><a id="Comparing-All-Three-1"></a><a class="docs-heading-anchor-permalink" href="#Comparing-All-Three" title="Permalink"></a></h2><pre><code class="language-julia hljs">plot(times, result[2, 1, :], label=&quot;Step&quot;, lw=2, ls=:solid)
+plot!(times, result_l[2, 1, :], label=&quot;Linear&quot;, lw=2, ls=:dash)
+plot!(times, result_s[2, 1, :], label=&quot;Spline&quot;, lw=2, ls=:dot)
+xlabel!(&quot;Time&quot;)
+ylabel!(&quot;Infected&quot;)
+title!(&quot;Effect of Interpolation Mode on Epidemic Dynamics&quot;)</code></pre><p><img src="../08_time_varying_files/figure-commonmark/cell-6-output-1.svg" alt/></p><h2 id="Stochastic-Model-with-Time-Varying-β"><a class="docs-heading-anchor" href="#Stochastic-Model-with-Time-Varying-β">Stochastic Model with Time-Varying β</a><a id="Stochastic-Model-with-Time-Varying-β-1"></a><a class="docs-heading-anchor-permalink" href="#Stochastic-Model-with-Time-Varying-β" title="Permalink"></a></h2><p>Interpolation also works with discrete-time stochastic models:</p><pre><code class="language-julia hljs">sir_stoch = @odin begin
+    update(S) = S - n_SI
+    update(I) = I + n_SI - n_IR
+    update(R) = R + n_IR
+    initial(S) = N - I0
+    initial(I) = I0
+    initial(R) = 0
+
+    beta = interpolate(beta_time, beta_value, :constant)
+    p_SI = 1 - exp(-beta * I / N * dt)
+    p_IR = 1 - exp(-gamma * dt)
+    n_SI = Binomial(S, p_SI)
+    n_IR = Binomial(I, p_IR)
+
+    beta_time = parameter(rank=1)
+    beta_value = parameter(rank=1)
+    gamma = parameter(0.1)
+    I0 = parameter(10)
+    N = parameter(1000)
+end
+
+pars_stoch = (
+    beta_time = [0.0, 30.0, 60.0],
+    beta_value = [0.5, 0.1, 0.4],
+    gamma = 0.1, I0 = 10.0, N = 1000.0,
+)
+
+p = plot(xlabel=&quot;Time&quot;, ylabel=&quot;Infected&quot;,
+         title=&quot;Stochastic SIR with Time-Varying β (5 realisations)&quot;)
+
+for seed in 1:5
+    sys_st = System(sir_stoch, pars_stoch; dt=1.0, seed=seed)
+    reset!(sys_st)
+    r = simulate(sys_st, collect(0.0:1.0:100.0))
+    plot!(p, 0.0:1.0:100.0, r[2, 1, :], alpha=0.6, lw=1.5, label=nothing)
+end
+vline!(p, [30.0, 60.0], ls=:dash, color=:gray, label=&quot;β changes&quot;)
+p</code></pre><p><img src="../08_time_varying_files/figure-commonmark/cell-7-output-1.svg" alt/></p><h2 id="Summary"><a class="docs-heading-anchor" href="#Summary">Summary</a><a id="Summary-1"></a><a class="docs-heading-anchor-permalink" href="#Summary" title="Permalink"></a></h2><table><tr><th style="text-align: right">Mode</th><th style="text-align: right">Syntax</th><th style="text-align: right">Behaviour</th></tr><tr><td style="text-align: right">Constant</td><td style="text-align: right"><code>interpolate(t, v, :constant)</code></td><td style="text-align: right">Step function (piecewise constant)</td></tr><tr><td style="text-align: right">Linear</td><td style="text-align: right"><code>interpolate(t, v, :linear)</code></td><td style="text-align: right">Piecewise linear</td></tr><tr><td style="text-align: right">Spline</td><td style="text-align: right"><code>interpolate(t, v, :spline)</code></td><td style="text-align: right">Cubic spline (smooth)</td></tr></table><p>Interpolation works with both ODE and discrete-time models, and is compatible with particle filters and MCMC inference.</p></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../07_categorical/">« Compositional Model Building</a><a class="docs-footer-nextpage" href="../09_advanced/">SEIR with Vaccination and Waning »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="auto">Automatic (OS)</option><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option><option value="catppuccin-latte">catppuccin-latte</option><option value="catppuccin-frappe">catppuccin-frappe</option><option value="catppuccin-macchiato">catppuccin-macchiato</option><option value="catppuccin-mocha">catppuccin-mocha</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 1.17.0 on <span class="colophon-date" title="Friday 27 March 2026 16:28">Friday 27 March 2026</span>. Using Julia version 1.12.5.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>

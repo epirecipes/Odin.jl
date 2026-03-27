@@ -1,0 +1,346 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width, initial-scale=1.0"/><title>OROV Vector-Borne · Odin.jl</title><meta name="title" content="OROV Vector-Borne · Odin.jl"/><meta property="og:title" content="OROV Vector-Borne · Odin.jl"/><meta property="twitter:title" content="OROV Vector-Borne · Odin.jl"/><meta name="description" content="Documentation for Odin.jl."/><meta property="og:description" content="Documentation for Odin.jl."/><meta property="twitter:description" content="Documentation for Odin.jl."/><script data-outdated-warner src="../../assets/warner.js"></script><link href="https://cdnjs.cloudflare.com/ajax/libs/lato-font/3.0.0/css/lato-font.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/juliamono/0.050/juliamono.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/fontawesome.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/solid.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/brands.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.8/katex.min.css" rel="stylesheet" type="text/css"/><script>documenterBaseURL="../.."</script><script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.6/require.min.js" data-main="../../assets/documenter.js"></script><script src="../../search_index.js"></script><script src="../../siteinfo.js"></script><script src="../../../versions.js"></script><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/catppuccin-mocha.css" data-theme-name="catppuccin-mocha"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/catppuccin-macchiato.css" data-theme-name="catppuccin-macchiato"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/catppuccin-frappe.css" data-theme-name="catppuccin-frappe"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/catppuccin-latte.css" data-theme-name="catppuccin-latte"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/documenter-dark.css" data-theme-name="documenter-dark" data-theme-primary-dark/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/documenter-light.css" data-theme-name="documenter-light" data-theme-primary/><script src="../../assets/themeswap.js"></script></head><body><div id="documenter"><nav class="docs-sidebar"><div class="docs-package-name"><span class="docs-autofit"><a href="../../">Odin.jl</a></span></div><button class="docs-search-query input is-rounded is-small is-clickable my-2 mx-auto py-1 px-2" id="documenter-search-query">Search docs (Ctrl + /)</button><ul class="docs-menu"><li><a class="tocitem" href="../../">Home</a></li><li><a class="tocitem" href="../../getting_started/">Getting Started</a></li><li><span class="tocitem">Guide</span><ul><li><a class="tocitem" href="../../dsl/">DSL Reference</a></li><li><a class="tocitem" href="../../simulation/">Simulation</a></li><li><a class="tocitem" href="../../filtering/">Filtering &amp; Likelihood</a></li><li><a class="tocitem" href="../../inference/">Inference</a></li><li><a class="tocitem" href="../../solvers/">ODE Solvers</a></li><li><a class="tocitem" href="../../gpu/">GPU Acceleration</a></li><li><a class="tocitem" href="../../categorical/">Categorical Models</a></li></ul></li><li><span class="tocitem">Vignettes</span><ul><li><input class="collapse-toggle" id="menuitem-4-1" type="checkbox"/><label class="tocitem" for="menuitem-4-1"><span class="docs-label">Basics</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../01_basic_ode/">Basic ODE Model: SIR</a></li><li><a class="tocitem" href="../02_stochastic/">Stochastic Discrete-Time SIR</a></li><li><a class="tocitem" href="../03_observations/">Incidence Tracking with zero_every</a></li><li><a class="tocitem" href="../04_arrays/">Age-Structured SIR with Arrays</a></li><li><a class="tocitem" href="../05_particle_filter/">Particle Filter and Likelihood</a></li><li><a class="tocitem" href="../06_inference/">Bayesian Inference with MCMC</a></li></ul></li><li><input class="collapse-toggle" id="menuitem-4-2" type="checkbox"/><label class="tocitem" for="menuitem-4-2"><span class="docs-label">Intermediate</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../07_categorical/">Compositional Model Building</a></li><li><a class="tocitem" href="../08_time_varying/">Time-Varying Parameters</a></li><li><a class="tocitem" href="../09_advanced/">SEIR with Vaccination and Waning</a></li><li><a class="tocitem" href="../10_projections/">Counterfactual Projections</a></li><li><a class="tocitem" href="../11_delay_model/">Delay Compartments</a></li><li><a class="tocitem" href="../12_reactive_policy/">Reactive Vaccination Policy</a></li><li><a class="tocitem" href="../13_dynamicppl/">DynamicPPL Integration</a></li><li><a class="tocitem" href="../14_delay_vaccination/">SEIR with Delay and Vaccination</a></li><li><a class="tocitem" href="../15_vector_borne/">Vector-Borne Disease Dynamics</a></li></ul></li><li><input class="collapse-toggle" id="menuitem-4-3" type="checkbox" checked/><label class="tocitem" for="menuitem-4-3"><span class="docs-label">Advanced Models</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../16_multi_stream/">Multi-Stream Outbreak</a></li><li><a class="tocitem" href="../17_mpox_seir/">Mpox SEIR: Age-Structured</a></li><li><a class="tocitem" href="../18_malaria_simple/">Malaria: Ross-Macdonald</a></li><li><a class="tocitem" href="../19_sarscov2_multiregion/">SARS-CoV-2 Multi-Region</a></li><li><a class="tocitem" href="../20_yellowfever/">Yellow Fever SEIRV</a></li><li><a class="tocitem" href="../21_school_closure/">SIS with School Closure</a></li><li><a class="tocitem" href="../22_beta_blocks/">Beta Blocks</a></li><li class="is-active"><a class="tocitem" href>OROV Vector-Borne</a><ul class="internal"><li><a class="tocitem" href="#Introduction"><span>Introduction</span></a></li><li><a class="tocitem" href="#Model-Description"><span>Model Description</span></a></li><li><a class="tocitem" href="#Model-Definition"><span>Model Definition</span></a></li><li><a class="tocitem" href="#Simulation"><span>Simulation</span></a></li><li><a class="tocitem" href="#Scenario-Comparison:-Relapse-Probability"><span>Scenario Comparison: Relapse Probability</span></a></li><li><a class="tocitem" href="#Benchmark"><span>Benchmark</span></a></li><li><a class="tocitem" href="#Summary"><span>Summary</span></a></li></ul></li><li><a class="tocitem" href="../24_yf_delay/">Yellow Fever with Erlang Delay</a></li><li><a class="tocitem" href="../25_yf_vtrack/">Yellow Fever 2-Track Vaccination</a></li><li><a class="tocitem" href="../26_fitting_workflow/">Complete Fitting Workflow</a></li><li><a class="tocitem" href="../27_spatial_composition/">Spatial Composition</a></li><li><a class="tocitem" href="../28_stratification/">Age Stratification</a></li><li><a class="tocitem" href="../29_multi_pathogen/">Multi-Pathogen Composition</a></li></ul></li><li><input class="collapse-toggle" id="menuitem-4-4" type="checkbox"/><label class="tocitem" for="menuitem-4-4"><span class="docs-label">Techniques</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../30_stiff_ode/">Stiff ODEs: SDIRK4 Solver</a></li><li><a class="tocitem" href="../31_gpu_filter/">GPU-Accelerated Filtering</a></li><li><a class="tocitem" href="../32_advanced_samplers/">Advanced MCMC Samplers</a></li><li><a class="tocitem" href="../33_sensitivity/">Sensitivity Analysis</a></li><li><a class="tocitem" href="../34_events/">Event Handling</a></li><li><a class="tocitem" href="../35_sde/">Stochastic Differential Equations</a></li><li><a class="tocitem" href="../36_model_selection/">Model Selection</a></li><li><a class="tocitem" href="../37_model_validation/">Model Validation</a></li></ul></li></ul></li><li><a class="tocitem" href="../../api/">API Reference</a></li></ul><div class="docs-version-selector field has-addons"><div class="control"><span class="docs-label button is-static is-size-7">Version</span></div><div class="docs-selector control is-expanded"><div class="select is-fullwidth is-size-7"><select id="documenter-version-selector"></select></div></div></div></nav><div class="docs-main"><header class="docs-navbar"><a class="docs-sidebar-button docs-navbar-link fa-solid fa-bars is-hidden-desktop" id="documenter-sidebar-button" href="#"></a><nav class="breadcrumb"><ul class="is-hidden-mobile"><li><a class="is-disabled">Vignettes</a></li><li><a class="is-disabled">Advanced Models</a></li><li class="is-active"><a href>OROV Vector-Borne</a></li></ul><ul class="is-hidden-tablet"><li class="is-active"><a href>OROV Vector-Borne</a></li></ul></nav><div class="docs-right"><a class="docs-navbar-link" href="https://github.com/epirecipes/Odin.jl" title="View the repository on GitHub"><span class="docs-icon fa-brands"></span><span class="docs-label is-hidden-touch">GitHub</span></a><a class="docs-settings-button docs-navbar-link fa-solid fa-gear" id="documenter-settings-button" href="#" title="Settings"></a><a class="docs-article-toggle-button fa-solid fa-chevron-up" id="documenter-article-toggle-button" href="javascript:;" title="Collapse all docstrings"></a></div></header><article class="content" id="documenter-page"><h1 id="Oropouche-(OROV)-Vector-Borne-Model-with-Relapse"><a class="docs-heading-anchor" href="#Oropouche-(OROV)-Vector-Borne-Model-with-Relapse">Oropouche (OROV) Vector-Borne Model with Relapse</a><a id="Oropouche-(OROV)-Vector-Borne-Model-with-Relapse-1"></a><a class="docs-heading-anchor-permalink" href="#Oropouche-(OROV)-Vector-Borne-Model-with-Relapse" title="Permalink"></a></h1><h2 id="Introduction"><a class="docs-heading-anchor" href="#Introduction">Introduction</a><a id="Introduction-1"></a><a class="docs-heading-anchor-permalink" href="#Introduction" title="Permalink"></a></h2><p>Oropouche virus (OROV) is an arbovirus transmitted by biting midges (<em>Culicoides paraensis</em>) and is the second most common arboviral disease in Brazil after dengue. A distinctive clinical feature is <strong>relapse</strong>: a fraction of symptomatic patients experience a recurrence of symptoms after an initial period of apparent recovery.</p><p>This vignette builds an ODE model coupling human and vector compartments with a relapse pathway. It demonstrates:</p><ul><li>Coupled human and vector ODE dynamics</li><li>An <strong>Erlang-chain delay</strong> to approximate the extrinsic incubation period (since <code>delay()</code> is not available in Odin.jl)</li><li>Asymptotic vs symptomatic infection</li><li>Relapse dynamics: recovered individuals can experience a second symptomatic episode</li><li>Scenario comparison across relapse probabilities</li></ul><pre><code class="language-julia hljs">using Odin
+using Plots
+using BenchmarkTools</code></pre><h2 id="Model-Description"><a class="docs-heading-anchor" href="#Model-Description">Model Description</a><a id="Model-Description-1"></a><a class="docs-heading-anchor-permalink" href="#Model-Description" title="Permalink"></a></h2><h3 id="Human-compartments"><a class="docs-heading-anchor" href="#Human-compartments">Human compartments</a><a id="Human-compartments-1"></a><a class="docs-heading-anchor-permalink" href="#Human-compartments" title="Permalink"></a></h3><p>The human population is split into 8 compartments, all expressed as proportions of the total human population (<span>$N_h = 1$</span>):</p><p class="math-container">\[\begin{aligned}
+\frac{dS_h}{dt} &amp;= -\lambda_h S_h \\
+\frac{dE_h}{dt} &amp;= \lambda_h S_h - \gamma E_h \\
+\frac{dI_h^{\text{asym}}}{dt} &amp;= (1 - \theta)\,\gamma E_h - \sigma I_h^{\text{asym}} \\
+\frac{dI_h^{\text{sym0}}}{dt} &amp;= \theta\,\gamma E_h - \sigma I_h^{\text{sym0}} \\
+\frac{dI_h^{\text{sym1}}}{dt} &amp;= \pi_r\,\sigma I_h^{\text{sym0}} - \psi I_h^{\text{sym1}} \\
+\frac{dR_h^{\text{temp}}}{dt} &amp;= \psi I_h^{\text{sym1}} - \omega R_h^{\text{temp}} \\
+\frac{dI_h^{\text{sym2}}}{dt} &amp;= \omega R_h^{\text{temp}} - \epsilon I_h^{\text{sym2}} \\
+\frac{dR_h}{dt} &amp;= \sigma I_h^{\text{asym}} + (1 - \pi_r)\,\sigma I_h^{\text{sym0}} + \epsilon I_h^{\text{sym2}}
+\end{aligned}\]</p><p>where <span>$\lambda_h = m \cdot a \cdot b_h \cdot I_v$</span> is the force of infection from vectors to humans.</p><h3 id="Vector-compartments"><a class="docs-heading-anchor" href="#Vector-compartments">Vector compartments</a><a id="Vector-compartments-1"></a><a class="docs-heading-anchor-permalink" href="#Vector-compartments" title="Permalink"></a></h3><p>Vectors follow an SEI model (no recovery), with an <strong>Erlang-chain delay</strong> approximating the extrinsic incubation period (EIP). Instead of <code>delay(I_h_total, τ)</code> we use <span>$k = 12$</span> stages, each with rate <span>$k / \tau$</span>:</p><p class="math-container">\[\begin{aligned}
+\frac{dS_v}{dt} &amp;= \mu (1 - S_v) - \lambda_v S_v \\
+\frac{dE_v}{dt} &amp;= \lambda_v \cdot D_{S_v}[12] - (\mu + \kappa) E_v \\
+\frac{dI_v}{dt} &amp;= \kappa E_v - \mu I_v
+\end{aligned}\]</p><p>where <span>$\lambda_v = a \cdot b_v \cdot D_{I_h}[12]$</span> uses the delayed total human infectiousness via the Erlang chain, and <span>$D_{S_v}[12]$</span> tracks the delayed susceptible vector proportion.</p><h3 id="Erlang-chain-delay"><a class="docs-heading-anchor" href="#Erlang-chain-delay">Erlang chain delay</a><a id="Erlang-chain-delay-1"></a><a class="docs-heading-anchor-permalink" href="#Erlang-chain-delay" title="Permalink"></a></h3><p>Each delay chain has <span>$k = 12$</span> stages with rate <span>$k / \tau$</span> per stage (mean delay = <span>$\tau$</span> days):</p><p class="math-container">\[\frac{dD[1]}{dt} = (X - D[1]) \cdot \frac{k}{\tau}, \quad
+\frac{dD[i]}{dt} = (D[i-1] - D[i]) \cdot \frac{k}{\tau} \text{ for } i = 2, \ldots, 12\]</p><h2 id="Model-Definition"><a class="docs-heading-anchor" href="#Model-Definition">Model Definition</a><a id="Model-Definition-1"></a><a class="docs-heading-anchor-permalink" href="#Model-Definition" title="Permalink"></a></h2><pre><code class="language-julia hljs">gen = @odin begin
+    # Erlang chain parameters
+    k_delay = parameter(12)
+    delay_rate = k_delay / delay_tau
+    delay_tau = parameter(12.0)
+
+    # === Erlang chain: delayed total human infectiousness ===
+    dim(D_Ih) = k_delay
+    I_h_total = I_h_asym + I_h_sym0 + I_h_sym1 + I_h_sym2
+    deriv(D_Ih[1]) = (I_h_total - D_Ih[1]) * delay_rate
+    deriv(D_Ih[2:k_delay]) = (D_Ih[i - 1] - D_Ih[i]) * delay_rate
+    initial(D_Ih[1:k_delay]) = I_init_h
+
+    # === Erlang chain: delayed susceptible vectors ===
+    dim(D_Sv) = k_delay
+    deriv(D_Sv[1]) = (S_v - D_Sv[1]) * delay_rate
+    deriv(D_Sv[2:k_delay]) = (D_Sv[i - 1] - D_Sv[i]) * delay_rate
+    initial(D_Sv[1:k_delay]) = 1.0 - I_init_v
+
+    # === Forces of infection ===
+    lambda_h = m * a * b_h * I_v
+    lambda_v = a * b_v * D_Ih[k_delay]
+
+    # === Human dynamics (proportions) ===
+    deriv(S_h) = -lambda_h * S_h
+    deriv(E_h) = lambda_h * S_h - gamma * E_h
+    deriv(I_h_asym) = (1.0 - theta) * gamma * E_h - sigma * I_h_asym
+    deriv(I_h_sym0) = theta * gamma * E_h - sigma * I_h_sym0
+    deriv(I_h_sym1) = pi_relapse * sigma * I_h_sym0 - psi * I_h_sym1
+    deriv(R_h_temp) = psi * I_h_sym1 - omega * R_h_temp
+    deriv(I_h_sym2) = omega * R_h_temp - epsilon * I_h_sym2
+    deriv(R_h) = sigma * I_h_asym + (1.0 - pi_relapse) * sigma * I_h_sym0 + epsilon * I_h_sym2
+
+    # === Vector dynamics (proportions) ===
+    deriv(S_v) = mu * (1.0 - S_v) - lambda_v * S_v
+    deriv(E_v) = lambda_v * D_Sv[k_delay] - (mu + kappa) * E_v
+    deriv(I_v) = kappa * E_v - mu * I_v
+
+    # === Outputs ===
+    output(prevalence_h) = I_h_total
+    output(incidence_h) = lambda_h * S_h
+    output(prevalence_v) = I_v
+    output(human_pop) = S_h + E_h + I_h_asym + I_h_sym0 + I_h_sym1 + R_h_temp + I_h_sym2 + R_h
+
+    # === Initial conditions ===
+    initial(S_h) = 1.0 - I_init_h
+    initial(E_h) = 0.0
+    initial(I_h_asym) = (1.0 - theta) * I_init_h
+    initial(I_h_sym0) = theta * I_init_h
+    initial(I_h_sym1) = 0.0
+    initial(R_h_temp) = 0.0
+    initial(I_h_sym2) = 0.0
+    initial(R_h) = 0.0
+    initial(S_v) = 1.0 - I_init_v
+    initial(E_v) = 0.0
+    initial(I_v) = I_init_v
+
+    # === Parameters ===
+    gamma = parameter(0.167)
+    theta = parameter(0.85)
+    pi_relapse = parameter(0.5)
+    sigma = parameter(0.2)
+    psi = parameter(1.0)
+    epsilon = parameter(1.0)
+    kappa = parameter(0.125)
+    omega = parameter(0.2)
+    mu = parameter(0.03)
+    m = parameter(20.0)
+    a = parameter(0.3)
+    b_h = parameter(0.2)
+    b_v = parameter(0.05)
+    I_init_h = parameter(0.001)
+    I_init_v = parameter(0.0001)
+end</code></pre><pre><code class="nohighlight hljs">Odin.DustSystemGenerator{var&quot;##OdinModel#277&quot;}(var&quot;##OdinModel#277&quot;(0, [:D_Ih, :D_Sv, :S_h, :E_h, :I_h_asym, :I_h_sym0, :I_h_sym1, :R_h_temp, :I_h_sym2, :R_h, :S_v, :E_v, :I_v], [:k_delay, :delay_tau, :gamma, :theta, :pi_relapse, :sigma, :psi, :epsilon, :kappa, :omega, :mu, :m, :a, :b_h, :b_v, :I_init_h, :I_init_v], true, false, false, true, false, Dict{Symbol, Array}()))</code></pre><h2 id="Simulation"><a class="docs-heading-anchor" href="#Simulation">Simulation</a><a id="Simulation-1"></a><a class="docs-heading-anchor-permalink" href="#Simulation" title="Permalink"></a></h2><pre><code class="language-julia hljs">pars = (
+    k_delay = 12.0,
+    gamma = 0.167,
+    theta = 0.85,
+    pi_relapse = 0.5,
+    sigma = 0.2,
+    psi = 1.0,
+    epsilon = 1.0,
+    kappa = 0.125,
+    omega = 0.2,
+    mu = 0.03,
+    m = 20.0,
+    a = 0.3,
+    b_h = 0.2,
+    b_v = 0.05,
+    I_init_h = 0.001,
+    I_init_v = 0.0001,
+    delay_tau = 12.0,
+)
+
+sys = System(gen, pars; n_particles = 1)
+reset!(sys)
+times = collect(0.0:0.5:365.0)
+result = simulate(sys, times)</code></pre><pre><code class="nohighlight hljs">39×1×731 Array{Float64, 3}:
+[:, :, 1] =
+ 0.001
+ 0.001
+ 0.001
+ 0.001
+ 0.001
+ 0.001
+ 0.001
+ 0.001
+ 0.001
+ 0.001
+ ⋮
+ 0.0
+ 0.0
+ 0.9999
+ 0.0
+ 0.0001
+ 0.001
+ 0.00011988000000000002
+ 0.0001
+ 1.0
+
+[:, :, 2] =
+ 0.0009870975776440098
+ 0.000998026559001296
+ 0.0009999147744383838
+ 0.0009998798712333335
+ 0.0010000172625546358
+ 0.001000001030752342
+ 0.0009999997631437922
+ 0.0009999999624713265
+ 0.00099999999718668
+ 0.0009999999998426448
+ ⋮
+ 2.94013425254667e-7
+ 5.4778909177471213e-5
+ 0.9998940455425156
+ 7.2160199298514365e-6
+ 9.873845982797075e-5
+ 0.0009392415160730842
+ 0.00011836061136865198
+ 9.873845982797075e-5
+ 1.0000000000000002
+
+[:, :, 3] =
+ 0.0009551010762017311
+ 0.0009873883874057386
+ 0.0009971047999367828
+ 0.0009995732785131929
+ 0.000999881487389212
+ 0.0009999893588576926
+ 0.0009999997402627117
+ 0.0010000000252925842
+ 0.0010000000030057734
+ 0.0010000000001937957
+ ⋮
+ 1.5651766935802406e-6
+ 0.00010503562475833162
+ 0.9998881797793513
+ 1.38939158395385e-5
+ 9.792639301783065e-5
+ 0.0008771736434520672
+ 0.00011738024064203143
+ 9.792639301783065e-5
+ 0.9999999999999999
+
+;;; … 
+
+[:, :, 729] =
+ 0.010625513849373908
+ 0.010814671739717611
+ 0.011006208497978872
+ 0.011200094532644604
+ 0.011396329474407274
+ 0.011594845356522812
+ 0.011795699556835942
+ 0.011998700090965524
+ 0.012204112934761752
+ 0.012411391133516992
+ ⋮
+ 0.0008496473205421635
+ 0.8280568603707404
+ 0.9905412022003669
+ 0.0013656311389518736
+ 0.008089745407773975
+ 0.010438744951508042
+ 0.0014337851039764222
+ 0.008089745407773975
+ 0.9999999999999998
+
+[:, :, 730] =
+ 0.010532430762817124
+ 0.01072039143858126
+ 0.010910738193896787
+ 0.011103444734501661
+ 0.011298507642439462
+ 0.011495870133404482
+ 0.011695570845559344
+ 0.011897458007472743
+ 0.012101729503575485
+ 0.012307945942979176
+ ⋮
+ 0.0008424314658002644
+ 0.8289850988912658
+ 0.9905877888519856
+ 0.0013550480634565197
+ 0.008053690303982014
+ 0.010346866555172928
+ 0.0014204986684814684
+ 0.008053690303982014
+ 0.9999999999999996
+
+[:, :, 731] =
+ 0.010439951128950659
+ 0.010626710061971205
+ 0.010815864587664356
+ 0.011007384267897179
+ 0.011201276062926072
+ 0.011397467655778494
+ 0.01159603081160791
+ 0.011796754456513348
+ 0.011999957520269512
+ 0.012204958576712133
+ ⋮
+ 0.0008352572003581657
+ 0.8299052727709576
+ 0.9906344518275052
+ 0.0013445087341137341
+ 0.008017516522047968
+ 0.010255593784032069
+ 0.0014073168113784673
+ 0.008017516522047968
+ 0.9999999999999996</code></pre><h3 id="Human-Compartment-Dynamics"><a class="docs-heading-anchor" href="#Human-Compartment-Dynamics">Human Compartment Dynamics</a><a id="Human-Compartment-Dynamics-1"></a><a class="docs-heading-anchor-permalink" href="#Human-Compartment-Dynamics" title="Permalink"></a></h3><p>The state indices follow the order of <code>initial()</code> declarations. The first 12 states are the Erlang chain for <span>$D_{I_h}$</span>, then 12 for <span>$D_{S_v}$</span>, then 8 human states, then 3 vector states, then 4 outputs.</p><pre><code class="language-julia hljs"># State layout: D_Ih[1:12], D_Sv[1:12], S_h, E_h, I_h_asym, I_h_sym0,
+#   I_h_sym1, R_h_temp, I_h_sym2, R_h, S_v, E_v, I_v, outputs...
+idx_Sh = 25
+idx_Eh = 26
+idx_Iha = 27
+idx_Ihs0 = 28
+idx_Ihs1 = 29
+idx_Rht = 30
+idx_Ihs2 = 31
+idx_Rh = 32
+
+p1 = plot(times, result[idx_Sh, 1, :], label=&quot;S_h&quot;, lw=2, color=:blue)
+plot!(p1, times, result[idx_Eh, 1, :], label=&quot;E_h&quot;, lw=2, color=:orange)
+plot!(p1, times, result[idx_Rh, 1, :], label=&quot;R_h&quot;, lw=2, color=:green)
+xlabel!(p1, &quot;Day&quot;)
+ylabel!(p1, &quot;Proportion&quot;)
+title!(p1, &quot;Human Susceptible, Exposed, and Recovered&quot;)
+
+p2 = plot(times, result[idx_Iha, 1, :], label=&quot;I_h_asym&quot;, lw=2, color=:orchid)
+plot!(p2, times, result[idx_Ihs0, 1, :], label=&quot;I_h_sym0&quot;, lw=2, color=:red)
+plot!(p2, times, result[idx_Ihs1, 1, :], label=&quot;I_h_sym1 (pre-relapse)&quot;, lw=2, color=:tomato, ls=:dash)
+plot!(p2, times, result[idx_Rht, 1, :], label=&quot;R_h_temp&quot;, lw=2, color=:goldenrod, ls=:dot)
+plot!(p2, times, result[idx_Ihs2, 1, :], label=&quot;I_h_sym2 (relapse)&quot;, lw=2, color=:darkred, ls=:dashdot)
+xlabel!(p2, &quot;Day&quot;)
+ylabel!(p2, &quot;Proportion&quot;)
+title!(p2, &quot;Infectious and Relapse Compartments&quot;)
+
+plot(p1, p2, layout=(2, 1), size=(700, 600))</code></pre><p><img src="../23_orov_files/figure-commonmark/cell-5-output-1.svg" alt/></p><h3 id="Vector-Dynamics"><a class="docs-heading-anchor" href="#Vector-Dynamics">Vector Dynamics</a><a id="Vector-Dynamics-1"></a><a class="docs-heading-anchor-permalink" href="#Vector-Dynamics" title="Permalink"></a></h3><pre><code class="language-julia hljs">idx_Sv = 33
+idx_Ev = 34
+idx_Iv = 35
+
+plot(times, result[idx_Sv, 1, :], label=&quot;S_v&quot;, lw=2, color=:blue)
+plot!(times, result[idx_Ev, 1, :], label=&quot;E_v&quot;, lw=2, color=:orange)
+plot!(times, result[idx_Iv, 1, :], label=&quot;I_v&quot;, lw=2, color=:red)
+xlabel!(&quot;Day&quot;)
+ylabel!(&quot;Proportion&quot;)
+title!(&quot;Vector SEI Dynamics&quot;)</code></pre><p><img src="../23_orov_files/figure-commonmark/cell-6-output-1.svg" alt/></p><h3 id="Derived-Outputs"><a class="docs-heading-anchor" href="#Derived-Outputs">Derived Outputs</a><a id="Derived-Outputs-1"></a><a class="docs-heading-anchor-permalink" href="#Derived-Outputs" title="Permalink"></a></h3><pre><code class="language-julia hljs">idx_prev_h = 36
+idx_inc_h = 37
+idx_prev_v = 38
+idx_pop_h = 39
+
+l = @layout [a; b]
+
+p1 = plot(times, result[idx_prev_h, 1, :] .* 100, lw=2, color=:darkred,
+          ylabel=&quot;Prevalence (%)&quot;, label=nothing,
+          title=&quot;Human Prevalence (all infectious)&quot;)
+
+p2 = plot(times, result[idx_inc_h, 1, :] .* 1000, lw=2, color=:purple,
+          xlabel=&quot;Day&quot;, ylabel=&quot;Incidence (per 1000/day)&quot;, label=nothing,
+          title=&quot;Human Incidence Rate&quot;)
+
+plot(p1, p2, layout=l, size=(700, 450))</code></pre><p><img src="../23_orov_files/figure-commonmark/cell-7-output-1.svg" alt/></p><h2 id="Scenario-Comparison:-Relapse-Probability"><a class="docs-heading-anchor" href="#Scenario-Comparison:-Relapse-Probability">Scenario Comparison: Relapse Probability</a><a id="Scenario-Comparison:-Relapse-Probability-1"></a><a class="docs-heading-anchor-permalink" href="#Scenario-Comparison:-Relapse-Probability" title="Permalink"></a></h2><p>We compare three relapse scenarios to illustrate the impact of the relapse pathway on epidemic dynamics:</p><ul><li><strong>No relapse</strong> (<span>$\omega = 0$</span>): relapse pathway is blocked</li><li><strong>Moderate relapse</strong> (<span>$\omega = 0.2$</span>): baseline, ~50% of symptomatic cases relapse</li><li><strong>High relapse</strong> (<span>$\omega = 0.5$</span>): faster return to illness</li></ul><pre><code class="language-julia hljs">pars_no_relapse = merge(pars, (omega = 0.0,))
+sys_nr = System(gen, pars_no_relapse; n_particles = 1)
+reset!(sys_nr)
+res_nr = simulate(sys_nr, times)
+
+pars_high_relapse = merge(pars, (omega = 0.5,))
+sys_hr = System(gen, pars_high_relapse; n_particles = 1)
+reset!(sys_hr)
+res_hr = simulate(sys_hr, times)
+
+p1 = plot(times, res_nr[idx_prev_h, 1, :] .* 100,
+          label=&quot;ω = 0 (no relapse)&quot;, lw=2, color=:steelblue)
+plot!(p1, times, result[idx_prev_h, 1, :] .* 100,
+      label=&quot;ω = 0.2 (moderate)&quot;, lw=2, color=:darkorange)
+plot!(p1, times, res_hr[idx_prev_h, 1, :] .* 100,
+      label=&quot;ω = 0.5 (high)&quot;, lw=2, color=:darkred, ls=:dash)
+xlabel!(p1, &quot;Day&quot;)
+ylabel!(p1, &quot;Prevalence (%)&quot;)
+title!(p1, &quot;Human Prevalence by Relapse Rate&quot;)
+
+p2 = plot(times, res_nr[idx_Ihs2, 1, :] .* 100,
+          label=&quot;ω = 0&quot;, lw=2, color=:steelblue)
+plot!(p2, times, result[idx_Ihs2, 1, :] .* 100,
+      label=&quot;ω = 0.2&quot;, lw=2, color=:darkorange)
+plot!(p2, times, res_hr[idx_Ihs2, 1, :] .* 100,
+      label=&quot;ω = 0.5&quot;, lw=2, color=:darkred, ls=:dash)
+xlabel!(p2, &quot;Day&quot;)
+ylabel!(p2, &quot;Proportion (%)&quot;)
+title!(p2, &quot;Relapse Compartment (I_h_sym2)&quot;)
+
+plot(p1, p2, layout=(2, 1), size=(700, 500))</code></pre><p><img src="../23_orov_files/figure-commonmark/cell-8-output-1.svg" alt/></p><p>When <span>$\omega = 0$</span> the relapse pathway is blocked: <span>$R_h^{\text{temp}}$</span> accumulates individuals but never releases them into <span>$I_h^{\text{sym2}}$</span>. Higher <span>$\omega$</span> produces a visible second wave of symptomatic infection.</p><h2 id="Benchmark"><a class="docs-heading-anchor" href="#Benchmark">Benchmark</a><a id="Benchmark-1"></a><a class="docs-heading-anchor-permalink" href="#Benchmark" title="Permalink"></a></h2><pre><code class="language-julia hljs">function run_orov(gen, pars, times)
+    sys = System(gen, pars; n_particles = 1)
+    reset!(sys)
+    simulate(sys, times)
+end
+
+# Warm-up
+run_orov(gen, pars, times)
+
+@benchmark run_orov($gen, $pars, $times)</code></pre><pre><code class="nohighlight hljs">BenchmarkTools.Trial: 1414 samples with 1 evaluation per sample.
+ Range (min … max):  2.842 ms …  17.875 ms  ┊ GC (min … max): 0.00% … 80.52%
+ Time  (median):     3.476 ms               ┊ GC (median):    0.00%
+ Time  (mean ± σ):   3.525 ms ± 671.611 μs  ┊ GC (mean ± σ):  1.08% ±  4.69%
+
+           ▁▄▆█▄ ▃▁▃▁▄▂▂▆▄▆▅▂▃▆▁▆▄▅ ▄▄▁▂▂▂▂▁▁                  
+  ▂▂▃▁▃▄▅█▇██████████████████████████████████▇▇▇▄▆▇▆▄▄▃▄▃▃▄▃▃ ▆
+  2.84 ms         Histogram: frequency by time        4.22 ms &lt;
+
+ Memory estimate: 487.89 KiB, allocs estimate: 365.</code></pre><h2 id="Summary"><a class="docs-heading-anchor" href="#Summary">Summary</a><a id="Summary-1"></a><a class="docs-heading-anchor-permalink" href="#Summary" title="Permalink"></a></h2><table><tr><th style="text-align: right">Feature</th><th style="text-align: right">Syntax</th></tr><tr><td style="text-align: right">Coupled ODE system</td><td style="text-align: right"><code>deriv(S_h) = ...</code>, <code>deriv(S_v) = ...</code></td></tr><tr><td style="text-align: right">Erlang chain delay</td><td style="text-align: right"><code>deriv(D_Ih[1]) = (I_h_total - D_Ih[1]) * delay_rate</code></td></tr><tr><td style="text-align: right">Array indexing</td><td style="text-align: right"><code>D_Ih[k_delay]</code> to read last stage</td></tr><tr><td style="text-align: right">Derived outputs</td><td style="text-align: right"><code>output(prevalence_h) = I_h_total</code></td></tr><tr><td style="text-align: right">Scenario comparison</td><td style="text-align: right"><code>merge(pars, (omega = 0.0,))</code></td></tr></table><p>This vignette demonstrated how Odin.jl handles a multi-species ODE system with an Erlang-chain delay approximation and relapse dynamics. The model can be extended with seasonal forcing, age structure, or spatial coupling.</p></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../22_beta_blocks/">« Beta Blocks</a><a class="docs-footer-nextpage" href="../24_yf_delay/">Yellow Fever with Erlang Delay »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="auto">Automatic (OS)</option><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option><option value="catppuccin-latte">catppuccin-latte</option><option value="catppuccin-frappe">catppuccin-frappe</option><option value="catppuccin-macchiato">catppuccin-macchiato</option><option value="catppuccin-mocha">catppuccin-mocha</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 1.17.0 on <span class="colophon-date" title="Friday 27 March 2026 16:28">Friday 27 March 2026</span>. Using Julia version 1.12.5.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>

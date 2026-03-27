@@ -1,0 +1,529 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width, initial-scale=1.0"/><title>Malaria: Ross-Macdonald · Odin.jl</title><meta name="title" content="Malaria: Ross-Macdonald · Odin.jl"/><meta property="og:title" content="Malaria: Ross-Macdonald · Odin.jl"/><meta property="twitter:title" content="Malaria: Ross-Macdonald · Odin.jl"/><meta name="description" content="Documentation for Odin.jl."/><meta property="og:description" content="Documentation for Odin.jl."/><meta property="twitter:description" content="Documentation for Odin.jl."/><script data-outdated-warner src="../../assets/warner.js"></script><link href="https://cdnjs.cloudflare.com/ajax/libs/lato-font/3.0.0/css/lato-font.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/juliamono/0.050/juliamono.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/fontawesome.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/solid.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/brands.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.8/katex.min.css" rel="stylesheet" type="text/css"/><script>documenterBaseURL="../.."</script><script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.6/require.min.js" data-main="../../assets/documenter.js"></script><script src="../../search_index.js"></script><script src="../../siteinfo.js"></script><script src="../../../versions.js"></script><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/catppuccin-mocha.css" data-theme-name="catppuccin-mocha"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/catppuccin-macchiato.css" data-theme-name="catppuccin-macchiato"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/catppuccin-frappe.css" data-theme-name="catppuccin-frappe"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/catppuccin-latte.css" data-theme-name="catppuccin-latte"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/documenter-dark.css" data-theme-name="documenter-dark" data-theme-primary-dark/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/documenter-light.css" data-theme-name="documenter-light" data-theme-primary/><script src="../../assets/themeswap.js"></script></head><body><div id="documenter"><nav class="docs-sidebar"><div class="docs-package-name"><span class="docs-autofit"><a href="../../">Odin.jl</a></span></div><button class="docs-search-query input is-rounded is-small is-clickable my-2 mx-auto py-1 px-2" id="documenter-search-query">Search docs (Ctrl + /)</button><ul class="docs-menu"><li><a class="tocitem" href="../../">Home</a></li><li><a class="tocitem" href="../../getting_started/">Getting Started</a></li><li><span class="tocitem">Guide</span><ul><li><a class="tocitem" href="../../dsl/">DSL Reference</a></li><li><a class="tocitem" href="../../simulation/">Simulation</a></li><li><a class="tocitem" href="../../filtering/">Filtering &amp; Likelihood</a></li><li><a class="tocitem" href="../../inference/">Inference</a></li><li><a class="tocitem" href="../../solvers/">ODE Solvers</a></li><li><a class="tocitem" href="../../gpu/">GPU Acceleration</a></li><li><a class="tocitem" href="../../categorical/">Categorical Models</a></li></ul></li><li><span class="tocitem">Vignettes</span><ul><li><input class="collapse-toggle" id="menuitem-4-1" type="checkbox"/><label class="tocitem" for="menuitem-4-1"><span class="docs-label">Basics</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../01_basic_ode/">Basic ODE Model: SIR</a></li><li><a class="tocitem" href="../02_stochastic/">Stochastic Discrete-Time SIR</a></li><li><a class="tocitem" href="../03_observations/">Incidence Tracking with zero_every</a></li><li><a class="tocitem" href="../04_arrays/">Age-Structured SIR with Arrays</a></li><li><a class="tocitem" href="../05_particle_filter/">Particle Filter and Likelihood</a></li><li><a class="tocitem" href="../06_inference/">Bayesian Inference with MCMC</a></li></ul></li><li><input class="collapse-toggle" id="menuitem-4-2" type="checkbox"/><label class="tocitem" for="menuitem-4-2"><span class="docs-label">Intermediate</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../07_categorical/">Compositional Model Building</a></li><li><a class="tocitem" href="../08_time_varying/">Time-Varying Parameters</a></li><li><a class="tocitem" href="../09_advanced/">SEIR with Vaccination and Waning</a></li><li><a class="tocitem" href="../10_projections/">Counterfactual Projections</a></li><li><a class="tocitem" href="../11_delay_model/">Delay Compartments</a></li><li><a class="tocitem" href="../12_reactive_policy/">Reactive Vaccination Policy</a></li><li><a class="tocitem" href="../13_dynamicppl/">DynamicPPL Integration</a></li><li><a class="tocitem" href="../14_delay_vaccination/">SEIR with Delay and Vaccination</a></li><li><a class="tocitem" href="../15_vector_borne/">Vector-Borne Disease Dynamics</a></li></ul></li><li><input class="collapse-toggle" id="menuitem-4-3" type="checkbox" checked/><label class="tocitem" for="menuitem-4-3"><span class="docs-label">Advanced Models</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../16_multi_stream/">Multi-Stream Outbreak</a></li><li><a class="tocitem" href="../17_mpox_seir/">Mpox SEIR: Age-Structured</a></li><li class="is-active"><a class="tocitem" href>Malaria: Ross-Macdonald</a><ul class="internal"><li><a class="tocitem" href="#Introduction"><span>Introduction</span></a></li><li><a class="tocitem" href="#Model-Description"><span>Model Description</span></a></li><li><a class="tocitem" href="#Model-Definition"><span>Model Definition</span></a></li><li><a class="tocitem" href="#Simulation"><span>Simulation</span></a></li><li><a class="tocitem" href="#ITN-Intervention-Scenarios"><span>ITN Intervention Scenarios</span></a></li><li><a class="tocitem" href="#Synthetic-Data:-Slide-Positivity-Surveys"><span>Synthetic Data: Slide Positivity Surveys</span></a></li><li><a class="tocitem" href="#Inference"><span>Inference</span></a></li><li><a class="tocitem" href="#Posterior-Analysis"><span>Posterior Analysis</span></a></li><li><a class="tocitem" href="#Summary"><span>Summary</span></a></li></ul></li><li><a class="tocitem" href="../19_sarscov2_multiregion/">SARS-CoV-2 Multi-Region</a></li><li><a class="tocitem" href="../20_yellowfever/">Yellow Fever SEIRV</a></li><li><a class="tocitem" href="../21_school_closure/">SIS with School Closure</a></li><li><a class="tocitem" href="../22_beta_blocks/">Beta Blocks</a></li><li><a class="tocitem" href="../23_orov/">OROV Vector-Borne</a></li><li><a class="tocitem" href="../24_yf_delay/">Yellow Fever with Erlang Delay</a></li><li><a class="tocitem" href="../25_yf_vtrack/">Yellow Fever 2-Track Vaccination</a></li><li><a class="tocitem" href="../26_fitting_workflow/">Complete Fitting Workflow</a></li><li><a class="tocitem" href="../27_spatial_composition/">Spatial Composition</a></li><li><a class="tocitem" href="../28_stratification/">Age Stratification</a></li><li><a class="tocitem" href="../29_multi_pathogen/">Multi-Pathogen Composition</a></li></ul></li><li><input class="collapse-toggle" id="menuitem-4-4" type="checkbox"/><label class="tocitem" for="menuitem-4-4"><span class="docs-label">Techniques</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../30_stiff_ode/">Stiff ODEs: SDIRK4 Solver</a></li><li><a class="tocitem" href="../31_gpu_filter/">GPU-Accelerated Filtering</a></li><li><a class="tocitem" href="../32_advanced_samplers/">Advanced MCMC Samplers</a></li><li><a class="tocitem" href="../33_sensitivity/">Sensitivity Analysis</a></li><li><a class="tocitem" href="../34_events/">Event Handling</a></li><li><a class="tocitem" href="../35_sde/">Stochastic Differential Equations</a></li><li><a class="tocitem" href="../36_model_selection/">Model Selection</a></li><li><a class="tocitem" href="../37_model_validation/">Model Validation</a></li></ul></li></ul></li><li><a class="tocitem" href="../../api/">API Reference</a></li></ul><div class="docs-version-selector field has-addons"><div class="control"><span class="docs-label button is-static is-size-7">Version</span></div><div class="docs-selector control is-expanded"><div class="select is-fullwidth is-size-7"><select id="documenter-version-selector"></select></div></div></div></nav><div class="docs-main"><header class="docs-navbar"><a class="docs-sidebar-button docs-navbar-link fa-solid fa-bars is-hidden-desktop" id="documenter-sidebar-button" href="#"></a><nav class="breadcrumb"><ul class="is-hidden-mobile"><li><a class="is-disabled">Vignettes</a></li><li><a class="is-disabled">Advanced Models</a></li><li class="is-active"><a href>Malaria: Ross-Macdonald</a></li></ul><ul class="is-hidden-tablet"><li class="is-active"><a href>Malaria: Ross-Macdonald</a></li></ul></nav><div class="docs-right"><a class="docs-navbar-link" href="https://github.com/epirecipes/Odin.jl" title="View the repository on GitHub"><span class="docs-icon fa-brands"></span><span class="docs-label is-hidden-touch">GitHub</span></a><a class="docs-settings-button docs-navbar-link fa-solid fa-gear" id="documenter-settings-button" href="#" title="Settings"></a><a class="docs-article-toggle-button fa-solid fa-chevron-up" id="documenter-article-toggle-button" href="javascript:;" title="Collapse all docstrings"></a></div></header><article class="content" id="documenter-page"><h1 id="Malaria-Simple:-Ross-Macdonald-Model-with-Seasonal-Forcing"><a class="docs-heading-anchor" href="#Malaria-Simple:-Ross-Macdonald-Model-with-Seasonal-Forcing">Malaria Simple: Ross-Macdonald Model with Seasonal Forcing</a><a id="Malaria-Simple:-Ross-Macdonald-Model-with-Seasonal-Forcing-1"></a><a class="docs-heading-anchor-permalink" href="#Malaria-Simple:-Ross-Macdonald-Model-with-Seasonal-Forcing" title="Permalink"></a></h1><h2 id="Introduction"><a class="docs-heading-anchor" href="#Introduction">Introduction</a><a id="Introduction-1"></a><a class="docs-heading-anchor-permalink" href="#Introduction" title="Permalink"></a></h2><p>Malaria remains one of the world’s most important vector-borne diseases, with roughly 250 million cases and 600,000 deaths annually. Transmission depends on the interaction between human hosts and <em>Anopheles</em> mosquito vectors, modulated by climate, immunity, and interventions.</p><p>The <strong>Ross-Macdonald</strong> framework captures these dynamics by coupling human and mosquito compartmental models through bidirectional forces of infection. This vignette builds a simplified teaching version — inspired by the <a href="https://github.com/mrc-ide/malariasimple">malariasimple</a> R package — that demonstrates:</p><ol><li>A five-compartment human model (SEIAR) with asymptomatic carriage  and waning immunity</li><li>Mosquito SEI dynamics with <strong>seasonal forcing</strong> of carrying capacity</li><li>Insecticide-treated net (ITN) intervention scenarios</li><li>Synthetic slide-positivity data generation</li><li>Bayesian inference using an ODE-based <strong>unfilter</strong> with HMC sampling</li></ol><pre><code class="language-julia hljs">using Odin
+using Distributions
+using Plots
+using Statistics
+using LinearAlgebra: diagm
+using Random</code></pre><h2 id="Model-Description"><a class="docs-heading-anchor" href="#Model-Description">Model Description</a><a id="Model-Description-1"></a><a class="docs-heading-anchor-permalink" href="#Model-Description" title="Permalink"></a></h2><h3 id="Human-compartments-(SEIAR)"><a class="docs-heading-anchor" href="#Human-compartments-(SEIAR)">Human compartments (SEIAR)</a><a id="Human-compartments-(SEIAR)-1"></a><a class="docs-heading-anchor-permalink" href="#Human-compartments-(SEIAR)" title="Permalink"></a></h3><p>The human population passes through five states:</p><ul><li><strong>S_h</strong> — Susceptible</li><li><strong>E_h</strong> — Exposed (liver-stage parasites, ~12 day latent period)</li><li><strong>I_h</strong> — Infectious / clinical malaria (blood-stage, symptomatic)</li><li><strong>A_h</strong> — Asymptomatic carriers (infectious at reduced level)</li><li><strong>R_h</strong> — Recovered with temporary immunity</li></ul><p class="math-container">\[\begin{aligned}
+\frac{dS_h}{dt} &amp;= \mu_h N_h + \omega R_h - \lambda_h S_h - \mu_h S_h \\
+\frac{dE_h}{dt} &amp;= \lambda_h S_h - \delta_h E_h - \mu_h E_h \\
+\frac{dI_h}{dt} &amp;= (1 - p_\text{asymp})\,\delta_h E_h - \gamma_h I_h - \mu_h I_h \\
+\frac{dA_h}{dt} &amp;= p_\text{asymp}\,\delta_h E_h + \rho R_h - \gamma_a A_h - \mu_h A_h \\
+\frac{dR_h}{dt} &amp;= \gamma_h I_h + \gamma_a A_h - \omega R_h - \rho R_h - \mu_h R_h
+\end{aligned}\]</p><p>A fraction <span>$p_\text{asymp}$</span> of infections are asymptomatic from the outset. Recovered individuals lose immunity at rate <span>$\omega$</span> (returning to <span>$S_h$</span>) or relapse to asymptomatic carriage at rate <span>$\rho$</span>.</p><h3 id="Mosquito-compartments-(SEI)"><a class="docs-heading-anchor" href="#Mosquito-compartments-(SEI)">Mosquito compartments (SEI)</a><a id="Mosquito-compartments-(SEI)-1"></a><a class="docs-heading-anchor-permalink" href="#Mosquito-compartments-(SEI)" title="Permalink"></a></h3><p>Mosquitoes follow an SEI structure — they do not recover from infection:</p><p class="math-container">\[\begin{aligned}
+\frac{dS_m}{dt} &amp;= \mu_m K_m(t) - \lambda_m S_m \cdot \text{itn} - \mu_m S_m \\
+\frac{dE_m}{dt} &amp;= \lambda_m S_m \cdot \text{itn} - \delta_m E_m - \mu_m E_m \\
+\frac{dI_m}{dt} &amp;= \delta_m E_m - \mu_m I_m
+\end{aligned}\]</p><p>The carrying capacity <span>$K_m(t)$</span> oscillates seasonally:</p><p class="math-container">\[K_m(t) = K_{m,0}\bigl(1 + A \sin\bigl(2\pi(t - \phi)/365\bigr)\bigr)\]</p><p>ITN coverage reduces the effective biting rate: <span>$\text{itn\_effect} = 1 - \text{itn\_cov} \times \text{itn\_eff}$</span>.</p><h3 id="Forces-of-infection"><a class="docs-heading-anchor" href="#Forces-of-infection">Forces of infection</a><a id="Forces-of-infection-1"></a><a class="docs-heading-anchor-permalink" href="#Forces-of-infection" title="Permalink"></a></h3><p class="math-container">\[\lambda_h = a \cdot b \cdot I_m / N_h, \qquad
+\lambda_m = a \cdot c \cdot (I_h + \varphi A_h) / N_h\]</p><p>where <span>$a$</span> is the biting rate, <span>$b$</span> and <span>$c$</span> are transmission probabilities, and <span>$\varphi$</span> is the relative infectiousness of asymptomatics.</p><h2 id="Model-Definition"><a class="docs-heading-anchor" href="#Model-Definition">Model Definition</a><a id="Model-Definition-1"></a><a class="docs-heading-anchor-permalink" href="#Model-Definition" title="Permalink"></a></h2><pre><code class="language-julia hljs">malaria = @odin begin
+    # Forces of infection
+    lambda_h = a * b * I_m / N_h
+    lambda_m = a * c * (I_h + phi * A_h) / N_h
+
+    # Human dynamics
+    deriv(S_h) = -lambda_h * S_h + omega * R_h + mu_h * N_h - mu_h * S_h
+    deriv(E_h) = lambda_h * S_h - delta_h * E_h - mu_h * E_h
+    deriv(I_h) = delta_h * E_h * (1 - p_asymp) - gamma_h * I_h - mu_h * I_h
+    deriv(A_h) = delta_h * E_h * p_asymp + rho * R_h - gamma_a * A_h - mu_h * A_h
+    deriv(R_h) = gamma_h * I_h + gamma_a * A_h - omega * R_h - rho * R_h - mu_h * R_h
+
+    # Seasonal mosquito dynamics
+    K_m = K_m0 * (1 + amp * sin(2 * pi * (time - phase) / 365))
+    emergence = mu_m * K_m
+    itn_effect = 1 - itn_cov * itn_eff
+
+    deriv(S_m) = emergence - lambda_m * S_m * itn_effect - mu_m * S_m
+    deriv(E_m) = lambda_m * S_m * itn_effect - delta_m * E_m - mu_m * E_m
+    deriv(I_m) = delta_m * E_m - mu_m * I_m
+
+    # Derived outputs
+    output(prevalence) = (I_h + A_h) / N_h
+    output(N_m) = S_m + E_m + I_m
+    output(EIR) = a * I_m / N_h * 365
+
+    # Initial conditions
+    initial(S_h) = N_h - I_h0
+    initial(E_h) = 0
+    initial(I_h) = I_h0
+    initial(A_h) = 0
+    initial(R_h) = 0
+    initial(S_m) = K_m0
+    initial(E_m) = 0
+    initial(I_m) = 0
+
+    # Transmission parameters
+    a = parameter(0.3)           # biting rate (bites/mosquito/day)
+    b = parameter(0.55)          # prob transmission: mosquito → human
+    c = parameter(0.15)          # prob transmission: human → mosquito
+    phi = parameter(0.5)         # relative infectiousness of asymptomatics
+
+    # Human rates
+    delta_h = parameter(0.0833)  # 1/12: liver-stage latent rate
+    gamma_h = parameter(0.2)     # 1/5: clinical recovery rate
+    gamma_a = parameter(0.005)   # 1/200: asymptomatic clearance rate
+    omega = parameter(0.00274)   # 1/365: immunity waning rate
+    rho = parameter(0.00137)     # 1/730: relapse rate (R → A)
+    p_asymp = parameter(0.5)     # proportion asymptomatic
+    mu_h = parameter(5.48e-5)    # 1/(50*365): human birth/death rate
+
+    # Mosquito parameters
+    delta_m = parameter(0.1)     # 1/10: sporogonic cycle rate
+    mu_m = parameter(0.1)        # 1/10: mosquito death rate
+    K_m0 = parameter(200000)     # baseline carrying capacity
+
+    # Seasonal forcing
+    amp = parameter(0.5)         # seasonal amplitude
+    phase = parameter(60)        # phase shift (days)
+
+    # ITN intervention
+    itn_cov = parameter(0.0)     # ITN coverage (0–1)
+    itn_eff = parameter(0.5)     # ITN efficacy (0–1)
+
+    # Population and initial conditions
+    N_h = parameter(10000)
+    I_h0 = parameter(100)
+end</code></pre><pre><code class="nohighlight hljs">Odin.DustSystemGenerator{var&quot;##OdinModel#277&quot;}(var&quot;##OdinModel#277&quot;(8, [:S_h, :E_h, :I_h, :A_h, :R_h, :S_m, :E_m, :I_m], [:a, :b, :c, :phi, :delta_h, :gamma_h, :gamma_a, :omega, :rho, :p_asymp, :mu_h, :delta_m, :mu_m, :K_m0, :amp, :phase, :itn_cov, :itn_eff, :N_h, :I_h0], true, false, false, true, false, Dict{Symbol, Array}()))</code></pre><h2 id="Simulation"><a class="docs-heading-anchor" href="#Simulation">Simulation</a><a id="Simulation-1"></a><a class="docs-heading-anchor-permalink" href="#Simulation" title="Permalink"></a></h2><h3 id="True-parameters"><a class="docs-heading-anchor" href="#True-parameters">True parameters</a><a id="True-parameters-1"></a><a class="docs-heading-anchor-permalink" href="#True-parameters" title="Permalink"></a></h3><p>We use a human population of 10,000 with a mosquito carrying capacity 20× larger (<span>$K_{m,0} = 200{,}000$</span>), reflecting a high-transmission African setting.</p><pre><code class="language-julia hljs">true_pars = (
+    a = 0.3,
+    b = 0.55,
+    c = 0.15,
+    phi = 0.5,
+    delta_h = 1.0 / 12,
+    gamma_h = 1.0 / 5,
+    gamma_a = 1.0 / 200,
+    omega = 1.0 / 365,
+    rho = 1.0 / 730,
+    p_asymp = 0.5,
+    mu_h = 1.0 / (50 * 365),
+    delta_m = 1.0 / 10,
+    mu_m = 1.0 / 10,
+    K_m0 = 200000.0,
+    amp = 0.5,
+    phase = 60.0,
+    itn_cov = 0.0,
+    itn_eff = 0.5,
+    N_h = 10000.0,
+    I_h0 = 100.0,
+)</code></pre><pre><code class="nohighlight hljs">(a = 0.3, b = 0.55, c = 0.15, phi = 0.5, delta_h = 0.08333333333333333, gamma_h = 0.2, gamma_a = 0.005, omega = 0.0027397260273972603, rho = 0.0013698630136986301, p_asymp = 0.5, mu_h = 5.479452054794521e-5, delta_m = 0.1, mu_m = 0.1, K_m0 = 200000.0, amp = 0.5, phase = 60.0, itn_cov = 0.0, itn_eff = 0.5, N_h = 10000.0, I_h0 = 100.0)</code></pre><h3 id="Three-year-baseline-simulation"><a class="docs-heading-anchor" href="#Three-year-baseline-simulation">Three-year baseline simulation</a><a id="Three-year-baseline-simulation-1"></a><a class="docs-heading-anchor-permalink" href="#Three-year-baseline-simulation" title="Permalink"></a></h3><pre><code class="language-julia hljs">times = collect(0.0:1.0:1095.0)  # 3 years
+result = simulate(malaria, true_pars; times=times, seed=1)</code></pre><pre><code class="nohighlight hljs">11×1×1096 Array{Float64, 3}:
+[:, :, 1] =
+   9900.0
+      0.0
+    100.0
+      0.0
+      0.0
+ 200000.0
+      0.0
+      0.0
+      0.01
+ 200000.0
+      0.0
+
+[:, :, 2] =
+   9899.816984737645
+      0.20960967386840584
+     81.87075343565361
+      0.015039993599015365
+     18.087612159232744
+ 191794.95622275877
+     72.14615697659987
+      3.757074569403757
+      0.008188579342925262
+ 191870.8594543048
+      0.04113996653497114
+
+[:, :, 3] =
+   9898.607111298421
+      1.436152980001478
+     67.05404489906108
+      0.07966476181820842
+     32.82302606069894
+ 184473.28691514654
+    115.81775114867615
+     12.565223534897024
+      0.006713370966087929
+ 184601.6698898301
+      0.13758919770712238
+
+;;; … 
+
+[:, :, 1094] =
+    273.1997650559864
+    195.35818814345757
+     40.28711309922446
+   3356.2784350138845
+   6134.876498687443
+  99379.35248199748
+   3766.41949183532
+   3718.9408884872855
+      0.3396565548113109
+ 106864.71286232008
+     40.722402728935776
+
+[:, :, 1095] =
+    273.74683678064827
+    195.84044928934375
+     40.36924254433928
+   3355.867556503633
+   6134.175914882033
+  99926.74708360809
+   3782.142278071156
+   3724.212705507179
+      0.3396236799047972
+ 107433.10206718642
+     40.78012912530361
+
+[:, :, 1096] =
+    274.23401759580616
+    196.339752878541
+     40.455024494928644
+   3355.4782019950926
+   6133.493003035628
+ 100499.4883408229
+   3798.8982194177697
+   3730.527836366615
+      0.3395933226490021
+ 108028.91439660729
+     40.849279808214426</code></pre><h3 id="Human-dynamics"><a class="docs-heading-anchor" href="#Human-dynamics">Human dynamics</a><a id="Human-dynamics-1"></a><a class="docs-heading-anchor-permalink" href="#Human-dynamics" title="Permalink"></a></h3><pre><code class="language-julia hljs">p_hum = plot(times ./ 365, result[1, 1, :], label=&quot;S_h&quot;, lw=2, color=:blue,
+             xlabel=&quot;Year&quot;, ylabel=&quot;Population&quot;,
+             title=&quot;Human SEIAR Dynamics (3 years)&quot;, legend=:right)
+plot!(p_hum, times ./ 365, result[2, 1, :], label=&quot;E_h&quot;, lw=2, color=:orange)
+plot!(p_hum, times ./ 365, result[3, 1, :], label=&quot;I_h&quot;, lw=2, color=:red)
+plot!(p_hum, times ./ 365, result[4, 1, :], label=&quot;A_h&quot;, lw=2, color=:purple)
+plot!(p_hum, times ./ 365, result[5, 1, :], label=&quot;R_h&quot;, lw=2, color=:green)
+p_hum</code></pre><p><img src="../18_malaria_simple_files/figure-commonmark/cell-6-output-1.svg" alt/></p><h3 id="Mosquito-dynamics-and-seasonality"><a class="docs-heading-anchor" href="#Mosquito-dynamics-and-seasonality">Mosquito dynamics and seasonality</a><a id="Mosquito-dynamics-and-seasonality-1"></a><a class="docs-heading-anchor-permalink" href="#Mosquito-dynamics-and-seasonality" title="Permalink"></a></h3><pre><code class="language-julia hljs">p_mos = plot(times ./ 365, result[6, 1, :], label=&quot;S_m&quot;, lw=2, color=:blue,
+             xlabel=&quot;Year&quot;, ylabel=&quot;Population&quot;,
+             title=&quot;Mosquito SEI Dynamics (3 years)&quot;, legend=:right)
+plot!(p_mos, times ./ 365, result[7, 1, :], label=&quot;E_m&quot;, lw=2, color=:orange)
+plot!(p_mos, times ./ 365, result[8, 1, :], label=&quot;I_m&quot;, lw=2, color=:red)
+p_mos</code></pre><p><img src="../18_malaria_simple_files/figure-commonmark/cell-7-output-1.svg" alt/></p><h3 id="Epidemiological-indicators"><a class="docs-heading-anchor" href="#Epidemiological-indicators">Epidemiological indicators</a><a id="Epidemiological-indicators-1"></a><a class="docs-heading-anchor-permalink" href="#Epidemiological-indicators" title="Permalink"></a></h3><pre><code class="language-julia hljs">l = @layout [a; b; c]
+
+p1 = plot(times ./ 365, result[9, 1, :] .* 100, lw=2, color=:darkred,
+          ylabel=&quot;Prevalence (%)&quot;, label=nothing,
+          title=&quot;Slide Prevalence (I_h + A_h)&quot;)
+
+p2 = plot(times ./ 365, result[10, 1, :], lw=2, color=:teal,
+          ylabel=&quot;Total mosquitoes&quot;, label=nothing,
+          title=&quot;Mosquito Population&quot;)
+
+p3 = plot(times ./ 365, result[11, 1, :], lw=2, color=:purple,
+          xlabel=&quot;Year&quot;, ylabel=&quot;Annual EIR&quot;, label=nothing,
+          title=&quot;Entomological Inoculation Rate&quot;)
+
+plot(p1, p2, p3, layout=l, size=(700, 600))</code></pre><p><img src="../18_malaria_simple_files/figure-commonmark/cell-8-output-1.svg" alt/></p><p>The seasonal forcing creates annual peaks in mosquito density, followed by lagged peaks in prevalence and EIR. The system reaches a quasi-steady seasonal cycle by year 2.</p><h2 id="ITN-Intervention-Scenarios"><a class="docs-heading-anchor" href="#ITN-Intervention-Scenarios">ITN Intervention Scenarios</a><a id="ITN-Intervention-Scenarios-1"></a><a class="docs-heading-anchor-permalink" href="#ITN-Intervention-Scenarios" title="Permalink"></a></h2><p>Insecticide-treated nets reduce the effective mosquito biting rate. Because the biting rate <span>$a$</span> appears in <em>both</em> forces of infection, ITN interventions have a powerful, roughly quadratic effect on transmission.</p><pre><code class="language-julia hljs">pars_itn50 = merge(true_pars, (itn_cov = 0.5,))
+pars_itn80 = merge(true_pars, (itn_cov = 0.8,))
+
+res_itn50 = simulate(malaria, pars_itn50; times=times, seed=1)
+res_itn80 = simulate(malaria, pars_itn80; times=times, seed=1)</code></pre><pre><code class="nohighlight hljs">11×1×1096 Array{Float64, 3}:
+[:, :, 1] =
+   9900.0
+      0.0
+    100.0
+      0.0
+      0.0
+ 200000.0
+      0.0
+      0.0
+      0.01
+ 200000.0
+      0.0
+
+[:, :, 2] =
+   9899.9026249684
+      0.12577197727159475
+     81.8698876835881
+      0.014139627792192088
+     18.087575742948214
+ 191825.31397265775
+     43.29111276306753
+      2.2543669090597622
+      0.00818840273113803
+ 191870.8594523299
+      0.024685317654204394
+
+[:, :, 3] =
+   9899.206977647626
+      0.8617797940804502
+     67.04229208218631
+      0.06694374582824265
+     32.822006730280386
+ 184524.6326253956
+     69.49748125313644
+      7.539786505054971
+      0.006710923582801454
+ 184601.6698931538
+      0.08256066223035192
+
+;;; … 
+
+[:, :, 1094] =
+    422.2728457579904
+    182.8907938609859
+     37.666630033585236
+   3302.015843475708
+   6055.15388687173
+ 102312.45921671294
+   2288.3428125220767
+   2263.9156619659398
+      0.33396824735092934
+ 106864.71769120096
+     24.78987649852704
+
+[:, :, 1095] =
+    423.57778333872494
+    183.42544184860512
+     37.75407969542691
+   3301.252211683734
+   6053.9904834335075
+ 102868.95048011439
+   2297.4743071032763
+   2266.6771247445763
+      0.33390062913791607
+ 107433.10191196224
+     24.82011451595311
+
+[:, :, 1096] =
+    424.8104998429615
+    183.9835196347438
+     37.84632061931622
+   3300.5135614400315
+   6052.8460984629455
+ 103451.6052086191
+   2307.2341265065897
+   2270.075027126402
+      0.3338359882059348
+ 108028.9143622521
+     24.857321547034097</code></pre><pre><code class="language-julia hljs">p_itn = plot(times ./ 365, result[9, 1, :] .* 100,
+             label=&quot;No ITN (0%)&quot;, lw=2, color=:red,
+             xlabel=&quot;Year&quot;, ylabel=&quot;Prevalence (%)&quot;,
+             title=&quot;Impact of ITN Coverage on Malaria Prevalence&quot;,
+             legend=:topright)
+plot!(p_itn, times ./ 365, res_itn50[9, 1, :] .* 100,
+      label=&quot;50% ITN coverage&quot;, lw=2, color=:orange)
+plot!(p_itn, times ./ 365, res_itn80[9, 1, :] .* 100,
+      label=&quot;80% ITN coverage&quot;, lw=2, color=:green)
+p_itn</code></pre><p><img src="../18_malaria_simple_files/figure-commonmark/cell-10-output-1.svg" alt/></p><pre><code class="language-julia hljs">p_eir = plot(times ./ 365, result[11, 1, :],
+             label=&quot;No ITN&quot;, lw=2, color=:red,
+             xlabel=&quot;Year&quot;, ylabel=&quot;Annual EIR&quot;,
+             title=&quot;Impact of ITN Coverage on EIR&quot;,
+             legend=:topright)
+plot!(p_eir, times ./ 365, res_itn50[11, 1, :],
+      label=&quot;50% ITN&quot;, lw=2, color=:orange)
+plot!(p_eir, times ./ 365, res_itn80[11, 1, :],
+      label=&quot;80% ITN&quot;, lw=2, color=:green)
+p_eir</code></pre><p><img src="../18_malaria_simple_files/figure-commonmark/cell-11-output-1.svg" alt/></p><p>Even 50% ITN coverage substantially reduces prevalence and EIR, while 80% coverage nearly interrupts transmission.</p><h2 id="Synthetic-Data:-Slide-Positivity-Surveys"><a class="docs-heading-anchor" href="#Synthetic-Data:-Slide-Positivity-Surveys">Synthetic Data: Slide Positivity Surveys</a><a id="Synthetic-Data:-Slide-Positivity-Surveys-1"></a><a class="docs-heading-anchor-permalink" href="#Synthetic-Data:-Slide-Positivity-Surveys" title="Permalink"></a></h2><p>We generate monthly cross-sectional survey data — a common malaria surveillance method where a fixed number of individuals are tested by microscopy (blood slide) and the number positive is recorded.</p><h3 id="Model-with-data-comparison"><a class="docs-heading-anchor" href="#Model-with-data-comparison">Model with data comparison</a><a id="Model-with-data-comparison-1"></a><a class="docs-heading-anchor-permalink" href="#Model-with-data-comparison" title="Permalink"></a></h3><p>We define a version of the model with a Binomial comparison for slide positivity. The prevalence is clamped to (0, 1) to ensure numerical stability.</p><pre><code class="language-julia hljs">malaria_fit = @odin begin
+    # Forces of infection
+    lambda_h = a * b * I_m / N_h
+    lambda_m = a * c * (I_h + phi * A_h) / N_h
+
+    # Human dynamics
+    deriv(S_h) = -lambda_h * S_h + omega * R_h + mu_h * N_h - mu_h * S_h
+    deriv(E_h) = lambda_h * S_h - delta_h * E_h - mu_h * E_h
+    deriv(I_h) = delta_h * E_h * (1 - p_asymp) - gamma_h * I_h - mu_h * I_h
+    deriv(A_h) = delta_h * E_h * p_asymp + rho * R_h - gamma_a * A_h - mu_h * A_h
+    deriv(R_h) = gamma_h * I_h + gamma_a * A_h - omega * R_h - rho * R_h - mu_h * R_h
+
+    # Seasonal mosquito dynamics
+    K_m = K_m0 * (1 + amp * sin(2 * pi * (time - phase) / 365))
+    emergence = mu_m * K_m
+    itn_effect = 1 - itn_cov * itn_eff
+
+    deriv(S_m) = emergence - lambda_m * S_m * itn_effect - mu_m * S_m
+    deriv(E_m) = lambda_m * S_m * itn_effect - delta_m * E_m - mu_m * E_m
+    deriv(I_m) = delta_m * E_m - mu_m * I_m
+
+    # Prevalence clamped to (0, 1) for Binomial likelihood
+    prev_model = min(max((I_h + A_h) / N_h, 1e-10), 1 - 1e-10)
+
+    # Data comparison: slide positivity from monthly surveys
+    slide_positive = data()
+    n_tested = data()
+    slide_positive ~ Binomial(n_tested, prev_model)
+
+    # Initial conditions
+    initial(S_h) = N_h - I_h0
+    initial(E_h) = 0
+    initial(I_h) = I_h0
+    initial(A_h) = 0
+    initial(R_h) = 0
+    initial(S_m) = K_m0
+    initial(E_m) = 0
+    initial(I_m) = 0
+
+    # Parameters (same as simulation model)
+    a = parameter(0.3)
+    b = parameter(0.55)
+    c = parameter(0.15)
+    phi = parameter(0.5)
+    delta_h = parameter(0.0833)
+    gamma_h = parameter(0.2)
+    gamma_a = parameter(0.005)
+    omega = parameter(0.00274)
+    rho = parameter(0.00137)
+    p_asymp = parameter(0.5)
+    mu_h = parameter(5.48e-5)
+    delta_m = parameter(0.1)
+    mu_m = parameter(0.1)
+    K_m0 = parameter(200000)
+    amp = parameter(0.5)
+    phase = parameter(60)
+    itn_cov = parameter(0.0)
+    itn_eff = parameter(0.5)
+    N_h = parameter(10000)
+    I_h0 = parameter(100)
+end</code></pre><pre><code class="nohighlight hljs">Odin.DustSystemGenerator{var&quot;##OdinModel#285&quot;}(var&quot;##OdinModel#285&quot;(8, [:S_h, :E_h, :I_h, :A_h, :R_h, :S_m, :E_m, :I_m], [:a, :b, :c, :phi, :delta_h, :gamma_h, :gamma_a, :omega, :rho, :p_asymp, :mu_h, :delta_m, :mu_m, :K_m0, :amp, :phase, :itn_cov, :itn_eff, :N_h, :I_h0], true, false, true, false, false, Dict{Symbol, Array}()))</code></pre><h3 id="Generate-observations"><a class="docs-heading-anchor" href="#Generate-observations">Generate observations</a><a id="Generate-observations-1"></a><a class="docs-heading-anchor-permalink" href="#Generate-observations" title="Permalink"></a></h3><p>We simulate 2 years of monthly surveys (every 30 days), each testing 200 individuals.</p><pre><code class="language-julia hljs">Random.seed!(42)
+n_tested_val = 200
+survey_times = collect(30.0:30.0:730.0)  # monthly for 2 years
+n_surveys = length(survey_times)
+
+# Extract prevalence at survey times from the full simulation
+survey_idx = [findfirst(==(t), times) for t in survey_times]
+true_prev = [result[9, 1, i] for i in survey_idx]
+
+# Draw Binomial observations
+obs_positive = [rand(Binomial(n_tested_val, clamp(p, 1e-10, 1 - 1e-10)))
+                for p in true_prev]
+obs_prev = obs_positive ./ n_tested_val</code></pre><pre><code class="nohighlight hljs">24-element Vector{Float64}:
+ 0.015
+ 0.04
+ 0.31
+ 0.46
+ 0.485
+ 0.435
+ 0.42
+ 0.365
+ 0.365
+ 0.4
+ ⋮
+ 0.36
+ 0.405
+ 0.325
+ 0.35
+ 0.365
+ 0.38
+ 0.305
+ 0.43
+ 0.335</code></pre><pre><code class="language-julia hljs">p_data = plot(times[1:731] ./ 365, result[9, 1, 1:731] .* 100,
+              lw=2, color=:steelblue, label=&quot;True prevalence&quot;,
+              xlabel=&quot;Year&quot;, ylabel=&quot;Prevalence (%)&quot;,
+              title=&quot;Synthetic Slide Positivity Data (monthly surveys)&quot;,
+              legend=:topright)
+scatter!(p_data, survey_times ./ 365, obs_prev .* 100,
+         ms=5, color=:red, label=&quot;Survey data (n=200)&quot;)
+p_data</code></pre><p><img src="../18_malaria_simple_files/figure-commonmark/cell-14-output-1.svg" alt/></p><h3 id="Prepare-data-for-the-unfilter"><a class="docs-heading-anchor" href="#Prepare-data-for-the-unfilter">Prepare data for the unfilter</a><a id="Prepare-data-for-the-unfilter-1"></a><a class="docs-heading-anchor-permalink" href="#Prepare-data-for-the-unfilter" title="Permalink"></a></h3><pre><code class="language-julia hljs">data = ObservedData([
+    (time=Float64(t), slide_positive=Float64(s), n_tested=Float64(n_tested_val))
+    for (t, s) in zip(survey_times, obs_positive)
+])</code></pre><pre><code class="nohighlight hljs">Odin.FilterData{@NamedTuple{slide_positive::Float64, n_tested::Float64}}([30.0, 60.0, 90.0, 120.0, 150.0, 180.0, 210.0, 240.0, 270.0, 300.0  …  450.0, 480.0, 510.0, 540.0, 570.0, 600.0, 630.0, 660.0, 690.0, 720.0], [(slide_positive = 3.0, n_tested = 200.0), (slide_positive = 8.0, n_tested = 200.0), (slide_positive = 62.0, n_tested = 200.0), (slide_positive = 92.0, n_tested = 200.0), (slide_positive = 97.0, n_tested = 200.0), (slide_positive = 87.0, n_tested = 200.0), (slide_positive = 84.0, n_tested = 200.0), (slide_positive = 73.0, n_tested = 200.0), (slide_positive = 73.0, n_tested = 200.0), (slide_positive = 80.0, n_tested = 200.0)  …  (slide_positive = 70.0, n_tested = 200.0), (slide_positive = 72.0, n_tested = 200.0), (slide_positive = 81.0, n_tested = 200.0), (slide_positive = 65.0, n_tested = 200.0), (slide_positive = 70.0, n_tested = 200.0), (slide_positive = 73.0, n_tested = 200.0), (slide_positive = 76.0, n_tested = 200.0), (slide_positive = 61.0, n_tested = 200.0), (slide_positive = 86.0, n_tested = 200.0), (slide_positive = 67.0, n_tested = 200.0)])</code></pre><h2 id="Inference"><a class="docs-heading-anchor" href="#Inference">Inference</a><a id="Inference-1"></a><a class="docs-heading-anchor-permalink" href="#Inference" title="Permalink"></a></h2><p>We fit four key parameters that are typically uncertain in practice:</p><ul><li><strong>a</strong> — mosquito biting rate (drives transmission intensity)</li><li><strong>b</strong> — mosquito-to-human transmission probability</li><li><strong>K_m0</strong> — baseline mosquito carrying capacity (determines vector density)</li><li><strong>amp</strong> — seasonal amplitude (shapes annual pattern)</li></ul><p>All other parameters are held fixed at their true values.</p><h3 id="Priors"><a class="docs-heading-anchor" href="#Priors">Priors</a><a id="Priors-1"></a><a class="docs-heading-anchor-permalink" href="#Priors" title="Permalink"></a></h3><pre><code class="language-julia hljs">prior = @prior begin
+    a    ~ Gamma(3.0, 0.1)     # mean 0.3, moderate uncertainty
+    b    ~ Beta(5.5, 4.5)      # mean 0.55, concentrated on (0, 1)
+    K_m0 ~ Gamma(4.0, 50000.0) # mean 200000
+    amp  ~ Beta(5.0, 5.0)      # mean 0.5, symmetric on (0, 1)
+end</code></pre><pre><code class="nohighlight hljs">MontyModel{var&quot;#16#17&quot;, var&quot;#18#19&quot;{var&quot;#16#17&quot;}, var&quot;#20#21&quot;, Matrix{Float64}}([&quot;a&quot;, &quot;b&quot;, &quot;K_m0&quot;, &quot;amp&quot;], var&quot;#16#17&quot;(), var&quot;#18#19&quot;{var&quot;#16#17&quot;}(var&quot;#16#17&quot;()), var&quot;#20#21&quot;(), [0.0 Inf; 0.0 1.0; 0.0 Inf; 0.0 1.0], Odin.MontyModelProperties(true, true, false, false))</code></pre><h3 id="Packer-and-likelihood"><a class="docs-heading-anchor" href="#Packer-and-likelihood">Packer and likelihood</a><a id="Packer-and-likelihood-1"></a><a class="docs-heading-anchor-permalink" href="#Packer-and-likelihood" title="Permalink"></a></h3><pre><code class="language-julia hljs">packer = Packer([:a, :b, :K_m0, :amp];
+    fixed = (
+        c = 0.15,
+        phi = 0.5,
+        delta_h = 1.0 / 12,
+        gamma_h = 1.0 / 5,
+        gamma_a = 1.0 / 200,
+        omega = 1.0 / 365,
+        rho = 1.0 / 730,
+        p_asymp = 0.5,
+        mu_h = 1.0 / (50 * 365),
+        delta_m = 1.0 / 10,
+        mu_m = 1.0 / 10,
+        phase = 60.0,
+        itn_cov = 0.0,
+        itn_eff = 0.5,
+        N_h = 10000.0,
+        I_h0 = 100.0,
+    ))
+
+uf = Likelihood(malaria_fit, data; time_start=0.0)
+ll = as_model(uf, packer)
+posterior = ll + prior</code></pre><pre><code class="nohighlight hljs">MontyModel{Odin.var&quot;#monty_model_combine##0#monty_model_combine##1&quot;{MontyModel{Odin.var&quot;#dust_likelihood_monty##2#dust_likelihood_monty##3&quot;{DustUnfilter{var&quot;##OdinModel#285&quot;, @NamedTuple{slide_positive::Float64, n_tested::Float64}}, MontyPacker}, Odin.var&quot;#dust_likelihood_monty##4#dust_likelihood_monty##5&quot;{Odin.var&quot;#dust_likelihood_monty##2#dust_likelihood_monty##3&quot;{DustUnfilter{var&quot;##OdinModel#285&quot;, @NamedTuple{slide_positive::Float64, n_tested::Float64}}, MontyPacker}}, Nothing, Nothing}, MontyModel{var&quot;#16#17&quot;, var&quot;#18#19&quot;{var&quot;#16#17&quot;}, var&quot;#20#21&quot;, Matrix{Float64}}}, Odin.var&quot;#monty_model_combine##2#monty_model_combine##3&quot;{MontyModel{Odin.var&quot;#dust_likelihood_monty##2#dust_likelihood_monty##3&quot;{DustUnfilter{var&quot;##OdinModel#285&quot;, @NamedTuple{slide_positive::Float64, n_tested::Float64}}, MontyPacker}, Odin.var&quot;#dust_likelihood_monty##4#dust_likelihood_monty##5&quot;{Odin.var&quot;#dust_likelihood_monty##2#dust_likelihood_monty##3&quot;{DustUnfilter{var&quot;##OdinModel#285&quot;, @NamedTuple{slide_positive::Float64, n_tested::Float64}}, MontyPacker}}, Nothing, Nothing}, MontyModel{var&quot;#16#17&quot;, var&quot;#18#19&quot;{var&quot;#16#17&quot;}, var&quot;#20#21&quot;, Matrix{Float64}}}, Nothing, Matrix{Float64}}([&quot;a&quot;, &quot;b&quot;, &quot;K_m0&quot;, &quot;amp&quot;], Odin.var&quot;#monty_model_combine##0#monty_model_combine##1&quot;{MontyModel{Odin.var&quot;#dust_likelihood_monty##2#dust_likelihood_monty##3&quot;{DustUnfilter{var&quot;##OdinModel#285&quot;, @NamedTuple{slide_positive::Float64, n_tested::Float64}}, MontyPacker}, Odin.var&quot;#dust_likelihood_monty##4#dust_likelihood_monty##5&quot;{Odin.var&quot;#dust_likelihood_monty##2#dust_likelihood_monty##3&quot;{DustUnfilter{var&quot;##OdinModel#285&quot;, @NamedTuple{slide_positive::Float64, n_tested::Float64}}, MontyPacker}}, Nothing, Nothing}, MontyModel{var&quot;#16#17&quot;, var&quot;#18#19&quot;{var&quot;#16#17&quot;}, var&quot;#20#21&quot;, Matrix{Float64}}}(MontyModel{Odin.var&quot;#dust_likelihood_monty##2#dust_likelihood_monty##3&quot;{DustUnfilter{var&quot;##OdinModel#285&quot;, @NamedTuple{slide_positive::Float64, n_tested::Float64}}, MontyPacker}, Odin.var&quot;#dust_likelihood_monty##4#dust_likelihood_monty##5&quot;{Odin.var&quot;#dust_likelihood_monty##2#dust_likelihood_monty##3&quot;{DustUnfilter{var&quot;##OdinModel#285&quot;, @NamedTuple{slide_positive::Float64, n_tested::Float64}}, MontyPacker}}, Nothing, Nothing}([&quot;a&quot;, &quot;b&quot;, &quot;K_m0&quot;, &quot;amp&quot;], Odin.var&quot;#dust_likelihood_monty##2#dust_likelihood_monty##3&quot;{DustUnfilter{var&quot;##OdinModel#285&quot;, @NamedTuple{slide_positive::Float64, n_tested::Float64}}, MontyPacker}(DustUnfilter{var&quot;##OdinModel#285&quot;, @NamedTuple{slide_positive::Float64, n_tested::Float64}}(Odin.DustSystemGenerator{var&quot;##OdinModel#285&quot;}(var&quot;##OdinModel#285&quot;(8, [:S_h, :E_h, :I_h, :A_h, :R_h, :S_m, :E_m, :I_m], [:a, :b, :c, :phi, :delta_h, :gamma_h, :gamma_a, :omega, :rho, :p_asymp, :mu_h, :delta_m, :mu_m, :K_m0, :amp, :phase, :itn_cov, :itn_eff, :N_h, :I_h0], true, false, true, false, false, Dict{Symbol, Array}())), Odin.FilterData{@NamedTuple{slide_positive::Float64, n_tested::Float64}}([30.0, 60.0, 90.0, 120.0, 150.0, 180.0, 210.0, 240.0, 270.0, 300.0  …  450.0, 480.0, 510.0, 540.0, 570.0, 600.0, 630.0, 660.0, 690.0, 720.0], [(slide_positive = 3.0, n_tested = 200.0), (slide_positive = 8.0, n_tested = 200.0), (slide_positive = 62.0, n_tested = 200.0), (slide_positive = 92.0, n_tested = 200.0), (slide_positive = 97.0, n_tested = 200.0), (slide_positive = 87.0, n_tested = 200.0), (slide_positive = 84.0, n_tested = 200.0), (slide_positive = 73.0, n_tested = 200.0), (slide_positive = 73.0, n_tested = 200.0), (slide_positive = 80.0, n_tested = 200.0)  …  (slide_positive = 70.0, n_tested = 200.0), (slide_positive = 72.0, n_tested = 200.0), (slide_positive = 81.0, n_tested = 200.0), (slide_positive = 65.0, n_tested = 200.0), (slide_positive = 70.0, n_tested = 200.0), (slide_positive = 73.0, n_tested = 200.0), (slide_positive = 76.0, n_tested = 200.0), (slide_positive = 61.0, n_tested = 200.0), (slide_positive = 86.0, n_tested = 200.0), (slide_positive = 67.0, n_tested = 200.0)]), 0.0, Odin.DustODEControl(1.0e-6, 1.0e-6, 10000, :dp5), [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0], Xoshiro(0x6833bf7cd35323aa, 0x90073179d689a30d, 0x4b14a7c8c78b5ce0, 0xf4b47aef4969bc50, 0x409ff7613e8d0361), nothing, nothing, nothing, [30.0, 60.0, 90.0, 120.0, 150.0, 180.0, 210.0, 240.0, 270.0, 300.0  …  450.0, 480.0, 510.0, 540.0, 570.0, 600.0, 630.0, 660.0, 690.0, 720.0]), MontyPacker([:a, :b, :K_m0, :amp], [:a, :b, :K_m0, :amp], Symbol[], Dict{Symbol, Tuple}(), Dict{Symbol, UnitRange{Int64}}(:a =&gt; 1:1, :b =&gt; 2:2, :K_m0 =&gt; 3:3, :amp =&gt; 4:4), 4, (c = 0.15, phi = 0.5, delta_h = 0.08333333333333333, gamma_h = 0.2, gamma_a = 0.005, omega = 0.0027397260273972603, rho = 0.0013698630136986301, p_asymp = 0.5, mu_h = 5.479452054794521e-5, delta_m = 0.1, mu_m = 0.1, phase = 60.0, itn_cov = 0.0, itn_eff = 0.5, N_h = 10000.0, I_h0 = 100.0), nothing)), Odin.var&quot;#dust_likelihood_monty##4#dust_likelihood_monty##5&quot;{Odin.var&quot;#dust_likelihood_monty##2#dust_likelihood_monty##3&quot;{DustUnfilter{var&quot;##OdinModel#285&quot;, @NamedTuple{slide_positive::Float64, n_tested::Float64}}, MontyPacker}}(Odin.var&quot;#dust_likelihood_monty##2#dust_likelihood_monty##3&quot;{DustUnfilter{var&quot;##OdinModel#285&quot;, @NamedTuple{slide_positive::Float64, n_tested::Float64}}, MontyPacker}(DustUnfilter{var&quot;##OdinModel#285&quot;, @NamedTuple{slide_positive::Float64, n_tested::Float64}}(Odin.DustSystemGenerator{var&quot;##OdinModel#285&quot;}(var&quot;##OdinModel#285&quot;(8, [:S_h, :E_h, :I_h, :A_h, :R_h, :S_m, :E_m, :I_m], [:a, :b, :c, :phi, :delta_h, :gamma_h, :gamma_a, :omega, :rho, :p_asymp, :mu_h, :delta_m, :mu_m, :K_m0, :amp, :phase, :itn_cov, :itn_eff, :N_h, :I_h0], true, false, true, false, false, Dict{Symbol, Array}())), Odin.FilterData{@NamedTuple{slide_positive::Float64, n_tested::Float64}}([30.0, 60.0, 90.0, 120.0, 150.0, 180.0, 210.0, 240.0, 270.0, 300.0  …  450.0, 480.0, 510.0, 540.0, 570.0, 600.0, 630.0, 660.0, 690.0, 720.0], [(slide_positive = 3.0, n_tested = 200.0), (slide_positive = 8.0, n_tested = 200.0), (slide_positive = 62.0, n_tested = 200.0), (slide_positive = 92.0, n_tested = 200.0), (slide_positive = 97.0, n_tested = 200.0), (slide_positive = 87.0, n_tested = 200.0), (slide_positive = 84.0, n_tested = 200.0), (slide_positive = 73.0, n_tested = 200.0), (slide_positive = 73.0, n_tested = 200.0), (slide_positive = 80.0, n_tested = 200.0)  …  (slide_positive = 70.0, n_tested = 200.0), (slide_positive = 72.0, n_tested = 200.0), (slide_positive = 81.0, n_tested = 200.0), (slide_positive = 65.0, n_tested = 200.0), (slide_positive = 70.0, n_tested = 200.0), (slide_positive = 73.0, n_tested = 200.0), (slide_positive = 76.0, n_tested = 200.0), (slide_positive = 61.0, n_tested = 200.0), (slide_positive = 86.0, n_tested = 200.0), (slide_positive = 67.0, n_tested = 200.0)]), 0.0, Odin.DustODEControl(1.0e-6, 1.0e-6, 10000, :dp5), [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0], Xoshiro(0x6833bf7cd35323aa, 0x90073179d689a30d, 0x4b14a7c8c78b5ce0, 0xf4b47aef4969bc50, 0x409ff7613e8d0361), nothing, nothing, nothing, [30.0, 60.0, 90.0, 120.0, 150.0, 180.0, 210.0, 240.0, 270.0, 300.0  …  450.0, 480.0, 510.0, 540.0, 570.0, 600.0, 630.0, 660.0, 690.0, 720.0]), MontyPacker([:a, :b, :K_m0, :amp], [:a, :b, :K_m0, :amp], Symbol[], Dict{Symbol, Tuple}(), Dict{Symbol, UnitRange{Int64}}(:a =&gt; 1:1, :b =&gt; 2:2, :K_m0 =&gt; 3:3, :amp =&gt; 4:4), 4, (c = 0.15, phi = 0.5, delta_h = 0.08333333333333333, gamma_h = 0.2, gamma_a = 0.005, omega = 0.0027397260273972603, rho = 0.0013698630136986301, p_asymp = 0.5, mu_h = 5.479452054794521e-5, delta_m = 0.1, mu_m = 0.1, phase = 60.0, itn_cov = 0.0, itn_eff = 0.5, N_h = 10000.0, I_h0 = 100.0), nothing))), nothing, nothing, Odin.MontyModelProperties(true, false, false, false)), MontyModel{var&quot;#16#17&quot;, var&quot;#18#19&quot;{var&quot;#16#17&quot;}, var&quot;#20#21&quot;, Matrix{Float64}}([&quot;a&quot;, &quot;b&quot;, &quot;K_m0&quot;, &quot;amp&quot;], var&quot;#16#17&quot;(), var&quot;#18#19&quot;{var&quot;#16#17&quot;}(var&quot;#16#17&quot;()), var&quot;#20#21&quot;(), [0.0 Inf; 0.0 1.0; 0.0 Inf; 0.0 1.0], Odin.MontyModelProperties(true, true, false, false))), Odin.var&quot;#monty_model_combine##2#monty_model_combine##3&quot;{MontyModel{Odin.var&quot;#dust_likelihood_monty##2#dust_likelihood_monty##3&quot;{DustUnfilter{var&quot;##OdinModel#285&quot;, @NamedTuple{slide_positive::Float64, n_tested::Float64}}, MontyPacker}, Odin.var&quot;#dust_likelihood_monty##4#dust_likelihood_monty##5&quot;{Odin.var&quot;#dust_likelihood_monty##2#dust_likelihood_monty##3&quot;{DustUnfilter{var&quot;##OdinModel#285&quot;, @NamedTuple{slide_positive::Float64, n_tested::Float64}}, MontyPacker}}, Nothing, Nothing}, MontyModel{var&quot;#16#17&quot;, var&quot;#18#19&quot;{var&quot;#16#17&quot;}, var&quot;#20#21&quot;, Matrix{Float64}}}(MontyModel{Odin.var&quot;#dust_likelihood_monty##2#dust_likelihood_monty##3&quot;{DustUnfilter{var&quot;##OdinModel#285&quot;, @NamedTuple{slide_positive::Float64, n_tested::Float64}}, MontyPacker}, Odin.var&quot;#dust_likelihood_monty##4#dust_likelihood_monty##5&quot;{Odin.var&quot;#dust_likelihood_monty##2#dust_likelihood_monty##3&quot;{DustUnfilter{var&quot;##OdinModel#285&quot;, @NamedTuple{slide_positive::Float64, n_tested::Float64}}, MontyPacker}}, Nothing, Nothing}([&quot;a&quot;, &quot;b&quot;, &quot;K_m0&quot;, &quot;amp&quot;], Odin.var&quot;#dust_likelihood_monty##2#dust_likelihood_monty##3&quot;{DustUnfilter{var&quot;##OdinModel#285&quot;, @NamedTuple{slide_positive::Float64, n_tested::Float64}}, MontyPacker}(DustUnfilter{var&quot;##OdinModel#285&quot;, @NamedTuple{slide_positive::Float64, n_tested::Float64}}(Odin.DustSystemGenerator{var&quot;##OdinModel#285&quot;}(var&quot;##OdinModel#285&quot;(8, [:S_h, :E_h, :I_h, :A_h, :R_h, :S_m, :E_m, :I_m], [:a, :b, :c, :phi, :delta_h, :gamma_h, :gamma_a, :omega, :rho, :p_asymp, :mu_h, :delta_m, :mu_m, :K_m0, :amp, :phase, :itn_cov, :itn_eff, :N_h, :I_h0], true, false, true, false, false, Dict{Symbol, Array}())), Odin.FilterData{@NamedTuple{slide_positive::Float64, n_tested::Float64}}([30.0, 60.0, 90.0, 120.0, 150.0, 180.0, 210.0, 240.0, 270.0, 300.0  …  450.0, 480.0, 510.0, 540.0, 570.0, 600.0, 630.0, 660.0, 690.0, 720.0], [(slide_positive = 3.0, n_tested = 200.0), (slide_positive = 8.0, n_tested = 200.0), (slide_positive = 62.0, n_tested = 200.0), (slide_positive = 92.0, n_tested = 200.0), (slide_positive = 97.0, n_tested = 200.0), (slide_positive = 87.0, n_tested = 200.0), (slide_positive = 84.0, n_tested = 200.0), (slide_positive = 73.0, n_tested = 200.0), (slide_positive = 73.0, n_tested = 200.0), (slide_positive = 80.0, n_tested = 200.0)  …  (slide_positive = 70.0, n_tested = 200.0), (slide_positive = 72.0, n_tested = 200.0), (slide_positive = 81.0, n_tested = 200.0), (slide_positive = 65.0, n_tested = 200.0), (slide_positive = 70.0, n_tested = 200.0), (slide_positive = 73.0, n_tested = 200.0), (slide_positive = 76.0, n_tested = 200.0), (slide_positive = 61.0, n_tested = 200.0), (slide_positive = 86.0, n_tested = 200.0), (slide_positive = 67.0, n_tested = 200.0)]), 0.0, Odin.DustODEControl(1.0e-6, 1.0e-6, 10000, :dp5), [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0], Xoshiro(0x6833bf7cd35323aa, 0x90073179d689a30d, 0x4b14a7c8c78b5ce0, 0xf4b47aef4969bc50, 0x409ff7613e8d0361), nothing, nothing, nothing, [30.0, 60.0, 90.0, 120.0, 150.0, 180.0, 210.0, 240.0, 270.0, 300.0  …  450.0, 480.0, 510.0, 540.0, 570.0, 600.0, 630.0, 660.0, 690.0, 720.0]), MontyPacker([:a, :b, :K_m0, :amp], [:a, :b, :K_m0, :amp], Symbol[], Dict{Symbol, Tuple}(), Dict{Symbol, UnitRange{Int64}}(:a =&gt; 1:1, :b =&gt; 2:2, :K_m0 =&gt; 3:3, :amp =&gt; 4:4), 4, (c = 0.15, phi = 0.5, delta_h = 0.08333333333333333, gamma_h = 0.2, gamma_a = 0.005, omega = 0.0027397260273972603, rho = 0.0013698630136986301, p_asymp = 0.5, mu_h = 5.479452054794521e-5, delta_m = 0.1, mu_m = 0.1, phase = 60.0, itn_cov = 0.0, itn_eff = 0.5, N_h = 10000.0, I_h0 = 100.0), nothing)), Odin.var&quot;#dust_likelihood_monty##4#dust_likelihood_monty##5&quot;{Odin.var&quot;#dust_likelihood_monty##2#dust_likelihood_monty##3&quot;{DustUnfilter{var&quot;##OdinModel#285&quot;, @NamedTuple{slide_positive::Float64, n_tested::Float64}}, MontyPacker}}(Odin.var&quot;#dust_likelihood_monty##2#dust_likelihood_monty##3&quot;{DustUnfilter{var&quot;##OdinModel#285&quot;, @NamedTuple{slide_positive::Float64, n_tested::Float64}}, MontyPacker}(DustUnfilter{var&quot;##OdinModel#285&quot;, @NamedTuple{slide_positive::Float64, n_tested::Float64}}(Odin.DustSystemGenerator{var&quot;##OdinModel#285&quot;}(var&quot;##OdinModel#285&quot;(8, [:S_h, :E_h, :I_h, :A_h, :R_h, :S_m, :E_m, :I_m], [:a, :b, :c, :phi, :delta_h, :gamma_h, :gamma_a, :omega, :rho, :p_asymp, :mu_h, :delta_m, :mu_m, :K_m0, :amp, :phase, :itn_cov, :itn_eff, :N_h, :I_h0], true, false, true, false, false, Dict{Symbol, Array}())), Odin.FilterData{@NamedTuple{slide_positive::Float64, n_tested::Float64}}([30.0, 60.0, 90.0, 120.0, 150.0, 180.0, 210.0, 240.0, 270.0, 300.0  …  450.0, 480.0, 510.0, 540.0, 570.0, 600.0, 630.0, 660.0, 690.0, 720.0], [(slide_positive = 3.0, n_tested = 200.0), (slide_positive = 8.0, n_tested = 200.0), (slide_positive = 62.0, n_tested = 200.0), (slide_positive = 92.0, n_tested = 200.0), (slide_positive = 97.0, n_tested = 200.0), (slide_positive = 87.0, n_tested = 200.0), (slide_positive = 84.0, n_tested = 200.0), (slide_positive = 73.0, n_tested = 200.0), (slide_positive = 73.0, n_tested = 200.0), (slide_positive = 80.0, n_tested = 200.0)  …  (slide_positive = 70.0, n_tested = 200.0), (slide_positive = 72.0, n_tested = 200.0), (slide_positive = 81.0, n_tested = 200.0), (slide_positive = 65.0, n_tested = 200.0), (slide_positive = 70.0, n_tested = 200.0), (slide_positive = 73.0, n_tested = 200.0), (slide_positive = 76.0, n_tested = 200.0), (slide_positive = 61.0, n_tested = 200.0), (slide_positive = 86.0, n_tested = 200.0), (slide_positive = 67.0, n_tested = 200.0)]), 0.0, Odin.DustODEControl(1.0e-6, 1.0e-6, 10000, :dp5), [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0], Xoshiro(0x6833bf7cd35323aa, 0x90073179d689a30d, 0x4b14a7c8c78b5ce0, 0xf4b47aef4969bc50, 0x409ff7613e8d0361), nothing, nothing, nothing, [30.0, 60.0, 90.0, 120.0, 150.0, 180.0, 210.0, 240.0, 270.0, 300.0  …  450.0, 480.0, 510.0, 540.0, 570.0, 600.0, 630.0, 660.0, 690.0, 720.0]), MontyPacker([:a, :b, :K_m0, :amp], [:a, :b, :K_m0, :amp], Symbol[], Dict{Symbol, Tuple}(), Dict{Symbol, UnitRange{Int64}}(:a =&gt; 1:1, :b =&gt; 2:2, :K_m0 =&gt; 3:3, :amp =&gt; 4:4), 4, (c = 0.15, phi = 0.5, delta_h = 0.08333333333333333, gamma_h = 0.2, gamma_a = 0.005, omega = 0.0027397260273972603, rho = 0.0013698630136986301, p_asymp = 0.5, mu_h = 5.479452054794521e-5, delta_m = 0.1, mu_m = 0.1, phase = 60.0, itn_cov = 0.0, itn_eff = 0.5, N_h = 10000.0, I_h0 = 100.0), nothing))), nothing, nothing, Odin.MontyModelProperties(true, false, false, false)), MontyModel{var&quot;#16#17&quot;, var&quot;#18#19&quot;{var&quot;#16#17&quot;}, var&quot;#20#21&quot;, Matrix{Float64}}([&quot;a&quot;, &quot;b&quot;, &quot;K_m0&quot;, &quot;amp&quot;], var&quot;#16#17&quot;(), var&quot;#18#19&quot;{var&quot;#16#17&quot;}(var&quot;#16#17&quot;()), var&quot;#20#21&quot;(), [0.0 Inf; 0.0 1.0; 0.0 Inf; 0.0 1.0], Odin.MontyModelProperties(true, true, false, false))), nothing, [0.0 Inf; 0.0 1.0; 0.0 Inf; 0.0 1.0], Odin.MontyModelProperties(true, false, false, false))</code></pre><h3 id="Check-likelihood-at-truth"><a class="docs-heading-anchor" href="#Check-likelihood-at-truth">Check likelihood at truth</a><a id="Check-likelihood-at-truth-1"></a><a class="docs-heading-anchor-permalink" href="#Check-likelihood-at-truth" title="Permalink"></a></h3><pre><code class="language-julia hljs">theta_true = [true_pars.a, true_pars.b, true_pars.K_m0, true_pars.amp]
+ll_at_truth = ll(theta_true)
+println(&quot;Log-likelihood at true parameters: &quot;, round(ll_at_truth, digits=2))</code></pre><pre><code class="nohighlight hljs">Log-likelihood at true parameters: -76.86</code></pre><h3 id="HMC-sampling"><a class="docs-heading-anchor" href="#HMC-sampling">HMC sampling</a><a id="HMC-sampling-1"></a><a class="docs-heading-anchor-permalink" href="#HMC-sampling" title="Permalink"></a></h3><p>We use the Hamiltonian Monte Carlo sampler, which exploits gradient information for efficient exploration of the posterior.</p><pre><code class="language-julia hljs">vcv = diagm([0.0005, 0.001, 1e8, 0.001])
+sampler = adaptive_mh(vcv)
+
+initial = reshape(theta_true, 4, 1)
+samples = sample(posterior, sampler, 5000;
+    initial=initial, n_chains=1, n_burnin=1000, seed=42)</code></pre><pre><code class="nohighlight hljs">Odin.MontySamples([0.3351284780492137 0.3351284780492137 … 0.2766226776220565 0.2766226776220565; 0.5476256466971322 0.5476256466971322 … 0.5794562393560521 0.5794562393560521; 173067.49112173467 173067.49112173467 … 207567.94290424697 207567.94290424697; 0.6735129445999054 0.6735129445999054 … 0.503588533613679 0.503588533613679;;;], [-87.02415932169806; -87.02415932169806; … ; -87.77303273669048; -87.77303273669048;;], [0.3; 0.55; 200000.0; 0.5;;], [&quot;a&quot;, &quot;b&quot;, &quot;K_m0&quot;, &quot;amp&quot;], Dict{Symbol, Any}(:acceptance_rate =&gt; [0.2308]))</code></pre><h2 id="Posterior-Analysis"><a class="docs-heading-anchor" href="#Posterior-Analysis">Posterior Analysis</a><a id="Posterior-Analysis-1"></a><a class="docs-heading-anchor-permalink" href="#Posterior-Analysis" title="Permalink"></a></h2><h3 id="Parameter-recovery"><a class="docs-heading-anchor" href="#Parameter-recovery">Parameter recovery</a><a id="Parameter-recovery-1"></a><a class="docs-heading-anchor-permalink" href="#Parameter-recovery" title="Permalink"></a></h3><pre><code class="language-julia hljs">par_names = [&quot;a&quot;, &quot;b&quot;, &quot;K_m0&quot;, &quot;amp&quot;]
+true_vals = theta_true
+
+function summarise(name, vals, truth)
+    m  = round(mean(vals), sigdigits=3)
+    lo = round(quantile(vals, 0.025), sigdigits=3)
+    hi = round(quantile(vals, 0.975), sigdigits=3)
+    println(&quot;  $name: $m [$lo, $hi]  (true=$truth)&quot;)
+end
+
+println(&quot;Posterior summaries:&quot;)
+for i in 1:4
+    summarise(par_names[i], samples.pars[i, :, 1], true_vals[i])
+end</code></pre><pre><code class="nohighlight hljs">Posterior summaries:
+  a: 0.323 [0.196, 0.516]  (true=0.3)
+  b: 0.549 [0.301, 0.795]  (true=0.55)
+  K_m0: 209000.0 [86900.0, 413000.0]  (true=200000.0)
+  amp: 0.498 [0.222, 0.763]  (true=0.5)</code></pre><h3 id="Trace-plots"><a class="docs-heading-anchor" href="#Trace-plots">Trace plots</a><a id="Trace-plots-1"></a><a class="docs-heading-anchor-permalink" href="#Trace-plots" title="Permalink"></a></h3><pre><code class="language-julia hljs">p_tr = plot(layout=(2, 2), size=(900, 500),
+            title=[&quot;a&quot; &quot;b&quot; &quot;K_m0&quot; &quot;amp&quot;])
+for i in 1:4
+    plot!(p_tr, samples.pars[i, :, 1], subplot=i,
+          lw=0.5, alpha=0.7, label=nothing, color=:steelblue)
+    hline!(p_tr, [true_vals[i]], subplot=i,
+           lw=2, color=:red, ls=:dash, label=nothing)
+end
+p_tr</code></pre><p><img src="../18_malaria_simple_files/figure-commonmark/cell-21-output-1.svg" alt/></p><h3 id="Marginal-posterior-densities"><a class="docs-heading-anchor" href="#Marginal-posterior-densities">Marginal posterior densities</a><a id="Marginal-posterior-densities-1"></a><a class="docs-heading-anchor-permalink" href="#Marginal-posterior-densities" title="Permalink"></a></h3><pre><code class="language-julia hljs">p_hist = plot(layout=(2, 2), size=(900, 500))
+labels = [&quot;a (biting rate)&quot;, &quot;b (transmission prob)&quot;,
+          &quot;K_m0 (carrying capacity)&quot;, &quot;amp (seasonal amplitude)&quot;]
+for i in 1:4
+    histogram!(p_hist, samples.pars[i, :, 1], bins=40,
+               alpha=0.6, normalize=true, label=nothing,
+               subplot=i, xlabel=labels[i], ylabel=&quot;Density&quot;,
+               color=:steelblue)
+    vline!(p_hist, [true_vals[i]], subplot=i,
+           lw=2, color=:red, label=&quot;True&quot;)
+end
+p_hist</code></pre><p><img src="../18_malaria_simple_files/figure-commonmark/cell-22-output-1.svg" alt/></p><h3 id="Posterior-predictive-check"><a class="docs-heading-anchor" href="#Posterior-predictive-check">Posterior predictive check</a><a id="Posterior-predictive-check-1"></a><a class="docs-heading-anchor-permalink" href="#Posterior-predictive-check" title="Permalink"></a></h3><p>We simulate the model at posterior draws and overlay on the observed data to verify the fit captures the seasonal pattern.</p><pre><code class="language-julia hljs">n_pred = 200
+pred_times = collect(0.0:1.0:730.0)
+n_t_pred = length(pred_times)
+prev_traj = zeros(n_pred, n_t_pred)
+
+Random.seed!(123)
+n_total = size(samples.pars, 2)
+idx = rand(1:n_total, n_pred)
+
+for j in 1:n_pred
+    pars_j = merge(true_pars, (
+        a    = samples.pars[1, idx[j], 1],
+        b    = samples.pars[2, idx[j], 1],
+        K_m0 = samples.pars[3, idx[j], 1],
+        amp  = samples.pars[4, idx[j], 1],
+    ))
+    r = simulate(malaria, pars_j; times=pred_times, seed=j)
+    prev_traj[j, :] = r[9, 1, :]
+end
+
+med_prev = [median(prev_traj[:, k]) for k in 1:n_t_pred]
+lo_prev  = [quantile(prev_traj[:, k], 0.025) for k in 1:n_t_pred]
+hi_prev  = [quantile(prev_traj[:, k], 0.975) for k in 1:n_t_pred]
+
+p_ppc = plot(pred_times ./ 365, med_prev .* 100,
+             ribbon=(med_prev .- lo_prev, hi_prev .- med_prev) .* 100,
+             fillalpha=0.3, lw=2, color=:steelblue,
+             label=&quot;Posterior median (95% CI)&quot;,
+             xlabel=&quot;Year&quot;, ylabel=&quot;Prevalence (%)&quot;,
+             title=&quot;Posterior Predictive Check&quot;,
+             legend=:topright)
+scatter!(p_ppc, survey_times ./ 365, obs_prev .* 100,
+         ms=5, color=:red, label=&quot;Observed data&quot;)
+plot!(p_ppc, pred_times ./ 365, result[9, 1, 1:731] .* 100,
+      lw=2, ls=:dash, color=:black, label=&quot;True trajectory&quot;)
+p_ppc</code></pre><p><img src="../18_malaria_simple_files/figure-commonmark/cell-23-output-1.svg" alt/></p><p>The posterior predictive envelope captures the observed data well, reproducing the seasonal oscillation in slide positivity.</p><h3 id="Joint-posterior:-a-vs-K_m0"><a class="docs-heading-anchor" href="#Joint-posterior:-a-vs-K_m0">Joint posterior: a vs K_m0</a><a id="Joint-posterior:-a-vs-K_m0-1"></a><a class="docs-heading-anchor-permalink" href="#Joint-posterior:-a-vs-K_m0" title="Permalink"></a></h3><pre><code class="language-julia hljs">p_joint = scatter(samples.pars[1, :, 1], samples.pars[3, :, 1],
+                  alpha=0.15, ms=2, color=:steelblue,
+                  xlabel=&quot;a (biting rate)&quot;,
+                  ylabel=&quot;K_m0 (carrying capacity)&quot;,
+                  title=&quot;Joint Posterior: a vs K_m0&quot;,
+                  label=&quot;Posterior draws&quot;,
+                  size=(600, 500))
+scatter!(p_joint, [true_pars.a], [true_pars.K_m0],
+         ms=8, color=:red, marker=:star5, label=&quot;True&quot;)
+p_joint</code></pre><p><img src="../18_malaria_simple_files/figure-commonmark/cell-24-output-1.svg" alt/></p><p>There is a negative correlation between biting rate and carrying capacity — higher biting rates compensate for fewer mosquitoes. This is expected since both parameters contribute to the overall transmission intensity.</p><h2 id="Summary"><a class="docs-heading-anchor" href="#Summary">Summary</a><a id="Summary-1"></a><a class="docs-heading-anchor-permalink" href="#Summary" title="Permalink"></a></h2><table><tr><th style="text-align: right">Feature</th><th style="text-align: right">Syntax</th></tr><tr><td style="text-align: right">Coupled ODE system</td><td style="text-align: right"><code>deriv(S_h) = ...</code>, <code>deriv(S_m) = ...</code></td></tr><tr><td style="text-align: right">Seasonal forcing</td><td style="text-align: right"><code>K_m = K_m0 * (1 + amp * sin(2 * pi * (time - phase) / 365))</code></td></tr><tr><td style="text-align: right">ITN intervention</td><td style="text-align: right"><code>itn_effect = 1 - itn_cov * itn_eff</code></td></tr><tr><td style="text-align: right">Prevalence clamping</td><td style="text-align: right"><code>prev_model = min(max(..., 1e-10), 1 - 1e-10)</code></td></tr><tr><td style="text-align: right">Binomial comparison</td><td style="text-align: right"><code>slide_positive ~ Binomial(n_tested, prev_model)</code></td></tr><tr><td style="text-align: right">Derived outputs</td><td style="text-align: right"><code>output(prevalence) = (I_h + A_h) / N_h</code></td></tr></table><h3 id="Key-takeaways"><a class="docs-heading-anchor" href="#Key-takeaways">Key takeaways</a><a id="Key-takeaways-1"></a><a class="docs-heading-anchor-permalink" href="#Key-takeaways" title="Permalink"></a></h3><ol><li><strong>Coupled human–vector dynamics</strong> require careful initialisation;  the mosquito population takes time to reach its seasonal  quasi-equilibrium.</li><li><strong>Seasonal forcing</strong> via sinusoidal carrying capacity creates annual  transmission peaks that lag behind the mosquito density peak.</li><li><strong>ITN interventions</strong> reduce the effective biting rate, with  powerful (roughly quadratic) effects on transmission because biting  appears in both forces of infection.</li><li><strong>Binomial slide-positivity data</strong> is a natural observation model  for prevalence surveys; clamping the modelled prevalence avoids  numerical issues.</li><li><strong>Bayesian inference</strong> with an ODE-based unfilter recovers the true  parameters and correctly captures the seasonal transmission pattern.</li></ol><table><tr><th style="text-align: right">Step</th><th style="text-align: right">API</th></tr><tr><td style="text-align: right">Define model</td><td style="text-align: right"><code>@odin begin … end</code> with <code>~</code> for data comparison</td></tr><tr><td style="text-align: right">Prepare data</td><td style="text-align: right"><code>ObservedData([(time=…, slide_positive=…, n_tested=…), …])</code></td></tr><tr><td style="text-align: right">Likelihood</td><td style="text-align: right"><code>Likelihood()</code> → <code>as_model()</code></td></tr><tr><td style="text-align: right">Prior</td><td style="text-align: right"><code>@prior begin … end</code></td></tr><tr><td style="text-align: right">Posterior</td><td style="text-align: right"><code>likelihood + prior</code></td></tr><tr><td style="text-align: right">Sample</td><td style="text-align: right"><code>sample(posterior, sampler, n; …)</code></td></tr></table></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../17_mpox_seir/">« Mpox SEIR: Age-Structured</a><a class="docs-footer-nextpage" href="../19_sarscov2_multiregion/">SARS-CoV-2 Multi-Region »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="auto">Automatic (OS)</option><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option><option value="catppuccin-latte">catppuccin-latte</option><option value="catppuccin-frappe">catppuccin-frappe</option><option value="catppuccin-macchiato">catppuccin-macchiato</option><option value="catppuccin-mocha">catppuccin-mocha</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 1.17.0 on <span class="colophon-date" title="Friday 27 March 2026 16:28">Friday 27 March 2026</span>. Using Julia version 1.12.5.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>

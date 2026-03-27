@@ -1,0 +1,375 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width, initial-scale=1.0"/><title>Complete Fitting Workflow · Odin.jl</title><meta name="title" content="Complete Fitting Workflow · Odin.jl"/><meta property="og:title" content="Complete Fitting Workflow · Odin.jl"/><meta property="twitter:title" content="Complete Fitting Workflow · Odin.jl"/><meta name="description" content="Documentation for Odin.jl."/><meta property="og:description" content="Documentation for Odin.jl."/><meta property="twitter:description" content="Documentation for Odin.jl."/><script data-outdated-warner src="../../assets/warner.js"></script><link href="https://cdnjs.cloudflare.com/ajax/libs/lato-font/3.0.0/css/lato-font.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/juliamono/0.050/juliamono.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/fontawesome.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/solid.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/brands.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.8/katex.min.css" rel="stylesheet" type="text/css"/><script>documenterBaseURL="../.."</script><script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.6/require.min.js" data-main="../../assets/documenter.js"></script><script src="../../search_index.js"></script><script src="../../siteinfo.js"></script><script src="../../../versions.js"></script><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/catppuccin-mocha.css" data-theme-name="catppuccin-mocha"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/catppuccin-macchiato.css" data-theme-name="catppuccin-macchiato"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/catppuccin-frappe.css" data-theme-name="catppuccin-frappe"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/catppuccin-latte.css" data-theme-name="catppuccin-latte"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/documenter-dark.css" data-theme-name="documenter-dark" data-theme-primary-dark/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/documenter-light.css" data-theme-name="documenter-light" data-theme-primary/><script src="../../assets/themeswap.js"></script></head><body><div id="documenter"><nav class="docs-sidebar"><div class="docs-package-name"><span class="docs-autofit"><a href="../../">Odin.jl</a></span></div><button class="docs-search-query input is-rounded is-small is-clickable my-2 mx-auto py-1 px-2" id="documenter-search-query">Search docs (Ctrl + /)</button><ul class="docs-menu"><li><a class="tocitem" href="../../">Home</a></li><li><a class="tocitem" href="../../getting_started/">Getting Started</a></li><li><span class="tocitem">Guide</span><ul><li><a class="tocitem" href="../../dsl/">DSL Reference</a></li><li><a class="tocitem" href="../../simulation/">Simulation</a></li><li><a class="tocitem" href="../../filtering/">Filtering &amp; Likelihood</a></li><li><a class="tocitem" href="../../inference/">Inference</a></li><li><a class="tocitem" href="../../solvers/">ODE Solvers</a></li><li><a class="tocitem" href="../../gpu/">GPU Acceleration</a></li><li><a class="tocitem" href="../../categorical/">Categorical Models</a></li></ul></li><li><span class="tocitem">Vignettes</span><ul><li><input class="collapse-toggle" id="menuitem-4-1" type="checkbox"/><label class="tocitem" for="menuitem-4-1"><span class="docs-label">Basics</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../01_basic_ode/">Basic ODE Model: SIR</a></li><li><a class="tocitem" href="../02_stochastic/">Stochastic Discrete-Time SIR</a></li><li><a class="tocitem" href="../03_observations/">Incidence Tracking with zero_every</a></li><li><a class="tocitem" href="../04_arrays/">Age-Structured SIR with Arrays</a></li><li><a class="tocitem" href="../05_particle_filter/">Particle Filter and Likelihood</a></li><li><a class="tocitem" href="../06_inference/">Bayesian Inference with MCMC</a></li></ul></li><li><input class="collapse-toggle" id="menuitem-4-2" type="checkbox"/><label class="tocitem" for="menuitem-4-2"><span class="docs-label">Intermediate</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../07_categorical/">Compositional Model Building</a></li><li><a class="tocitem" href="../08_time_varying/">Time-Varying Parameters</a></li><li><a class="tocitem" href="../09_advanced/">SEIR with Vaccination and Waning</a></li><li><a class="tocitem" href="../10_projections/">Counterfactual Projections</a></li><li><a class="tocitem" href="../11_delay_model/">Delay Compartments</a></li><li><a class="tocitem" href="../12_reactive_policy/">Reactive Vaccination Policy</a></li><li><a class="tocitem" href="../13_dynamicppl/">DynamicPPL Integration</a></li><li><a class="tocitem" href="../14_delay_vaccination/">SEIR with Delay and Vaccination</a></li><li><a class="tocitem" href="../15_vector_borne/">Vector-Borne Disease Dynamics</a></li></ul></li><li><input class="collapse-toggle" id="menuitem-4-3" type="checkbox" checked/><label class="tocitem" for="menuitem-4-3"><span class="docs-label">Advanced Models</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../16_multi_stream/">Multi-Stream Outbreak</a></li><li><a class="tocitem" href="../17_mpox_seir/">Mpox SEIR: Age-Structured</a></li><li><a class="tocitem" href="../18_malaria_simple/">Malaria: Ross-Macdonald</a></li><li><a class="tocitem" href="../19_sarscov2_multiregion/">SARS-CoV-2 Multi-Region</a></li><li><a class="tocitem" href="../20_yellowfever/">Yellow Fever SEIRV</a></li><li><a class="tocitem" href="../21_school_closure/">SIS with School Closure</a></li><li><a class="tocitem" href="../22_beta_blocks/">Beta Blocks</a></li><li><a class="tocitem" href="../23_orov/">OROV Vector-Borne</a></li><li><a class="tocitem" href="../24_yf_delay/">Yellow Fever with Erlang Delay</a></li><li><a class="tocitem" href="../25_yf_vtrack/">Yellow Fever 2-Track Vaccination</a></li><li class="is-active"><a class="tocitem" href>Complete Fitting Workflow</a><ul class="internal"><li><a class="tocitem" href="#Introduction"><span>Introduction</span></a></li><li><a class="tocitem" href="#Part-1:-SIR-ODE-Fitting-with-Unfilter"><span>Part 1: SIR ODE Fitting with Unfilter</span></a></li><li><a class="tocitem" href="#Part-2:-SIS-Stochastic-Fitting-with-Particle-Filter"><span>Part 2: SIS Stochastic Fitting with Particle Filter</span></a></li><li><a class="tocitem" href="#Part-3:-Counterfactual-Projections"><span>Part 3: Counterfactual Projections</span></a></li><li><a class="tocitem" href="#Summary"><span>Summary</span></a></li></ul></li><li><a class="tocitem" href="../27_spatial_composition/">Spatial Composition</a></li><li><a class="tocitem" href="../28_stratification/">Age Stratification</a></li><li><a class="tocitem" href="../29_multi_pathogen/">Multi-Pathogen Composition</a></li></ul></li><li><input class="collapse-toggle" id="menuitem-4-4" type="checkbox"/><label class="tocitem" for="menuitem-4-4"><span class="docs-label">Techniques</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../30_stiff_ode/">Stiff ODEs: SDIRK4 Solver</a></li><li><a class="tocitem" href="../31_gpu_filter/">GPU-Accelerated Filtering</a></li><li><a class="tocitem" href="../32_advanced_samplers/">Advanced MCMC Samplers</a></li><li><a class="tocitem" href="../33_sensitivity/">Sensitivity Analysis</a></li><li><a class="tocitem" href="../34_events/">Event Handling</a></li><li><a class="tocitem" href="../35_sde/">Stochastic Differential Equations</a></li><li><a class="tocitem" href="../36_model_selection/">Model Selection</a></li><li><a class="tocitem" href="../37_model_validation/">Model Validation</a></li></ul></li></ul></li><li><a class="tocitem" href="../../api/">API Reference</a></li></ul><div class="docs-version-selector field has-addons"><div class="control"><span class="docs-label button is-static is-size-7">Version</span></div><div class="docs-selector control is-expanded"><div class="select is-fullwidth is-size-7"><select id="documenter-version-selector"></select></div></div></div></nav><div class="docs-main"><header class="docs-navbar"><a class="docs-sidebar-button docs-navbar-link fa-solid fa-bars is-hidden-desktop" id="documenter-sidebar-button" href="#"></a><nav class="breadcrumb"><ul class="is-hidden-mobile"><li><a class="is-disabled">Vignettes</a></li><li><a class="is-disabled">Advanced Models</a></li><li class="is-active"><a href>Complete Fitting Workflow</a></li></ul><ul class="is-hidden-tablet"><li class="is-active"><a href>Complete Fitting Workflow</a></li></ul></nav><div class="docs-right"><a class="docs-navbar-link" href="https://github.com/epirecipes/Odin.jl" title="View the repository on GitHub"><span class="docs-icon fa-brands"></span><span class="docs-label is-hidden-touch">GitHub</span></a><a class="docs-settings-button docs-navbar-link fa-solid fa-gear" id="documenter-settings-button" href="#" title="Settings"></a><a class="docs-article-toggle-button fa-solid fa-chevron-up" id="documenter-article-toggle-button" href="javascript:;" title="Collapse all docstrings"></a></div></header><article class="content" id="documenter-page"><h1 id="Complete-Fitting-Workflow"><a class="docs-heading-anchor" href="#Complete-Fitting-Workflow">Complete Fitting Workflow</a><a id="Complete-Fitting-Workflow-1"></a><a class="docs-heading-anchor-permalink" href="#Complete-Fitting-Workflow" title="Permalink"></a></h1><h2 id="Introduction"><a class="docs-heading-anchor" href="#Introduction">Introduction</a><a id="Introduction-1"></a><a class="docs-heading-anchor-permalink" href="#Introduction" title="Permalink"></a></h2><p>This vignette demonstrates the full Bayesian fitting workflow with Odin.jl, covering three scenarios of increasing complexity:</p><ol><li><strong>Part 1 — Deterministic SIR fitting</strong>: ODE model with Poisson  observation model, deterministic likelihood via <code>Likelihood</code>, and  random-walk<ol><li></li></ol></li><li><strong>Part 2 — Stochastic SIS fitting</strong>: Discrete-time SIS model with  time-varying school closure, stochastic likelihood via <code>Likelihood</code>,  and random-walk MCMC.</li><li><strong>Part 3 — Counterfactual projections</strong>: Using the fitted posterior  to simulate forward under alternative intervention scenarios.</li></ol><p>This follows the analysis pipeline from the <a href="https://github.com/mrc-ide/odin-monty-workshop-2025">odin-monty-workshop-2025</a> fitting tutorial, ported to Julia.</p><pre><code class="language-julia hljs">using Odin
+using Distributions
+using Plots
+using Statistics
+using Random
+using LinearAlgebra</code></pre><h2 id="Part-1:-SIR-ODE-Fitting-with-Unfilter"><a class="docs-heading-anchor" href="#Part-1:-SIR-ODE-Fitting-with-Unfilter">Part 1: SIR ODE Fitting with Unfilter</a><a id="Part-1:-SIR-ODE-Fitting-with-Unfilter-1"></a><a class="docs-heading-anchor-permalink" href="#Part-1:-SIR-ODE-Fitting-with-Unfilter" title="Permalink"></a></h2><h3 id="Data"><a class="docs-heading-anchor" href="#Data">Data</a><a id="Data-1"></a><a class="docs-heading-anchor-permalink" href="#Data" title="Permalink"></a></h3><p>We use a 20-day SIR incidence dataset:</p><pre><code class="language-julia hljs">incidence_data = [
+    (time=1.0,  cases=12.0), (time=2.0,  cases=23.0),
+    (time=3.0,  cases=25.0), (time=4.0,  cases=36.0),
+    (time=5.0,  cases=30.0), (time=6.0,  cases=57.0),
+    (time=7.0,  cases=59.0), (time=8.0,  cases=62.0),
+    (time=9.0,  cases=47.0), (time=10.0, cases=52.0),
+    (time=11.0, cases=56.0), (time=12.0, cases=33.0),
+    (time=13.0, cases=34.0), (time=14.0, cases=19.0),
+    (time=15.0, cases=27.0), (time=16.0, cases=25.0),
+    (time=17.0, cases=15.0), (time=18.0, cases=20.0),
+    (time=19.0, cases=11.0), (time=20.0, cases=7.0),
+]
+
+scatter([d.time for d in incidence_data],
+        [d.cases for d in incidence_data],
+        xlabel=&quot;Time&quot;, ylabel=&quot;Cases&quot;,
+        title=&quot;SIR Incidence Data&quot;, label=&quot;Observed&quot;,
+        color=:red, ms=5)</code></pre><p><img src="../26_fitting_workflow_files/figure-commonmark/cell-3-output-1.svg" alt/></p><h3 id="Model-Definition"><a class="docs-heading-anchor" href="#Model-Definition">Model Definition</a><a id="Model-Definition-1"></a><a class="docs-heading-anchor-permalink" href="#Model-Definition" title="Permalink"></a></h3><p>An ODE SIR model with Poisson observation model on infected counts. The unfilter requires continuous-time dynamics (<code>deriv()</code>), which are solved deterministically by an ODE integrator.</p><pre><code class="language-julia hljs">sir_ode = @odin begin
+    deriv(S) = -beta * S * I / N
+    deriv(I) = beta * S * I / N - gamma * I
+    deriv(R) = gamma * I
+
+    initial(S) = N - I0
+    initial(I) = I0
+    initial(R) = 0
+
+    N = parameter(1000)
+    I0 = parameter(10)
+    beta = parameter(0.4)
+    gamma = parameter(0.2)
+
+    cases = data()
+    cases ~ Poisson(max(I, 1e-6))
+end</code></pre><pre><code class="nohighlight hljs">Odin.DustSystemGenerator{var&quot;##OdinModel#278&quot;}(var&quot;##OdinModel#278&quot;(3, [:S, :I, :R], [:N, :I0, :beta, :gamma], true, false, true, false, false, Dict{Symbol, Array}()))</code></pre><h3 id="Deterministic-Likelihood-(Unfilter)"><a class="docs-heading-anchor" href="#Deterministic-Likelihood-(Unfilter)">Deterministic Likelihood (Unfilter)</a><a id="Deterministic-Likelihood-(Unfilter)-1"></a><a class="docs-heading-anchor-permalink" href="#Deterministic-Likelihood-(Unfilter)" title="Permalink"></a></h3><p>The unfilter solves the ODE forward and evaluates the Poisson log-likelihood of the observed cases against the predicted infected count at each time point:</p><pre><code class="language-julia hljs">sir_data = ObservedData(incidence_data)
+unfilter = Likelihood(sir_ode, sir_data)
+
+ll = loglik(unfilter, (beta=0.4, gamma=0.2, I0=10.0, N=1000.0))
+println(&quot;Log-likelihood (unfilter): &quot;, round(ll, digits=2))</code></pre><pre><code class="nohighlight hljs">Log-likelihood (unfilter): -687.03</code></pre><h3 id="Set-Up-MCMC"><a class="docs-heading-anchor" href="#Set-Up-MCMC">Set Up MCMC</a><a id="Set-Up-MCMC-1"></a><a class="docs-heading-anchor-permalink" href="#Set-Up-MCMC" title="Permalink"></a></h3><pre><code class="language-julia hljs">packer = Packer([:beta, :gamma]; fixed=(I0=10.0, N=1000.0))
+
+likelihood = as_model(unfilter, packer)
+
+prior = @prior begin
+    beta ~ Exponential(0.5)
+    gamma ~ Exponential(0.3)
+end
+
+posterior = likelihood + prior</code></pre><pre><code class="nohighlight hljs">MontyModel{Odin.var&quot;#monty_model_combine##0#monty_model_combine##1&quot;{MontyModel{Odin.var&quot;#dust_likelihood_monty##2#dust_likelihood_monty##3&quot;{DustUnfilter{var&quot;##OdinModel#278&quot;, @NamedTuple{cases::Float64}}, MontyPacker}, Odin.var&quot;#dust_likelihood_monty##4#dust_likelihood_monty##5&quot;{Odin.var&quot;#dust_likelihood_monty##2#dust_likelihood_monty##3&quot;{DustUnfilter{var&quot;##OdinModel#278&quot;, @NamedTuple{cases::Float64}}, MontyPacker}}, Nothing, Nothing}, MontyModel{var&quot;#10#11&quot;, var&quot;#12#13&quot;{var&quot;#10#11&quot;}, var&quot;#14#15&quot;, Matrix{Float64}}}, Odin.var&quot;#monty_model_combine##2#monty_model_combine##3&quot;{MontyModel{Odin.var&quot;#dust_likelihood_monty##2#dust_likelihood_monty##3&quot;{DustUnfilter{var&quot;##OdinModel#278&quot;, @NamedTuple{cases::Float64}}, MontyPacker}, Odin.var&quot;#dust_likelihood_monty##4#dust_likelihood_monty##5&quot;{Odin.var&quot;#dust_likelihood_monty##2#dust_likelihood_monty##3&quot;{DustUnfilter{var&quot;##OdinModel#278&quot;, @NamedTuple{cases::Float64}}, MontyPacker}}, Nothing, Nothing}, MontyModel{var&quot;#10#11&quot;, var&quot;#12#13&quot;{var&quot;#10#11&quot;}, var&quot;#14#15&quot;, Matrix{Float64}}}, Nothing, Matrix{Float64}}([&quot;beta&quot;, &quot;gamma&quot;], Odin.var&quot;#monty_model_combine##0#monty_model_combine##1&quot;{MontyModel{Odin.var&quot;#dust_likelihood_monty##2#dust_likelihood_monty##3&quot;{DustUnfilter{var&quot;##OdinModel#278&quot;, @NamedTuple{cases::Float64}}, MontyPacker}, Odin.var&quot;#dust_likelihood_monty##4#dust_likelihood_monty##5&quot;{Odin.var&quot;#dust_likelihood_monty##2#dust_likelihood_monty##3&quot;{DustUnfilter{var&quot;##OdinModel#278&quot;, @NamedTuple{cases::Float64}}, MontyPacker}}, Nothing, Nothing}, MontyModel{var&quot;#10#11&quot;, var&quot;#12#13&quot;{var&quot;#10#11&quot;}, var&quot;#14#15&quot;, Matrix{Float64}}}(MontyModel{Odin.var&quot;#dust_likelihood_monty##2#dust_likelihood_monty##3&quot;{DustUnfilter{var&quot;##OdinModel#278&quot;, @NamedTuple{cases::Float64}}, MontyPacker}, Odin.var&quot;#dust_likelihood_monty##4#dust_likelihood_monty##5&quot;{Odin.var&quot;#dust_likelihood_monty##2#dust_likelihood_monty##3&quot;{DustUnfilter{var&quot;##OdinModel#278&quot;, @NamedTuple{cases::Float64}}, MontyPacker}}, Nothing, Nothing}([&quot;beta&quot;, &quot;gamma&quot;], Odin.var&quot;#dust_likelihood_monty##2#dust_likelihood_monty##3&quot;{DustUnfilter{var&quot;##OdinModel#278&quot;, @NamedTuple{cases::Float64}}, MontyPacker}(DustUnfilter{var&quot;##OdinModel#278&quot;, @NamedTuple{cases::Float64}}(Odin.DustSystemGenerator{var&quot;##OdinModel#278&quot;}(var&quot;##OdinModel#278&quot;(3, [:S, :I, :R], [:N, :I0, :beta, :gamma], true, false, true, false, false, Dict{Symbol, Array}())), Odin.FilterData{@NamedTuple{cases::Float64}}([1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0, 10.0, 11.0, 12.0, 13.0, 14.0, 15.0, 16.0, 17.0, 18.0, 19.0, 20.0], [(cases = 12.0,), (cases = 23.0,), (cases = 25.0,), (cases = 36.0,), (cases = 30.0,), (cases = 57.0,), (cases = 59.0,), (cases = 62.0,), (cases = 47.0,), (cases = 52.0,), (cases = 56.0,), (cases = 33.0,), (cases = 34.0,), (cases = 19.0,), (cases = 27.0,), (cases = 25.0,), (cases = 15.0,), (cases = 20.0,), (cases = 11.0,), (cases = 7.0,)]), 0.0, Odin.DustODEControl(1.0e-6, 1.0e-6, 10000, :dp5), [990.0, 10.0, 0.0], Xoshiro(0x5979ffd77bf47dc0, 0xa169569c318f0ec7, 0xfabc98506d3d2398, 0x83845a246df21864, 0xbc03743d347206c9), nothing, Odin.DP5Workspace{Float64}([563.2433944295477, 154.76012659934057, 281.99647897111174], [563.2433944295477, 154.76012659934057, 281.99647897111174], [636.818007237284, 142.57152703299099, 220.6104657297251], [-34.867047611263644, 3.9150222913955304, 30.952025319868113], [-36.2633372379186, 7.107563246684368, 29.15577399123423], [-36.14468593217217, 6.732455698673487, 29.412230233498686], [-35.35065478670859, 4.7679298405904476, 30.58272494611814], [-35.149210000537636, 4.429312425481463, 30.719897575056173], [-34.86801838414842, 3.958852717771638, 30.909165666376783], [-36.31684629357036, 7.80254088697216, 28.514305406598197], [2.130317216e-314, NaN, 2.158066097e-314], 3, [985.636190355786 980.3629356294188 … 598.6620865632128 563.2433944295477; 12.154993519058456 14.746015348416485 … 149.83415902847628 154.76012659934057; 2.2088161251555465 4.891049022164682 … 251.50375440831095 281.99647897111174], [989.9733614185013, 10.01318475245892, 0.013453829039715414], [-3.965114467158497, 1.9624775166667128, 2.0026369504917843], [1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0, 10.0, 11.0, 12.0, 13.0, 14.0, 15.0, 16.0, 17.0, 18.0, 19.0, 20.0]), nothing, [1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0, 10.0, 11.0, 12.0, 13.0, 14.0, 15.0, 16.0, 17.0, 18.0, 19.0, 20.0]), MontyPacker([:beta, :gamma], [:beta, :gamma], Symbol[], Dict{Symbol, Tuple}(), Dict{Symbol, UnitRange{Int64}}(:beta =&gt; 1:1, :gamma =&gt; 2:2), 2, (I0 = 10.0, N = 1000.0), nothing)), Odin.var&quot;#dust_likelihood_monty##4#dust_likelihood_monty##5&quot;{Odin.var&quot;#dust_likelihood_monty##2#dust_likelihood_monty##3&quot;{DustUnfilter{var&quot;##OdinModel#278&quot;, @NamedTuple{cases::Float64}}, MontyPacker}}(Odin.var&quot;#dust_likelihood_monty##2#dust_likelihood_monty##3&quot;{DustUnfilter{var&quot;##OdinModel#278&quot;, @NamedTuple{cases::Float64}}, MontyPacker}(DustUnfilter{var&quot;##OdinModel#278&quot;, @NamedTuple{cases::Float64}}(Odin.DustSystemGenerator{var&quot;##OdinModel#278&quot;}(var&quot;##OdinModel#278&quot;(3, [:S, :I, :R], [:N, :I0, :beta, :gamma], true, false, true, false, false, Dict{Symbol, Array}())), Odin.FilterData{@NamedTuple{cases::Float64}}([1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0, 10.0, 11.0, 12.0, 13.0, 14.0, 15.0, 16.0, 17.0, 18.0, 19.0, 20.0], [(cases = 12.0,), (cases = 23.0,), (cases = 25.0,), (cases = 36.0,), (cases = 30.0,), (cases = 57.0,), (cases = 59.0,), (cases = 62.0,), (cases = 47.0,), (cases = 52.0,), (cases = 56.0,), (cases = 33.0,), (cases = 34.0,), (cases = 19.0,), (cases = 27.0,), (cases = 25.0,), (cases = 15.0,), (cases = 20.0,), (cases = 11.0,), (cases = 7.0,)]), 0.0, Odin.DustODEControl(1.0e-6, 1.0e-6, 10000, :dp5), [990.0, 10.0, 0.0], Xoshiro(0x5979ffd77bf47dc0, 0xa169569c318f0ec7, 0xfabc98506d3d2398, 0x83845a246df21864, 0xbc03743d347206c9), nothing, Odin.DP5Workspace{Float64}([563.2433944295477, 154.76012659934057, 281.99647897111174], [563.2433944295477, 154.76012659934057, 281.99647897111174], [636.818007237284, 142.57152703299099, 220.6104657297251], [-34.867047611263644, 3.9150222913955304, 30.952025319868113], [-36.2633372379186, 7.107563246684368, 29.15577399123423], [-36.14468593217217, 6.732455698673487, 29.412230233498686], [-35.35065478670859, 4.7679298405904476, 30.58272494611814], [-35.149210000537636, 4.429312425481463, 30.719897575056173], [-34.86801838414842, 3.958852717771638, 30.909165666376783], [-36.31684629357036, 7.80254088697216, 28.514305406598197], [2.130317216e-314, NaN, 2.158066097e-314], 3, [985.636190355786 980.3629356294188 … 598.6620865632128 563.2433944295477; 12.154993519058456 14.746015348416485 … 149.83415902847628 154.76012659934057; 2.2088161251555465 4.891049022164682 … 251.50375440831095 281.99647897111174], [989.9733614185013, 10.01318475245892, 0.013453829039715414], [-3.965114467158497, 1.9624775166667128, 2.0026369504917843], [1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0, 10.0, 11.0, 12.0, 13.0, 14.0, 15.0, 16.0, 17.0, 18.0, 19.0, 20.0]), nothing, [1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0, 10.0, 11.0, 12.0, 13.0, 14.0, 15.0, 16.0, 17.0, 18.0, 19.0, 20.0]), MontyPacker([:beta, :gamma], [:beta, :gamma], Symbol[], Dict{Symbol, Tuple}(), Dict{Symbol, UnitRange{Int64}}(:beta =&gt; 1:1, :gamma =&gt; 2:2), 2, (I0 = 10.0, N = 1000.0), nothing))), nothing, nothing, Odin.MontyModelProperties(true, false, false, false)), MontyModel{var&quot;#10#11&quot;, var&quot;#12#13&quot;{var&quot;#10#11&quot;}, var&quot;#14#15&quot;, Matrix{Float64}}([&quot;beta&quot;, &quot;gamma&quot;], var&quot;#10#11&quot;(), var&quot;#12#13&quot;{var&quot;#10#11&quot;}(var&quot;#10#11&quot;()), var&quot;#14#15&quot;(), [0.0 Inf; 0.0 Inf], Odin.MontyModelProperties(true, true, false, false))), Odin.var&quot;#monty_model_combine##2#monty_model_combine##3&quot;{MontyModel{Odin.var&quot;#dust_likelihood_monty##2#dust_likelihood_monty##3&quot;{DustUnfilter{var&quot;##OdinModel#278&quot;, @NamedTuple{cases::Float64}}, MontyPacker}, Odin.var&quot;#dust_likelihood_monty##4#dust_likelihood_monty##5&quot;{Odin.var&quot;#dust_likelihood_monty##2#dust_likelihood_monty##3&quot;{DustUnfilter{var&quot;##OdinModel#278&quot;, @NamedTuple{cases::Float64}}, MontyPacker}}, Nothing, Nothing}, MontyModel{var&quot;#10#11&quot;, var&quot;#12#13&quot;{var&quot;#10#11&quot;}, var&quot;#14#15&quot;, Matrix{Float64}}}(MontyModel{Odin.var&quot;#dust_likelihood_monty##2#dust_likelihood_monty##3&quot;{DustUnfilter{var&quot;##OdinModel#278&quot;, @NamedTuple{cases::Float64}}, MontyPacker}, Odin.var&quot;#dust_likelihood_monty##4#dust_likelihood_monty##5&quot;{Odin.var&quot;#dust_likelihood_monty##2#dust_likelihood_monty##3&quot;{DustUnfilter{var&quot;##OdinModel#278&quot;, @NamedTuple{cases::Float64}}, MontyPacker}}, Nothing, Nothing}([&quot;beta&quot;, &quot;gamma&quot;], Odin.var&quot;#dust_likelihood_monty##2#dust_likelihood_monty##3&quot;{DustUnfilter{var&quot;##OdinModel#278&quot;, @NamedTuple{cases::Float64}}, MontyPacker}(DustUnfilter{var&quot;##OdinModel#278&quot;, @NamedTuple{cases::Float64}}(Odin.DustSystemGenerator{var&quot;##OdinModel#278&quot;}(var&quot;##OdinModel#278&quot;(3, [:S, :I, :R], [:N, :I0, :beta, :gamma], true, false, true, false, false, Dict{Symbol, Array}())), Odin.FilterData{@NamedTuple{cases::Float64}}([1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0, 10.0, 11.0, 12.0, 13.0, 14.0, 15.0, 16.0, 17.0, 18.0, 19.0, 20.0], [(cases = 12.0,), (cases = 23.0,), (cases = 25.0,), (cases = 36.0,), (cases = 30.0,), (cases = 57.0,), (cases = 59.0,), (cases = 62.0,), (cases = 47.0,), (cases = 52.0,), (cases = 56.0,), (cases = 33.0,), (cases = 34.0,), (cases = 19.0,), (cases = 27.0,), (cases = 25.0,), (cases = 15.0,), (cases = 20.0,), (cases = 11.0,), (cases = 7.0,)]), 0.0, Odin.DustODEControl(1.0e-6, 1.0e-6, 10000, :dp5), [990.0, 10.0, 0.0], Xoshiro(0x5979ffd77bf47dc0, 0xa169569c318f0ec7, 0xfabc98506d3d2398, 0x83845a246df21864, 0xbc03743d347206c9), nothing, Odin.DP5Workspace{Float64}([563.2433944295477, 154.76012659934057, 281.99647897111174], [563.2433944295477, 154.76012659934057, 281.99647897111174], [636.818007237284, 142.57152703299099, 220.6104657297251], [-34.867047611263644, 3.9150222913955304, 30.952025319868113], [-36.2633372379186, 7.107563246684368, 29.15577399123423], [-36.14468593217217, 6.732455698673487, 29.412230233498686], [-35.35065478670859, 4.7679298405904476, 30.58272494611814], [-35.149210000537636, 4.429312425481463, 30.719897575056173], [-34.86801838414842, 3.958852717771638, 30.909165666376783], [-36.31684629357036, 7.80254088697216, 28.514305406598197], [2.130317216e-314, NaN, 2.158066097e-314], 3, [985.636190355786 980.3629356294188 … 598.6620865632128 563.2433944295477; 12.154993519058456 14.746015348416485 … 149.83415902847628 154.76012659934057; 2.2088161251555465 4.891049022164682 … 251.50375440831095 281.99647897111174], [989.9733614185013, 10.01318475245892, 0.013453829039715414], [-3.965114467158497, 1.9624775166667128, 2.0026369504917843], [1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0, 10.0, 11.0, 12.0, 13.0, 14.0, 15.0, 16.0, 17.0, 18.0, 19.0, 20.0]), nothing, [1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0, 10.0, 11.0, 12.0, 13.0, 14.0, 15.0, 16.0, 17.0, 18.0, 19.0, 20.0]), MontyPacker([:beta, :gamma], [:beta, :gamma], Symbol[], Dict{Symbol, Tuple}(), Dict{Symbol, UnitRange{Int64}}(:beta =&gt; 1:1, :gamma =&gt; 2:2), 2, (I0 = 10.0, N = 1000.0), nothing)), Odin.var&quot;#dust_likelihood_monty##4#dust_likelihood_monty##5&quot;{Odin.var&quot;#dust_likelihood_monty##2#dust_likelihood_monty##3&quot;{DustUnfilter{var&quot;##OdinModel#278&quot;, @NamedTuple{cases::Float64}}, MontyPacker}}(Odin.var&quot;#dust_likelihood_monty##2#dust_likelihood_monty##3&quot;{DustUnfilter{var&quot;##OdinModel#278&quot;, @NamedTuple{cases::Float64}}, MontyPacker}(DustUnfilter{var&quot;##OdinModel#278&quot;, @NamedTuple{cases::Float64}}(Odin.DustSystemGenerator{var&quot;##OdinModel#278&quot;}(var&quot;##OdinModel#278&quot;(3, [:S, :I, :R], [:N, :I0, :beta, :gamma], true, false, true, false, false, Dict{Symbol, Array}())), Odin.FilterData{@NamedTuple{cases::Float64}}([1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0, 10.0, 11.0, 12.0, 13.0, 14.0, 15.0, 16.0, 17.0, 18.0, 19.0, 20.0], [(cases = 12.0,), (cases = 23.0,), (cases = 25.0,), (cases = 36.0,), (cases = 30.0,), (cases = 57.0,), (cases = 59.0,), (cases = 62.0,), (cases = 47.0,), (cases = 52.0,), (cases = 56.0,), (cases = 33.0,), (cases = 34.0,), (cases = 19.0,), (cases = 27.0,), (cases = 25.0,), (cases = 15.0,), (cases = 20.0,), (cases = 11.0,), (cases = 7.0,)]), 0.0, Odin.DustODEControl(1.0e-6, 1.0e-6, 10000, :dp5), [990.0, 10.0, 0.0], Xoshiro(0x5979ffd77bf47dc0, 0xa169569c318f0ec7, 0xfabc98506d3d2398, 0x83845a246df21864, 0xbc03743d347206c9), nothing, Odin.DP5Workspace{Float64}([563.2433944295477, 154.76012659934057, 281.99647897111174], [563.2433944295477, 154.76012659934057, 281.99647897111174], [636.818007237284, 142.57152703299099, 220.6104657297251], [-34.867047611263644, 3.9150222913955304, 30.952025319868113], [-36.2633372379186, 7.107563246684368, 29.15577399123423], [-36.14468593217217, 6.732455698673487, 29.412230233498686], [-35.35065478670859, 4.7679298405904476, 30.58272494611814], [-35.149210000537636, 4.429312425481463, 30.719897575056173], [-34.86801838414842, 3.958852717771638, 30.909165666376783], [-36.31684629357036, 7.80254088697216, 28.514305406598197], [2.130317216e-314, NaN, 2.158066097e-314], 3, [985.636190355786 980.3629356294188 … 598.6620865632128 563.2433944295477; 12.154993519058456 14.746015348416485 … 149.83415902847628 154.76012659934057; 2.2088161251555465 4.891049022164682 … 251.50375440831095 281.99647897111174], [989.9733614185013, 10.01318475245892, 0.013453829039715414], [-3.965114467158497, 1.9624775166667128, 2.0026369504917843], [1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0, 10.0, 11.0, 12.0, 13.0, 14.0, 15.0, 16.0, 17.0, 18.0, 19.0, 20.0]), nothing, [1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0, 10.0, 11.0, 12.0, 13.0, 14.0, 15.0, 16.0, 17.0, 18.0, 19.0, 20.0]), MontyPacker([:beta, :gamma], [:beta, :gamma], Symbol[], Dict{Symbol, Tuple}(), Dict{Symbol, UnitRange{Int64}}(:beta =&gt; 1:1, :gamma =&gt; 2:2), 2, (I0 = 10.0, N = 1000.0), nothing))), nothing, nothing, Odin.MontyModelProperties(true, false, false, false)), MontyModel{var&quot;#10#11&quot;, var&quot;#12#13&quot;{var&quot;#10#11&quot;}, var&quot;#14#15&quot;, Matrix{Float64}}([&quot;beta&quot;, &quot;gamma&quot;], var&quot;#10#11&quot;(), var&quot;#12#13&quot;{var&quot;#10#11&quot;}(var&quot;#10#11&quot;()), var&quot;#14#15&quot;(), [0.0 Inf; 0.0 Inf], Odin.MontyModelProperties(true, true, false, false))), nothing, [0.0 Inf; 0.0 Inf], Odin.MontyModelProperties(true, false, false, false))</code></pre><h3 id="Run-MCMC"><a class="docs-heading-anchor" href="#Run-MCMC">Run MCMC</a><a id="Run-MCMC-1"></a><a class="docs-heading-anchor-permalink" href="#Run-MCMC" title="Permalink"></a></h3><p>We use a random-walk sampler with 3 chains:</p><pre><code class="language-julia hljs">vcv = [0.01 0.005; 0.005 0.005]
+sampler = random_walk(vcv)
+
+initial = repeat([0.3, 0.15], 1, 3)
+samples_det = sample(posterior, sampler, 2000;
+    n_chains=3, initial=initial, n_burnin=500, seed=42)</code></pre><pre><code class="nohighlight hljs">Odin.MontySamples([1.1569437685281758 1.1569437685281758 … 1.2080819128984297 1.2080819128984297; 0.8283040801815309 0.8283040801815309 … 0.8350474647061895 0.8350474647061895;;; 1.1119871706513664 1.1119871706513664 … 1.180532619130078 1.180532619130078; 0.7737943719153414 0.7737943719153414 … 0.807370758633047 0.807370758633047;;; 1.1395876772182385 1.1395876772182385 … 1.159259574367605 1.159259574367605; 0.8155047712868728 0.8155047712868728 … 0.8073625311829383 0.8073625311829383], [-68.46195628408532 -68.46574228892261 -68.15963657112442; -68.46195628408532 -68.46574228892261 -68.15963657112442; … ; -70.67799274032235 -69.90823207882525 -67.26418610753582; -70.67799274032235 -69.90823207882525 -67.26418610753582], [0.3 0.3 0.3; 0.15 0.15 0.15], [&quot;beta&quot;, &quot;gamma&quot;], Dict{Symbol, Any}(:acceptance_rate =&gt; [0.089, 0.099, 0.086]))</code></pre><h3 id="Posterior-Summary"><a class="docs-heading-anchor" href="#Posterior-Summary">Posterior Summary</a><a id="Posterior-Summary-1"></a><a class="docs-heading-anchor-permalink" href="#Posterior-Summary" title="Permalink"></a></h3><pre><code class="language-julia hljs">beta_post = vec(samples_det.pars[1, :, :])
+gamma_post = vec(samples_det.pars[2, :, :])
+
+println(&quot;β: mean = &quot;, round(mean(beta_post), digits=3),
+        &quot;, 95% CI = [&quot;, round(quantile(beta_post, 0.025), digits=3),
+        &quot;, &quot;, round(quantile(beta_post, 0.975), digits=3), &quot;]&quot;)
+println(&quot;γ: mean = &quot;, round(mean(gamma_post), digits=3),
+        &quot;, 95% CI = [&quot;, round(quantile(gamma_post, 0.025), digits=3),
+        &quot;, &quot;, round(quantile(gamma_post, 0.975), digits=3), &quot;]&quot;)</code></pre><pre><code class="nohighlight hljs">β: mean = 1.15, 95% CI = [1.094, 1.207]
+γ: mean = 0.807, 95% CI = [0.766, 0.851]</code></pre><h3 id="Trace-Plots"><a class="docs-heading-anchor" href="#Trace-Plots">Trace Plots</a><a id="Trace-Plots-1"></a><a class="docs-heading-anchor-permalink" href="#Trace-Plots" title="Permalink"></a></h3><pre><code class="language-julia hljs">p1 = plot(title=&quot;β trace&quot;, xlabel=&quot;Iteration&quot;, ylabel=&quot;β&quot;)
+p2 = plot(title=&quot;γ trace&quot;, xlabel=&quot;Iteration&quot;, ylabel=&quot;γ&quot;)
+for c in 1:3
+    plot!(p1, samples_det.pars[1, :, c], label=&quot;Chain $c&quot;, alpha=0.7)
+    plot!(p2, samples_det.pars[2, :, c], label=&quot;Chain $c&quot;, alpha=0.7)
+end
+plot(p1, p2, layout=(2, 1), size=(700, 400))</code></pre><p><img src="../26_fitting_workflow_files/figure-commonmark/cell-9-output-1.svg" alt/></p><h3 id="Posterior-Density"><a class="docs-heading-anchor" href="#Posterior-Density">Posterior Density</a><a id="Posterior-Density-1"></a><a class="docs-heading-anchor-permalink" href="#Posterior-Density" title="Permalink"></a></h3><pre><code class="language-julia hljs">p3 = histogram(beta_post, bins=30, normalize=true,
+               xlabel=&quot;β&quot;, ylabel=&quot;Density&quot;, title=&quot;Posterior: β&quot;, label=&quot;&quot;)
+p4 = histogram(gamma_post, bins=30, normalize=true,
+               xlabel=&quot;γ&quot;, ylabel=&quot;Density&quot;, title=&quot;Posterior: γ&quot;, label=&quot;&quot;)
+plot(p3, p4, layout=(1, 2), size=(800, 300))</code></pre><p><img src="../26_fitting_workflow_files/figure-commonmark/cell-10-output-1.svg" alt/></p><h3 id="Log-Density-Trace"><a class="docs-heading-anchor" href="#Log-Density-Trace">Log-Density Trace</a><a id="Log-Density-Trace-1"></a><a class="docs-heading-anchor-permalink" href="#Log-Density-Trace" title="Permalink"></a></h3><pre><code class="language-julia hljs">p5 = plot(title=&quot;Log-posterior density&quot;, xlabel=&quot;Iteration&quot;, ylabel=&quot;Density&quot;)
+for c in 1:3
+    plot!(p5, samples_det.density[:, c], label=&quot;Chain $c&quot;, alpha=0.7)
+end
+p5</code></pre><p><img src="../26_fitting_workflow_files/figure-commonmark/cell-11-output-1.svg" alt/></p><h3 id="Posterior-Predictive-Check"><a class="docs-heading-anchor" href="#Posterior-Predictive-Check">Posterior Predictive Check</a><a id="Posterior-Predictive-Check-1"></a><a class="docs-heading-anchor-permalink" href="#Posterior-Predictive-Check" title="Permalink"></a></h3><p>We simulate from the posterior to compare model predictions with data:</p><pre><code class="language-julia hljs">n_draws = min(200, length(beta_post))
+idx = rand(1:length(beta_post), n_draws)
+
+p_pred = plot(xlabel=&quot;Time&quot;, ylabel=&quot;Infected (I)&quot;,
+              title=&quot;Posterior Predictive (Deterministic)&quot;, legend=false)
+
+for j in 1:n_draws
+    pars = (beta=beta_post[idx[j]], gamma=gamma_post[idx[j]],
+            I0=10.0, N=1000.0)
+    times = collect(0.0:0.5:20.0)
+    r = simulate(sir_ode, pars; times=times)
+    plot!(p_pred, times, r[2, 1, :], color=:gray, alpha=0.1)
+end
+
+scatter!(p_pred, [d.time for d in incidence_data],
+         [d.cases for d in incidence_data],
+         color=:red, ms=5, label=&quot;Observed&quot;)
+p_pred</code></pre><p><img src="../26_fitting_workflow_files/figure-commonmark/cell-12-output-1.svg" alt/></p><h3 id="Stochastic-Comparison"><a class="docs-heading-anchor" href="#Stochastic-Comparison">Stochastic Comparison</a><a id="Stochastic-Comparison-1"></a><a class="docs-heading-anchor-permalink" href="#Stochastic-Comparison" title="Permalink"></a></h3><p>We can also define a discrete-time (stochastic) version and fit it with a particle filter for comparison:</p><pre><code class="language-julia hljs">sir_discrete = @odin begin
+    update(S) = S - n_SI
+    update(I) = I + n_SI - n_IR
+    update(R) = R + n_IR
+    update(incidence) = incidence + n_SI
+
+    initial(S) = N - I0
+    initial(I) = I0
+    initial(R) = 0
+    initial(incidence, zero_every = 1) = 0
+
+    p_SI = 1 - exp(-beta * I / N * dt)
+    p_IR = 1 - exp(-gamma * dt)
+    n_SI = Binomial(S, p_SI)
+    n_IR = Binomial(I, p_IR)
+
+    N = parameter(1000)
+    I0 = parameter(10)
+    beta = parameter(0.2)
+    gamma = parameter(0.1)
+
+    cases = data()
+    cases ~ Poisson(incidence + 1e-6)
+end
+
+filter = Likelihood(sir_discrete, sir_data;
+    n_particles=200, dt=0.25, seed=42)
+
+ll_stoch = loglik(filter, (beta=0.4, gamma=0.2, I0=10.0, N=1000.0))
+println(&quot;Log-likelihood (filter, stochastic): &quot;, round(ll_stoch, digits=2))
+
+likelihood_stoch = as_model(filter, packer)
+posterior_stoch = likelihood_stoch + prior
+
+samples_stoch = sample(posterior_stoch, sampler, 2000;
+    n_chains=3, initial=initial, n_burnin=500, seed=42)</code></pre><pre><code class="nohighlight hljs">Log-likelihood (filter, stochastic): -94.56
+
+Odin.MontySamples([0.7301529589294927 0.792836447555974 … 1.0182236287379132 1.0182236287379132; 0.48040193000548215 0.48014788334197345 … 0.6768433312961764 0.6768433312961764;;; 0.881152249104835 0.881152249104835 … 0.844816902440399 1.032574491596333; 0.5827626022029953 0.5827626022029953 … 0.5448895868286512 0.6416603768477144;;; 0.921481478896744 1.1093332989444213 … 0.8101921077748822 0.8323534625112573; 0.6521946859989587 0.7530279219876058 … 0.4956192843967889 0.5091209581567532], [-70.84881503855483 -70.06868174365394 -71.40742867952922; -69.90419361283384 -70.06868174365394 -71.73926416197534; … ; -70.98914475109092 -69.63831136063894 -69.67889362212209; -70.98914475109092 -71.24612144522271 -69.79629346893155], [0.3 0.3 0.3; 0.15 0.15 0.15], [&quot;beta&quot;, &quot;gamma&quot;], Dict{Symbol, Any}(:acceptance_rate =&gt; [0.4795, 0.491, 0.4895]))</code></pre><pre><code class="language-julia hljs">beta_stoch = vec(samples_stoch.pars[1, :, :])
+gamma_stoch = vec(samples_stoch.pars[2, :, :])
+
+p_comp = scatter(beta_post, gamma_post, alpha=0.3, ms=2,
+                 color=:red, label=&quot;Deterministic (ODE)&quot;,
+                 xlabel=&quot;β&quot;, ylabel=&quot;γ&quot;,
+                 title=&quot;Stochastic vs Deterministic Posterior&quot;)
+scatter!(p_comp, beta_stoch, gamma_stoch, alpha=0.3, ms=2,
+         color=:blue, label=&quot;Stochastic (filter)&quot;)
+p_comp</code></pre><p><img src="../26_fitting_workflow_files/figure-commonmark/cell-14-output-1.svg" alt/></p><h2 id="Part-2:-SIS-Stochastic-Fitting-with-Particle-Filter"><a class="docs-heading-anchor" href="#Part-2:-SIS-Stochastic-Fitting-with-Particle-Filter">Part 2: SIS Stochastic Fitting with Particle Filter</a><a id="Part-2:-SIS-Stochastic-Fitting-with-Particle-Filter-1"></a><a class="docs-heading-anchor-permalink" href="#Part-2:-SIS-Stochastic-Fitting-with-Particle-Filter" title="Permalink"></a></h2><h3 id="Data-2"><a class="docs-heading-anchor" href="#Data-2">Data</a><a class="docs-heading-anchor-permalink" href="#Data-2" title="Permalink"></a></h3><p>A 150-day SIS case dataset with school closures:</p><pre><code class="language-julia hljs">schools_cases = [
+    2,3,2,2,4,7,2,2,0,3,1,5,4,5,4,5,14,6,12,6,
+    6,9,4,7,11,19,18,25,15,16,27,15,19,27,35,23,20,32,23,32,
+    30,21,58,31,40,46,38,32,42,46,7,10,19,18,18,20,10,7,11,13,
+    36,25,33,24,28,30,38,31,48,40,61,32,30,44,52,39,45,47,40,44,
+    43,42,44,34,52,45,40,58,55,41,52,40,62,49,36,40,48,58,41,42,
+    37,41,59,42,50,52,35,52,44,38,53,65,48,47,57,53,43,52,32,49,
+    19,18,17,17,15,18,12,18,12,8,53,57,42,47,42,41,49,51,45,44,
+    49,47,53,33,36,37,44,40,70,57,
+]
+
+schools_data = ObservedData(
+    [(time=Float64(t), cases=Float64(c)) for (t, c) in enumerate(schools_cases)]
+)
+
+scatter(1:150, schools_cases, xlabel=&quot;Time&quot;, ylabel=&quot;Cases&quot;,
+        title=&quot;SIS School Closure Data&quot;, label=&quot;Observed&quot;,
+        color=:red, ms=3, alpha=0.7)</code></pre><p><img src="../26_fitting_workflow_files/figure-commonmark/cell-15-output-1.svg" alt/></p><h3 id="Model-Definition-2"><a class="docs-heading-anchor" href="#Model-Definition-2">Model Definition</a><a class="docs-heading-anchor-permalink" href="#Model-Definition-2" title="Permalink"></a></h3><p>SIS model with time-varying school closure schedule:</p><pre><code class="language-julia hljs">sis = @odin begin
+    update(S) = S - n_SI + n_IS
+    update(I) = I + n_SI - n_IS
+    update(incidence) = incidence + n_SI
+
+    initial(S) = N - I0
+    initial(I) = I0
+    initial(incidence, zero_every = 1) = 0
+
+    schools = interpolate(schools_time, schools_open, :constant)
+    schools_time = parameter(rank = 1)
+    schools_open = parameter(rank = 1)
+
+    beta = ((1 - schools) * (1 - schools_modifier) + schools) * beta0
+
+    p_SI = 1 - exp(-beta * I / N * dt)
+    p_IS = 1 - exp(-gamma * dt)
+    n_SI = Binomial(S, p_SI)
+    n_IS = Binomial(I, p_IS)
+
+    N = parameter(1000)
+    I0 = parameter(10)
+    beta0 = parameter(0.2)
+    gamma = parameter(0.1)
+    schools_modifier = parameter(0.6)
+
+    cases = data()
+    cases ~ Poisson(incidence + 1e-6)
+end</code></pre><pre><code class="nohighlight hljs">Odin.DustSystemGenerator{var&quot;##OdinModel#288&quot;}(var&quot;##OdinModel#288&quot;(3, [:S, :I, :incidence], [:schools_time, :schools_open, :N, :I0, :beta0, :gamma, :schools_modifier], false, false, true, false, true, Dict{Symbol, Array}()))</code></pre><h3 id="School-Schedule"><a class="docs-heading-anchor" href="#School-Schedule">School Schedule</a><a id="School-Schedule-1"></a><a class="docs-heading-anchor-permalink" href="#School-Schedule" title="Permalink"></a></h3><pre><code class="language-julia hljs">schools_time = [0.0, 50.0, 60.0, 120.0, 130.0, 170.0, 180.0]
+schools_open = [1.0,  0.0,  1.0,   0.0,   1.0,   0.0,   1.0]</code></pre><pre><code class="nohighlight hljs">7-element Vector{Float64}:
+ 1.0
+ 0.0
+ 1.0
+ 0.0
+ 1.0
+ 0.0
+ 1.0</code></pre><h3 id="Particle-Filter-Likelihood"><a class="docs-heading-anchor" href="#Particle-Filter-Likelihood">Particle Filter Likelihood</a><a id="Particle-Filter-Likelihood-1"></a><a class="docs-heading-anchor-permalink" href="#Particle-Filter-Likelihood" title="Permalink"></a></h3><pre><code class="language-julia hljs">sis_filter = Likelihood(sis, schools_data;
+    n_particles=200, dt=1.0, seed=42)
+
+test_pars = (
+    beta0=0.3, gamma=0.1, schools_modifier=0.5,
+    schools_time=schools_time, schools_open=schools_open,
+    N=1000.0, I0=10.0,
+)
+ll = loglik(sis_filter, test_pars)
+println(&quot;Log-likelihood at test parameters: &quot;, round(ll, digits=2))</code></pre><pre><code class="nohighlight hljs">Log-likelihood at test parameters: -819.89</code></pre><h3 id="MCMC-Setup"><a class="docs-heading-anchor" href="#MCMC-Setup">MCMC Setup</a><a id="MCMC-Setup-1"></a><a class="docs-heading-anchor-permalink" href="#MCMC-Setup" title="Permalink"></a></h3><pre><code class="language-julia hljs">sis_packer = Packer(
+    [:beta0, :gamma, :schools_modifier];
+    fixed=(
+        schools_time=schools_time,
+        schools_open=schools_open,
+        N=1000.0,
+        I0=10.0,
+    ))
+
+sis_likelihood = as_model(sis_filter, sis_packer)
+
+sis_prior = @prior begin
+    beta0 ~ Exponential(0.3)
+    gamma ~ Exponential(0.1)
+    schools_modifier ~ Uniform(0.0, 1.0)
+end
+
+sis_posterior = sis_likelihood + sis_prior</code></pre><pre><code class="nohighlight hljs">MontyModel{Odin.var&quot;#monty_model_combine##0#monty_model_combine##1&quot;{MontyModel{Odin.var&quot;#dust_likelihood_monty##0#dust_likelihood_monty##1&quot;{DustFilter{var&quot;##OdinModel#288&quot;, Float64, @NamedTuple{cases::Float64}}, MontyPacker}, Nothing, Nothing, Nothing}, MontyModel{var&quot;#28#29&quot;, var&quot;#30#31&quot;{var&quot;#28#29&quot;}, var&quot;#32#33&quot;, Matrix{Float64}}}, Odin.var&quot;#monty_model_combine##4#monty_model_combine##5&quot;{Odin.var&quot;#monty_model_combine##0#monty_model_combine##1&quot;{MontyModel{Odin.var&quot;#dust_likelihood_monty##0#dust_likelihood_monty##1&quot;{DustFilter{var&quot;##OdinModel#288&quot;, Float64, @NamedTuple{cases::Float64}}, MontyPacker}, Nothing, Nothing, Nothing}, MontyModel{var&quot;#28#29&quot;, var&quot;#30#31&quot;{var&quot;#28#29&quot;}, var&quot;#32#33&quot;, Matrix{Float64}}}}, Nothing, Matrix{Float64}}([&quot;beta0&quot;, &quot;gamma&quot;, &quot;schools_modifier&quot;], Odin.var&quot;#monty_model_combine##0#monty_model_combine##1&quot;{MontyModel{Odin.var&quot;#dust_likelihood_monty##0#dust_likelihood_monty##1&quot;{DustFilter{var&quot;##OdinModel#288&quot;, Float64, @NamedTuple{cases::Float64}}, MontyPacker}, Nothing, Nothing, Nothing}, MontyModel{var&quot;#28#29&quot;, var&quot;#30#31&quot;{var&quot;#28#29&quot;}, var&quot;#32#33&quot;, Matrix{Float64}}}(MontyModel{Odin.var&quot;#dust_likelihood_monty##0#dust_likelihood_monty##1&quot;{DustFilter{var&quot;##OdinModel#288&quot;, Float64, @NamedTuple{cases::Float64}}, MontyPacker}, Nothing, Nothing, Nothing}([&quot;beta0&quot;, &quot;gamma&quot;, &quot;schools_modifier&quot;], Odin.var&quot;#dust_likelihood_monty##0#dust_likelihood_monty##1&quot;{DustFilter{var&quot;##OdinModel#288&quot;, Float64, @NamedTuple{cases::Float64}}, MontyPacker}(DustFilter{var&quot;##OdinModel#288&quot;, Float64, @NamedTuple{cases::Float64}}(Odin.DustSystemGenerator{var&quot;##OdinModel#288&quot;}(var&quot;##OdinModel#288&quot;(3, [:S, :I, :incidence], [:schools_time, :schools_open, :N, :I0, :beta0, :gamma, :schools_modifier], false, false, true, false, true, Dict{Symbol, Array}())), Odin.FilterData{@NamedTuple{cases::Float64}}([1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0, 10.0  …  141.0, 142.0, 143.0, 144.0, 145.0, 146.0, 147.0, 148.0, 149.0, 150.0], [(cases = 2.0,), (cases = 3.0,), (cases = 2.0,), (cases = 2.0,), (cases = 4.0,), (cases = 7.0,), (cases = 2.0,), (cases = 2.0,), (cases = 0.0,), (cases = 3.0,)  …  (cases = 49.0,), (cases = 47.0,), (cases = 53.0,), (cases = 33.0,), (cases = 36.0,), (cases = 37.0,), (cases = 44.0,), (cases = 40.0,), (cases = 70.0,), (cases = 57.0,)]), 0.0, 200, 1.0, 42, false, DustSystem{var&quot;##OdinModel#288&quot;, Float64, @NamedTuple{beta0::Float64, gamma::Float64, schools_modifier::Float64, schools_time::Vector{Float64}, schools_open::Vector{Float64}, N::Float64, I0::Float64, dt::Float64, _interp_schools::Odin.var&quot;#interp#_constant_interpolator##0&quot;{Vector{Float64}, Vector{Float64}}}}(Odin.DustSystemGenerator{var&quot;##OdinModel#288&quot;}(var&quot;##OdinModel#288&quot;(3, [:S, :I, :incidence], [:schools_time, :schools_open, :N, :I0, :beta0, :gamma, :schools_modifier], false, false, true, false, true, Dict{Symbol, Array}())), [399.0 407.0 … 418.0 408.0; 601.0 593.0 … 582.0 592.0; 63.0 79.0 … 60.0 61.0], (beta0 = 0.3, gamma = 0.1, schools_modifier = 0.5, schools_time = [0.0, 50.0, 60.0, 120.0, 130.0, 170.0, 180.0], schools_open = [1.0, 0.0, 1.0, 0.0, 1.0, 0.0, 1.0], N = 1000.0, I0 = 10.0, dt = 1.0, _interp_schools = Odin.var&quot;#interp#_constant_interpolator##0&quot;{Vector{Float64}, Vector{Float64}}([0.0, 50.0, 60.0, 120.0, 130.0, 170.0, 180.0], [1.0, 0.0, 1.0, 0.0, 1.0, 0.0, 1.0])), 150.0, 1.0, 200, 3, 0, Xoshiro[Xoshiro(0x4821e2be4a155c78, 0x367abe8c8eaa9881, 0x2eb3df4365c4c194, 0x4636b62248b80d94, 0x946aaf42c6e9390a), Xoshiro(0xbd58b97fdc83b477, 0xbf6b45263c237e19, 0x72fc19177f6b6b66, 0x535bbec3e3c9dc8a, 0x13a14f6b238748d5), Xoshiro(0x5080a9e2ce2c3751, 0xb17b85e8204fd596, 0x42195b4f8402046d, 0x067bf22c3fc1ad79, 0x6c9c519d563cbac0), Xoshiro(0x18bb569f32edc7f0, 0xd5e117239aa536a8, 0x08cfb8020470e5ec, 0xf8c1cdf895bd3ee5, 0x23360656549078da), Xoshiro(0xe850c9002ea651e2, 0x9835a43f2a92a463, 0xccd80ad72518890a, 0xb3a2d31557b066ad, 0x5e3265ceea9aee2e), Xoshiro(0xfb5fb3463de30e36, 0x57a13b81bda8b364, 0xbc5b4f2d5e4817e2, 0xae5a0c9c48f7b448, 0x82ccf53a2241a5b6), Xoshiro(0x1b1699099915e731, 0xe763025304007f20, 0xb7d4e565b0ef5419, 0x0453b6f084cd4440, 0xea9814cca13ef0b9), Xoshiro(0x3a15182493a91f4a, 0x3c7cc2c31d579b8a, 0x5d45a42b54ad8596, 0x8e39ba8a73b4c537, 0x89edbefac11aca34), Xoshiro(0xde287825b4073d38, 0xabfba969f17ff0a1, 0xd87622ab905a77ca, 0x36b8dbc9fa670d6e, 0x168a381663c823a4), Xoshiro(0x501e19e78a8f3a4d, 0x7edac5a796071a24, 0xee2f82440b8c4e43, 0xec8bc4ef2f4a81cd, 0x5ad151eb73579d81)  …  Xoshiro(0x462da395bb5eeceb, 0xc41d08ecad5c216b, 0xb6721982788a297f, 0x9fd28fb9272da33e, 0xa5c9fbe07e6aa8f1), Xoshiro(0x44dd896e0115e4bd, 0xeb5f986144b02881, 0xc2a09f7189de8f90, 0x63ca8f9cfb27e64d, 0xf3e7fce68a694d33), Xoshiro(0xfdf7021fcaab0489, 0x4ec59f2766d9d1ac, 0x254a3dc6d791fc28, 0xd5df9386badbaf18, 0x2da4ff6f2ff9e31c), Xoshiro(0x6513c79f90370b50, 0x9b1b14b26771a9a0, 0xf47ca46cbda97c34, 0x2bd706ada6d340bb, 0xdd6f1f2ecb22b5c3), Xoshiro(0x7e07f8ec124aabf6, 0x60c8321c686871d0, 0x11d08568a8977345, 0x8ab271b78712a0ef, 0x6ee24a43fe5f7390), Xoshiro(0x45b1cbf3cfe9abfa, 0x773d14599de45eb0, 0x520fff796b1046a1, 0x12dc224de1710044, 0xca9b7fa01dee0b04), Xoshiro(0xf70862bb06433b13, 0x14ffe01b71927055, 0x74b7761bfc6a2673, 0xbcf6fb527eee7a78, 0x38751e7e1c4fbcca), Xoshiro(0x32461a40c1403240, 0x54e24dfd9486b9c7, 0x28e6691c956b2f21, 0xa4fe47376c8ab4f8, 0x1e6587ea000715d2), Xoshiro(0xc8a1652bd269eb00, 0xb1992ee293ab9755, 0x770cef5c2fa6040e, 0xd33d5f2db959ea40, 0xdccf5ec3ac8b7ac8), Xoshiro(0x57f6529e11ecea9d, 0xa8c1a403c1f4e2de, 0x58f5325bb25b7268, 0x916ff7730faeee33, 0x96222b8b0ce5335c)], [:S, :I, :incidence], Symbol[], Odin.ZeroEveryEntry[Odin.ZeroEveryEntry(3:3, 1)], [408.0, 592.0, 61.0], [-4.769415524826625e123, -1.7906710012441253e-69, 2.1581820917e-314], [-3.2371690979180983, -6.337321094858169, -4.05177781886664, -2.9419261404279666, -3.8839093737239807, -3.076038214692403, -3.455774146022975, -3.455774146022975, -4.839660480717157, -3.7283692509660398  …  -4.4230956128254775, -3.455774146022975, -5.5440482606765045, -3.018208410337593, -3.2371690979180983, -6.063445554921401, -4.4230956128254775, -7.212851617812987, -3.018208410337593, -3.076038214692403], [1, 2, 3, 4, 5, 6, 7, 8, 9, 9  …  191, 192, 193, 194, 194, 196, 196, 197, 199, 200], [406.0 422.0 … 407.0 420.0; 594.0 578.0 … 593.0 580.0; 61.0 62.0 … 74.0 74.0], nothing, nothing, Union{Nothing, Odin.DP5Workspace{Float64}}[nothing, nothing], nothing, Union{Nothing, SDIRKWorkspace{Float64}}[nothing, nothing], nothing, Union{Nothing, SDEWorkspace{Float64}}[nothing, nothing], [[2.1583788563e-314, 2.293703259e-314, 2.158066097e-314], [-4.769415524826625e123, -1.7906710012441253e-69, 2.1581818703e-314]], [Float64[], Float64[]], Dict{Symbol, Array}[Dict(), Dict()], 2)), MontyPacker([:beta0, :gamma, :schools_modifier], [:beta0, :gamma, :schools_modifier], Symbol[], Dict{Symbol, Tuple}(), Dict{Symbol, UnitRange{Int64}}(:gamma =&gt; 2:2, :beta0 =&gt; 1:1, :schools_modifier =&gt; 3:3), 3, (schools_time = [0.0, 50.0, 60.0, 120.0, 130.0, 170.0, 180.0], schools_open = [1.0, 0.0, 1.0, 0.0, 1.0, 0.0, 1.0], N = 1000.0, I0 = 10.0), nothing)), nothing, nothing, nothing, Odin.MontyModelProperties(false, false, true, false)), MontyModel{var&quot;#28#29&quot;, var&quot;#30#31&quot;{var&quot;#28#29&quot;}, var&quot;#32#33&quot;, Matrix{Float64}}([&quot;beta0&quot;, &quot;gamma&quot;, &quot;schools_modifier&quot;], var&quot;#28#29&quot;(), var&quot;#30#31&quot;{var&quot;#28#29&quot;}(var&quot;#28#29&quot;()), var&quot;#32#33&quot;(), [0.0 Inf; 0.0 Inf; 0.0 1.0], Odin.MontyModelProperties(true, true, false, false))), Odin.var&quot;#monty_model_combine##4#monty_model_combine##5&quot;{Odin.var&quot;#monty_model_combine##0#monty_model_combine##1&quot;{MontyModel{Odin.var&quot;#dust_likelihood_monty##0#dust_likelihood_monty##1&quot;{DustFilter{var&quot;##OdinModel#288&quot;, Float64, @NamedTuple{cases::Float64}}, MontyPacker}, Nothing, Nothing, Nothing}, MontyModel{var&quot;#28#29&quot;, var&quot;#30#31&quot;{var&quot;#28#29&quot;}, var&quot;#32#33&quot;, Matrix{Float64}}}}(Odin.var&quot;#monty_model_combine##0#monty_model_combine##1&quot;{MontyModel{Odin.var&quot;#dust_likelihood_monty##0#dust_likelihood_monty##1&quot;{DustFilter{var&quot;##OdinModel#288&quot;, Float64, @NamedTuple{cases::Float64}}, MontyPacker}, Nothing, Nothing, Nothing}, MontyModel{var&quot;#28#29&quot;, var&quot;#30#31&quot;{var&quot;#28#29&quot;}, var&quot;#32#33&quot;, Matrix{Float64}}}(MontyModel{Odin.var&quot;#dust_likelihood_monty##0#dust_likelihood_monty##1&quot;{DustFilter{var&quot;##OdinModel#288&quot;, Float64, @NamedTuple{cases::Float64}}, MontyPacker}, Nothing, Nothing, Nothing}([&quot;beta0&quot;, &quot;gamma&quot;, &quot;schools_modifier&quot;], Odin.var&quot;#dust_likelihood_monty##0#dust_likelihood_monty##1&quot;{DustFilter{var&quot;##OdinModel#288&quot;, Float64, @NamedTuple{cases::Float64}}, MontyPacker}(DustFilter{var&quot;##OdinModel#288&quot;, Float64, @NamedTuple{cases::Float64}}(Odin.DustSystemGenerator{var&quot;##OdinModel#288&quot;}(var&quot;##OdinModel#288&quot;(3, [:S, :I, :incidence], [:schools_time, :schools_open, :N, :I0, :beta0, :gamma, :schools_modifier], false, false, true, false, true, Dict{Symbol, Array}())), Odin.FilterData{@NamedTuple{cases::Float64}}([1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0, 10.0  …  141.0, 142.0, 143.0, 144.0, 145.0, 146.0, 147.0, 148.0, 149.0, 150.0], [(cases = 2.0,), (cases = 3.0,), (cases = 2.0,), (cases = 2.0,), (cases = 4.0,), (cases = 7.0,), (cases = 2.0,), (cases = 2.0,), (cases = 0.0,), (cases = 3.0,)  …  (cases = 49.0,), (cases = 47.0,), (cases = 53.0,), (cases = 33.0,), (cases = 36.0,), (cases = 37.0,), (cases = 44.0,), (cases = 40.0,), (cases = 70.0,), (cases = 57.0,)]), 0.0, 200, 1.0, 42, false, DustSystem{var&quot;##OdinModel#288&quot;, Float64, @NamedTuple{beta0::Float64, gamma::Float64, schools_modifier::Float64, schools_time::Vector{Float64}, schools_open::Vector{Float64}, N::Float64, I0::Float64, dt::Float64, _interp_schools::Odin.var&quot;#interp#_constant_interpolator##0&quot;{Vector{Float64}, Vector{Float64}}}}(Odin.DustSystemGenerator{var&quot;##OdinModel#288&quot;}(var&quot;##OdinModel#288&quot;(3, [:S, :I, :incidence], [:schools_time, :schools_open, :N, :I0, :beta0, :gamma, :schools_modifier], false, false, true, false, true, Dict{Symbol, Array}())), [399.0 407.0 … 418.0 408.0; 601.0 593.0 … 582.0 592.0; 63.0 79.0 … 60.0 61.0], (beta0 = 0.3, gamma = 0.1, schools_modifier = 0.5, schools_time = [0.0, 50.0, 60.0, 120.0, 130.0, 170.0, 180.0], schools_open = [1.0, 0.0, 1.0, 0.0, 1.0, 0.0, 1.0], N = 1000.0, I0 = 10.0, dt = 1.0, _interp_schools = Odin.var&quot;#interp#_constant_interpolator##0&quot;{Vector{Float64}, Vector{Float64}}([0.0, 50.0, 60.0, 120.0, 130.0, 170.0, 180.0], [1.0, 0.0, 1.0, 0.0, 1.0, 0.0, 1.0])), 150.0, 1.0, 200, 3, 0, Xoshiro[Xoshiro(0x4821e2be4a155c78, 0x367abe8c8eaa9881, 0x2eb3df4365c4c194, 0x4636b62248b80d94, 0x946aaf42c6e9390a), Xoshiro(0xbd58b97fdc83b477, 0xbf6b45263c237e19, 0x72fc19177f6b6b66, 0x535bbec3e3c9dc8a, 0x13a14f6b238748d5), Xoshiro(0x5080a9e2ce2c3751, 0xb17b85e8204fd596, 0x42195b4f8402046d, 0x067bf22c3fc1ad79, 0x6c9c519d563cbac0), Xoshiro(0x18bb569f32edc7f0, 0xd5e117239aa536a8, 0x08cfb8020470e5ec, 0xf8c1cdf895bd3ee5, 0x23360656549078da), Xoshiro(0xe850c9002ea651e2, 0x9835a43f2a92a463, 0xccd80ad72518890a, 0xb3a2d31557b066ad, 0x5e3265ceea9aee2e), Xoshiro(0xfb5fb3463de30e36, 0x57a13b81bda8b364, 0xbc5b4f2d5e4817e2, 0xae5a0c9c48f7b448, 0x82ccf53a2241a5b6), Xoshiro(0x1b1699099915e731, 0xe763025304007f20, 0xb7d4e565b0ef5419, 0x0453b6f084cd4440, 0xea9814cca13ef0b9), Xoshiro(0x3a15182493a91f4a, 0x3c7cc2c31d579b8a, 0x5d45a42b54ad8596, 0x8e39ba8a73b4c537, 0x89edbefac11aca34), Xoshiro(0xde287825b4073d38, 0xabfba969f17ff0a1, 0xd87622ab905a77ca, 0x36b8dbc9fa670d6e, 0x168a381663c823a4), Xoshiro(0x501e19e78a8f3a4d, 0x7edac5a796071a24, 0xee2f82440b8c4e43, 0xec8bc4ef2f4a81cd, 0x5ad151eb73579d81)  …  Xoshiro(0x462da395bb5eeceb, 0xc41d08ecad5c216b, 0xb6721982788a297f, 0x9fd28fb9272da33e, 0xa5c9fbe07e6aa8f1), Xoshiro(0x44dd896e0115e4bd, 0xeb5f986144b02881, 0xc2a09f7189de8f90, 0x63ca8f9cfb27e64d, 0xf3e7fce68a694d33), Xoshiro(0xfdf7021fcaab0489, 0x4ec59f2766d9d1ac, 0x254a3dc6d791fc28, 0xd5df9386badbaf18, 0x2da4ff6f2ff9e31c), Xoshiro(0x6513c79f90370b50, 0x9b1b14b26771a9a0, 0xf47ca46cbda97c34, 0x2bd706ada6d340bb, 0xdd6f1f2ecb22b5c3), Xoshiro(0x7e07f8ec124aabf6, 0x60c8321c686871d0, 0x11d08568a8977345, 0x8ab271b78712a0ef, 0x6ee24a43fe5f7390), Xoshiro(0x45b1cbf3cfe9abfa, 0x773d14599de45eb0, 0x520fff796b1046a1, 0x12dc224de1710044, 0xca9b7fa01dee0b04), Xoshiro(0xf70862bb06433b13, 0x14ffe01b71927055, 0x74b7761bfc6a2673, 0xbcf6fb527eee7a78, 0x38751e7e1c4fbcca), Xoshiro(0x32461a40c1403240, 0x54e24dfd9486b9c7, 0x28e6691c956b2f21, 0xa4fe47376c8ab4f8, 0x1e6587ea000715d2), Xoshiro(0xc8a1652bd269eb00, 0xb1992ee293ab9755, 0x770cef5c2fa6040e, 0xd33d5f2db959ea40, 0xdccf5ec3ac8b7ac8), Xoshiro(0x57f6529e11ecea9d, 0xa8c1a403c1f4e2de, 0x58f5325bb25b7268, 0x916ff7730faeee33, 0x96222b8b0ce5335c)], [:S, :I, :incidence], Symbol[], Odin.ZeroEveryEntry[Odin.ZeroEveryEntry(3:3, 1)], [408.0, 592.0, 61.0], [-4.769415524826625e123, -1.7906710012441253e-69, 2.1581820917e-314], [-3.2371690979180983, -6.337321094858169, -4.05177781886664, -2.9419261404279666, -3.8839093737239807, -3.076038214692403, -3.455774146022975, -3.455774146022975, -4.839660480717157, -3.7283692509660398  …  -4.4230956128254775, -3.455774146022975, -5.5440482606765045, -3.018208410337593, -3.2371690979180983, -6.063445554921401, -4.4230956128254775, -7.212851617812987, -3.018208410337593, -3.076038214692403], [1, 2, 3, 4, 5, 6, 7, 8, 9, 9  …  191, 192, 193, 194, 194, 196, 196, 197, 199, 200], [406.0 422.0 … 407.0 420.0; 594.0 578.0 … 593.0 580.0; 61.0 62.0 … 74.0 74.0], nothing, nothing, Union{Nothing, Odin.DP5Workspace{Float64}}[nothing, nothing], nothing, Union{Nothing, SDIRKWorkspace{Float64}}[nothing, nothing], nothing, Union{Nothing, SDEWorkspace{Float64}}[nothing, nothing], [[2.1583788563e-314, 2.293703259e-314, 2.158066097e-314], [-4.769415524826625e123, -1.7906710012441253e-69, 2.1581818703e-314]], [Float64[], Float64[]], Dict{Symbol, Array}[Dict(), Dict()], 2)), MontyPacker([:beta0, :gamma, :schools_modifier], [:beta0, :gamma, :schools_modifier], Symbol[], Dict{Symbol, Tuple}(), Dict{Symbol, UnitRange{Int64}}(:gamma =&gt; 2:2, :beta0 =&gt; 1:1, :schools_modifier =&gt; 3:3), 3, (schools_time = [0.0, 50.0, 60.0, 120.0, 130.0, 170.0, 180.0], schools_open = [1.0, 0.0, 1.0, 0.0, 1.0, 0.0, 1.0], N = 1000.0, I0 = 10.0), nothing)), nothing, nothing, nothing, Odin.MontyModelProperties(false, false, true, false)), MontyModel{var&quot;#28#29&quot;, var&quot;#30#31&quot;{var&quot;#28#29&quot;}, var&quot;#32#33&quot;, Matrix{Float64}}([&quot;beta0&quot;, &quot;gamma&quot;, &quot;schools_modifier&quot;], var&quot;#28#29&quot;(), var&quot;#30#31&quot;{var&quot;#28#29&quot;}(var&quot;#28#29&quot;()), var&quot;#32#33&quot;(), [0.0 Inf; 0.0 Inf; 0.0 1.0], Odin.MontyModelProperties(true, true, false, false)))), nothing, [0.0 Inf; 0.0 Inf; 0.0 1.0], Odin.MontyModelProperties(true, false, true, false))</code></pre><h3 id="Run-MCMC-2"><a class="docs-heading-anchor" href="#Run-MCMC-2">Run MCMC</a><a class="docs-heading-anchor-permalink" href="#Run-MCMC-2" title="Permalink"></a></h3><pre><code class="language-julia hljs">sis_vcv = diagm([2e-4, 2e-4, 4e-4])
+sis_sampler = random_walk(sis_vcv)
+
+sis_initial = repeat([0.3, 0.1, 0.5], 1, 4)
+sis_samples = sample(sis_posterior, sis_sampler, 500;
+    n_chains=4, initial=sis_initial, n_burnin=100, seed=42)</code></pre><pre><code class="nohighlight hljs">Odin.MontySamples([0.19641456946357483 0.19641456946357483 … 0.19786669562185288 0.19786669562185288; 0.10248346593995364 0.10248346593995364 … 0.10272851631595545 0.10272851631595545; 0.6349611728510065 0.6349611728510065 … 0.6455072229681397 0.6455072229681397;;; 0.2064273047493751 0.2064273047493751 … 0.19225433064565353 0.19225433064565353; 0.12181665455669381 0.12181665455669381 … 0.09202398055774864 0.09202398055774864; 0.6238546840814383 0.6238546840814383 … 0.7245404099221484 0.7245404099221484;;; 0.19366235004410265 0.20112141251956983 … 0.209484523557019 0.209484523557019; 0.09561516750201249 0.09298541825665377 … 0.11908669331155156 0.11908669331155156; 0.6552259687747467 0.6484039574645404 … 0.6866586688178874 0.6866586688178874;;; 0.1975185381734387 0.19817557338540756 … 0.20021683552394193 0.20021683552394193; 0.09247421483876729 0.10232894636624186 … 0.1008456326830429 0.1008456326830429; 0.6663709041392546 0.6319607390472488 … 0.6682155019080844 0.6682155019080844], [-483.3851927537519 -485.8019541749743 -484.67141692217734 -483.8240457451682; -483.3851927537519 -485.8019541749743 -485.10363180638103 -484.3438728203184; … ; -483.13792165584897 -487.6529669726851 -485.9363318876441 -482.46168703187953; -483.13792165584897 -487.6529669726851 -485.9363318876441 -482.46168703187953], [0.3 0.3 0.3 0.3; 0.1 0.1 0.1 0.1; 0.5 0.5 0.5 0.5], [&quot;beta0&quot;, &quot;gamma&quot;, &quot;schools_modifier&quot;], Dict{Symbol, Any}(:acceptance_rate =&gt; [0.174, 0.148, 0.18, 0.194]))</code></pre><h3 id="Posterior-Summary-2"><a class="docs-heading-anchor" href="#Posterior-Summary-2">Posterior Summary</a><a class="docs-heading-anchor-permalink" href="#Posterior-Summary-2" title="Permalink"></a></h3><pre><code class="language-julia hljs">beta0_post = vec(sis_samples.pars[1, :, :])
+gamma_sis_post = vec(sis_samples.pars[2, :, :])
+modifier_post = vec(sis_samples.pars[3, :, :])
+
+println(&quot;β₀: mean = &quot;, round(mean(beta0_post), digits=4),
+        &quot;, 95% CI = [&quot;, round(quantile(beta0_post, 0.025), digits=4),
+        &quot;, &quot;, round(quantile(beta0_post, 0.975), digits=4), &quot;]&quot;)
+println(&quot;γ:  mean = &quot;, round(mean(gamma_sis_post), digits=4),
+        &quot;, 95% CI = [&quot;, round(quantile(gamma_sis_post, 0.025), digits=4),
+        &quot;, &quot;, round(quantile(gamma_sis_post, 0.975), digits=4), &quot;]&quot;)
+println(&quot;modifier: mean = &quot;, round(mean(modifier_post), digits=4),
+        &quot;, 95% CI = [&quot;, round(quantile(modifier_post, 0.025), digits=4),
+        &quot;, &quot;, round(quantile(modifier_post, 0.975), digits=4), &quot;]&quot;)</code></pre><pre><code class="nohighlight hljs">β₀: mean = 0.1992, 95% CI = [0.1879, 0.214]
+γ:  mean = 0.1023, 95% CI = [0.0858, 0.1228]
+modifier: mean = 0.6518, 95% CI = [0.5727, 0.6996]</code></pre><h3 id="Trace-Plots-2"><a class="docs-heading-anchor" href="#Trace-Plots-2">Trace Plots</a><a class="docs-heading-anchor-permalink" href="#Trace-Plots-2" title="Permalink"></a></h3><pre><code class="language-julia hljs">p_t1 = plot(title=&quot;β₀ trace&quot;, xlabel=&quot;Iteration&quot;, ylabel=&quot;β₀&quot;)
+p_t2 = plot(title=&quot;γ trace&quot;, xlabel=&quot;Iteration&quot;, ylabel=&quot;γ&quot;)
+p_t3 = plot(title=&quot;schools_modifier trace&quot;, xlabel=&quot;Iteration&quot;, ylabel=&quot;modifier&quot;)
+for c in 1:4
+    plot!(p_t1, sis_samples.pars[1, :, c], label=&quot;Chain $c&quot;, alpha=0.6)
+    plot!(p_t2, sis_samples.pars[2, :, c], label=&quot;Chain $c&quot;, alpha=0.6)
+    plot!(p_t3, sis_samples.pars[3, :, c], label=&quot;Chain $c&quot;, alpha=0.6)
+end
+plot(p_t1, p_t2, p_t3, layout=(3, 1), size=(700, 600))</code></pre><p><img src="../26_fitting_workflow_files/figure-commonmark/cell-22-output-1.svg" alt/></p><h3 id="Posterior-Predictive"><a class="docs-heading-anchor" href="#Posterior-Predictive">Posterior Predictive</a><a id="Posterior-Predictive-1"></a><a class="docs-heading-anchor-permalink" href="#Posterior-Predictive" title="Permalink"></a></h3><pre><code class="language-julia hljs">n_draws = min(200, length(beta0_post))
+idx = rand(1:length(beta0_post), n_draws)
+
+p_sis_pred = plot(xlabel=&quot;Time&quot;, ylabel=&quot;Incidence&quot;,
+                  title=&quot;SIS Posterior Predictive&quot;, legend=false)
+
+for j in 1:n_draws
+    pars_j = (
+        beta0=beta0_post[idx[j]],
+        gamma=gamma_sis_post[idx[j]],
+        schools_modifier=modifier_post[idx[j]],
+        schools_time=schools_time,
+        schools_open=schools_open,
+        N=1000.0, I0=10.0,
+    )
+    sys = System(sis, pars_j; dt=1.0, n_particles=1, seed=j)
+    reset!(sys)
+    times = collect(0.0:1.0:150.0)
+    r = simulate(sys, times)
+    plot!(p_sis_pred, times, r[3, 1, :], color=:gray, alpha=0.1)
+end
+
+scatter!(p_sis_pred, 1:150, schools_cases, color=:red, ms=2, alpha=0.7)
+p_sis_pred</code></pre><p><img src="../26_fitting_workflow_files/figure-commonmark/cell-23-output-1.svg" alt/></p><h2 id="Part-3:-Counterfactual-Projections"><a class="docs-heading-anchor" href="#Part-3:-Counterfactual-Projections">Part 3: Counterfactual Projections</a><a id="Part-3:-Counterfactual-Projections-1"></a><a class="docs-heading-anchor-permalink" href="#Part-3:-Counterfactual-Projections" title="Permalink"></a></h2><h3 id="Forward-Projection-from-Fitted-Posterior"><a class="docs-heading-anchor" href="#Forward-Projection-from-Fitted-Posterior">Forward Projection from Fitted Posterior</a><a id="Forward-Projection-from-Fitted-Posterior-1"></a><a class="docs-heading-anchor-permalink" href="#Forward-Projection-from-Fitted-Posterior" title="Permalink"></a></h3><p>We simulate forward from day 150 to day 200 using posterior parameter draws, continuing the epidemic with the original school schedule:</p><pre><code class="language-julia hljs">n_proj = min(200, length(beta0_post))
+proj_times = collect(150.0:1.0:200.0)
+
+p_proj = plot(xlabel=&quot;Time&quot;, ylabel=&quot;Incidence&quot;,
+              title=&quot;Forward Projection (Days 150–200)&quot;, legend=:topright)
+
+# First show the fitted trajectories to 150
+for j in 1:min(100, n_proj)
+    pars_j = (
+        beta0=beta0_post[j], gamma=gamma_sis_post[j],
+        schools_modifier=modifier_post[j],
+        schools_time=schools_time, schools_open=schools_open,
+        N=1000.0, I0=10.0,
+    )
+    sys = System(sis, pars_j; dt=1.0, n_particles=1, seed=j)
+    reset!(sys)
+    full_times = collect(0.0:1.0:200.0)
+    r = simulate(sys, full_times)
+    plot!(p_proj, full_times, r[3, 1, :], color=:gray, alpha=0.08, label=nothing)
+end
+
+scatter!(p_proj, 1:150, schools_cases, color=:red, ms=2, alpha=0.7, label=&quot;Observed&quot;)
+vline!(p_proj, [150.0], ls=:dash, color=:black, label=&quot;Projection start&quot;)
+p_proj</code></pre><p><img src="../26_fitting_workflow_files/figure-commonmark/cell-24-output-1.svg" alt/></p><h3 id="Counterfactual:-No-Second-and-Third-School-Closure"><a class="docs-heading-anchor" href="#Counterfactual:-No-Second-and-Third-School-Closure">Counterfactual: No Second and Third School Closure</a><a id="Counterfactual:-No-Second-and-Third-School-Closure-1"></a><a class="docs-heading-anchor-permalink" href="#Counterfactual:-No-Second-and-Third-School-Closure" title="Permalink"></a></h3><p>What if only the first school closure (days 50–60) happened, but the later closures (120–130, 170–180) did not?</p><pre><code class="language-julia hljs"># Original schedule has closures at 50-60, 120-130, 170-180
+# Counterfactual: only first closure
+cf_schools_time = [0.0, 50.0, 60.0]
+cf_schools_open = [1.0,  0.0,  1.0]
+
+n_proj = min(200, length(beta0_post))
+
+p_cf = plot(xlabel=&quot;Time&quot;, ylabel=&quot;Incidence&quot;,
+            title=&quot;Counterfactual: Only First School Closure&quot;,
+            legend=:topright)
+
+for j in 1:n_proj
+    # Baseline (original schedule)
+    pars_base = (
+        beta0=beta0_post[j], gamma=gamma_sis_post[j],
+        schools_modifier=modifier_post[j],
+        schools_time=schools_time, schools_open=schools_open,
+        N=1000.0, I0=10.0,
+    )
+    sys_base = System(sis, pars_base; dt=1.0, n_particles=1, seed=j)
+    reset!(sys_base)
+    full_times = collect(0.0:1.0:200.0)
+    r_base = simulate(sys_base, full_times)
+
+    # Counterfactual (only first closure)
+    pars_cf = (
+        beta0=beta0_post[j], gamma=gamma_sis_post[j],
+        schools_modifier=modifier_post[j],
+        schools_time=cf_schools_time, schools_open=cf_schools_open,
+        N=1000.0, I0=10.0,
+    )
+    sys_cf = System(sis, pars_cf; dt=1.0, n_particles=1, seed=j)
+    reset!(sys_cf)
+    r_cf = simulate(sys_cf, full_times)
+
+    plot!(p_cf, full_times, r_base[3, 1, :], color=:gray, alpha=0.05, label=nothing)
+    plot!(p_cf, full_times, r_cf[3, 1, :], color=:blue, alpha=0.05, label=nothing)
+end
+
+scatter!(p_cf, 1:150, schools_cases, color=:red, ms=2, alpha=0.7, label=&quot;Observed&quot;)
+# Manual legend entries
+plot!(p_cf, [], [], color=:gray, lw=2, label=&quot;Fitted (3 closures)&quot;)
+plot!(p_cf, [], [], color=:blue, lw=2, label=&quot;Counterfactual (1 closure)&quot;)
+p_cf</code></pre><p><img src="../26_fitting_workflow_files/figure-commonmark/cell-25-output-1.svg" alt/></p><h3 id="Counterfactual:-No-School-Closures-at-All"><a class="docs-heading-anchor" href="#Counterfactual:-No-School-Closures-at-All">Counterfactual: No School Closures at All</a><a id="Counterfactual:-No-School-Closures-at-All-1"></a><a class="docs-heading-anchor-permalink" href="#Counterfactual:-No-School-Closures-at-All" title="Permalink"></a></h3><pre><code class="language-julia hljs">no_closure_time = [0.0]
+no_closure_open = [1.0]
+
+p_cf2 = plot(xlabel=&quot;Time&quot;, ylabel=&quot;Incidence&quot;,
+             title=&quot;Counterfactual: No School Closures vs Observed&quot;,
+             legend=:topright)
+
+for j in 1:n_proj
+    pars_base = (
+        beta0=beta0_post[j], gamma=gamma_sis_post[j],
+        schools_modifier=modifier_post[j],
+        schools_time=schools_time, schools_open=schools_open,
+        N=1000.0, I0=10.0,
+    )
+    sys_base = System(sis, pars_base; dt=1.0, n_particles=1, seed=j)
+    reset!(sys_base)
+    full_times = collect(0.0:1.0:200.0)
+    r_base = simulate(sys_base, full_times)
+
+    pars_no = (
+        beta0=beta0_post[j], gamma=gamma_sis_post[j],
+        schools_modifier=modifier_post[j],
+        schools_time=no_closure_time, schools_open=no_closure_open,
+        N=1000.0, I0=10.0,
+    )
+    sys_no = System(sis, pars_no; dt=1.0, n_particles=1, seed=j)
+    reset!(sys_no)
+    r_no = simulate(sys_no, full_times)
+
+    plot!(p_cf2, full_times, r_base[3, 1, :], color=:gray, alpha=0.05, label=nothing)
+    plot!(p_cf2, full_times, r_no[3, 1, :], color=:orange, alpha=0.05, label=nothing)
+end
+
+scatter!(p_cf2, 1:150, schools_cases, color=:red, ms=2, alpha=0.7, label=&quot;Observed&quot;)
+plot!(p_cf2, [], [], color=:gray, lw=2, label=&quot;Fitted (3 closures)&quot;)
+plot!(p_cf2, [], [], color=:orange, lw=2, label=&quot;No closures&quot;)
+p_cf2</code></pre><p><img src="../26_fitting_workflow_files/figure-commonmark/cell-26-output-1.svg" alt/></p><h2 id="Summary"><a class="docs-heading-anchor" href="#Summary">Summary</a><a id="Summary-1"></a><a class="docs-heading-anchor-permalink" href="#Summary" title="Permalink"></a></h2><table><tr><th style="text-align: right">Step</th><th style="text-align: right">API</th><th style="text-align: right">Description</th></tr><tr><td style="text-align: right">Define model</td><td style="text-align: right"><code>@odin</code></td><td style="text-align: right">DSL for ODE/stochastic models</td></tr><tr><td style="text-align: right">Prepare data</td><td style="text-align: right"><code>ObservedData()</code></td><td style="text-align: right">Time-series observations</td></tr><tr><td style="text-align: right">Deterministic likelihood</td><td style="text-align: right"><code>Likelihood()</code></td><td style="text-align: right">ODE-based</td></tr><tr><td style="text-align: right">Stochastic likelihood</td><td style="text-align: right"><code>Likelihood()</code></td><td style="text-align: right">Particle filter</td></tr><tr><td style="text-align: right">Bridge to MCMC</td><td style="text-align: right"><code>as_model()</code></td><td style="text-align: right">Wraps filter/unfilter as MontyModel</td></tr><tr><td style="text-align: right">Define prior</td><td style="text-align: right"><code>@prior</code></td><td style="text-align: right">Composable prior distributions</td></tr><tr><td style="text-align: right">Combine</td><td style="text-align: right"><code>posterior = likelihood + prior</code></td><td style="text-align: right">Adds log-densities</td></tr><tr><td style="text-align: right">Sample</td><td style="text-align: right"><code>sample()</code></td><td style="text-align: right">Random-walk MCMC</td></tr><tr><td style="text-align: right">Counterfactuals</td><td style="text-align: right"><code>System()</code> + <code>simulate()</code></td><td style="text-align: right">Scenario projections</td></tr></table><p>Key takeaways:</p><ul><li><strong>Deterministic fitting</strong> (unfilter) is fast and supports automatic gradients — ideal for ODE models</li><li><strong>Stochastic fitting</strong> (particle filter) handles discrete-time models with demographic stochasticity</li><li><strong>Counterfactual projections</strong> leverage the full posterior uncertainty, naturally propagating parameter uncertainty into scenario comparisons</li></ul></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../25_yf_vtrack/">« Yellow Fever 2-Track Vaccination</a><a class="docs-footer-nextpage" href="../27_spatial_composition/">Spatial Composition »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="auto">Automatic (OS)</option><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option><option value="catppuccin-latte">catppuccin-latte</option><option value="catppuccin-frappe">catppuccin-frappe</option><option value="catppuccin-macchiato">catppuccin-macchiato</option><option value="catppuccin-mocha">catppuccin-mocha</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 1.17.0 on <span class="colophon-date" title="Friday 27 March 2026 16:28">Friday 27 March 2026</span>. Using Julia version 1.12.5.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>

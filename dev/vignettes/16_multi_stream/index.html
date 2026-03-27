@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width, initial-scale=1.0"/><title>Multi-Stream Outbreak · Odin.jl</title><meta name="title" content="Multi-Stream Outbreak · Odin.jl"/><meta property="og:title" content="Multi-Stream Outbreak · Odin.jl"/><meta property="twitter:title" content="Multi-Stream Outbreak · Odin.jl"/><meta name="description" content="Documentation for Odin.jl."/><meta property="og:description" content="Documentation for Odin.jl."/><meta property="twitter:description" content="Documentation for Odin.jl."/><script data-outdated-warner src="../../assets/warner.js"></script><link href="https://cdnjs.cloudflare.com/ajax/libs/lato-font/3.0.0/css/lato-font.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/juliamono/0.050/juliamono.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/fontawesome.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/solid.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/brands.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.8/katex.min.css" rel="stylesheet" type="text/css"/><script>documenterBaseURL="../.."</script><script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.6/require.min.js" data-main="../../assets/documenter.js"></script><script src="../../search_index.js"></script><script src="../../siteinfo.js"></script><script src="../../../versions.js"></script><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/catppuccin-mocha.css" data-theme-name="catppuccin-mocha"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/catppuccin-macchiato.css" data-theme-name="catppuccin-macchiato"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/catppuccin-frappe.css" data-theme-name="catppuccin-frappe"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/catppuccin-latte.css" data-theme-name="catppuccin-latte"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/documenter-dark.css" data-theme-name="documenter-dark" data-theme-primary-dark/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/documenter-light.css" data-theme-name="documenter-light" data-theme-primary/><script src="../../assets/themeswap.js"></script></head><body><div id="documenter"><nav class="docs-sidebar"><div class="docs-package-name"><span class="docs-autofit"><a href="../../">Odin.jl</a></span></div><button class="docs-search-query input is-rounded is-small is-clickable my-2 mx-auto py-1 px-2" id="documenter-search-query">Search docs (Ctrl + /)</button><ul class="docs-menu"><li><a class="tocitem" href="../../">Home</a></li><li><a class="tocitem" href="../../getting_started/">Getting Started</a></li><li><span class="tocitem">Guide</span><ul><li><a class="tocitem" href="../../dsl/">DSL Reference</a></li><li><a class="tocitem" href="../../simulation/">Simulation</a></li><li><a class="tocitem" href="../../filtering/">Filtering &amp; Likelihood</a></li><li><a class="tocitem" href="../../inference/">Inference</a></li><li><a class="tocitem" href="../../solvers/">ODE Solvers</a></li><li><a class="tocitem" href="../../gpu/">GPU Acceleration</a></li><li><a class="tocitem" href="../../categorical/">Categorical Models</a></li></ul></li><li><span class="tocitem">Vignettes</span><ul><li><input class="collapse-toggle" id="menuitem-4-1" type="checkbox"/><label class="tocitem" for="menuitem-4-1"><span class="docs-label">Basics</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../01_basic_ode/">Basic ODE Model: SIR</a></li><li><a class="tocitem" href="../02_stochastic/">Stochastic Discrete-Time SIR</a></li><li><a class="tocitem" href="../03_observations/">Incidence Tracking with zero_every</a></li><li><a class="tocitem" href="../04_arrays/">Age-Structured SIR with Arrays</a></li><li><a class="tocitem" href="../05_particle_filter/">Particle Filter and Likelihood</a></li><li><a class="tocitem" href="../06_inference/">Bayesian Inference with MCMC</a></li></ul></li><li><input class="collapse-toggle" id="menuitem-4-2" type="checkbox"/><label class="tocitem" for="menuitem-4-2"><span class="docs-label">Intermediate</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../07_categorical/">Compositional Model Building</a></li><li><a class="tocitem" href="../08_time_varying/">Time-Varying Parameters</a></li><li><a class="tocitem" href="../09_advanced/">SEIR with Vaccination and Waning</a></li><li><a class="tocitem" href="../10_projections/">Counterfactual Projections</a></li><li><a class="tocitem" href="../11_delay_model/">Delay Compartments</a></li><li><a class="tocitem" href="../12_reactive_policy/">Reactive Vaccination Policy</a></li><li><a class="tocitem" href="../13_dynamicppl/">DynamicPPL Integration</a></li><li><a class="tocitem" href="../14_delay_vaccination/">SEIR with Delay and Vaccination</a></li><li><a class="tocitem" href="../15_vector_borne/">Vector-Borne Disease Dynamics</a></li></ul></li><li><input class="collapse-toggle" id="menuitem-4-3" type="checkbox" checked/><label class="tocitem" for="menuitem-4-3"><span class="docs-label">Advanced Models</span><i class="docs-chevron"></i></label><ul class="collapsed"><li class="is-active"><a class="tocitem" href>Multi-Stream Outbreak</a><ul class="internal"><li><a class="tocitem" href="#Introduction"><span>Introduction</span></a></li><li><a class="tocitem" href="#Model-Definition"><span>Model Definition</span></a></li><li><a class="tocitem" href="#Synthetic-Data"><span>Synthetic Data</span></a></li><li><a class="tocitem" href="#Priors"><span>Priors</span></a></li><li><a class="tocitem" href="#Single-Stream-Inference-(Cases-Only)"><span>Single-Stream Inference (Cases Only)</span></a></li><li><a class="tocitem" href="#Multi-Stream-Inference-(Cases-Deaths)"><span>Multi-Stream Inference (Cases + Deaths)</span></a></li><li><a class="tocitem" href="#Posterior-Comparison"><span>Posterior Comparison</span></a></li><li><a class="tocitem" href="#Forecasting-from-the-Posterior"><span>Forecasting from the Posterior</span></a></li><li><a class="tocitem" href="#Summary"><span>Summary</span></a></li></ul></li><li><a class="tocitem" href="../17_mpox_seir/">Mpox SEIR: Age-Structured</a></li><li><a class="tocitem" href="../18_malaria_simple/">Malaria: Ross-Macdonald</a></li><li><a class="tocitem" href="../19_sarscov2_multiregion/">SARS-CoV-2 Multi-Region</a></li><li><a class="tocitem" href="../20_yellowfever/">Yellow Fever SEIRV</a></li><li><a class="tocitem" href="../21_school_closure/">SIS with School Closure</a></li><li><a class="tocitem" href="../22_beta_blocks/">Beta Blocks</a></li><li><a class="tocitem" href="../23_orov/">OROV Vector-Borne</a></li><li><a class="tocitem" href="../24_yf_delay/">Yellow Fever with Erlang Delay</a></li><li><a class="tocitem" href="../25_yf_vtrack/">Yellow Fever 2-Track Vaccination</a></li><li><a class="tocitem" href="../26_fitting_workflow/">Complete Fitting Workflow</a></li><li><a class="tocitem" href="../27_spatial_composition/">Spatial Composition</a></li><li><a class="tocitem" href="../28_stratification/">Age Stratification</a></li><li><a class="tocitem" href="../29_multi_pathogen/">Multi-Pathogen Composition</a></li></ul></li><li><input class="collapse-toggle" id="menuitem-4-4" type="checkbox"/><label class="tocitem" for="menuitem-4-4"><span class="docs-label">Techniques</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../30_stiff_ode/">Stiff ODEs: SDIRK4 Solver</a></li><li><a class="tocitem" href="../31_gpu_filter/">GPU-Accelerated Filtering</a></li><li><a class="tocitem" href="../32_advanced_samplers/">Advanced MCMC Samplers</a></li><li><a class="tocitem" href="../33_sensitivity/">Sensitivity Analysis</a></li><li><a class="tocitem" href="../34_events/">Event Handling</a></li><li><a class="tocitem" href="../35_sde/">Stochastic Differential Equations</a></li><li><a class="tocitem" href="../36_model_selection/">Model Selection</a></li><li><a class="tocitem" href="../37_model_validation/">Model Validation</a></li></ul></li></ul></li><li><a class="tocitem" href="../../api/">API Reference</a></li></ul><div class="docs-version-selector field has-addons"><div class="control"><span class="docs-label button is-static is-size-7">Version</span></div><div class="docs-selector control is-expanded"><div class="select is-fullwidth is-size-7"><select id="documenter-version-selector"></select></div></div></div></nav><div class="docs-main"><header class="docs-navbar"><a class="docs-sidebar-button docs-navbar-link fa-solid fa-bars is-hidden-desktop" id="documenter-sidebar-button" href="#"></a><nav class="breadcrumb"><ul class="is-hidden-mobile"><li><a class="is-disabled">Vignettes</a></li><li><a class="is-disabled">Advanced Models</a></li><li class="is-active"><a href>Multi-Stream Outbreak</a></li></ul><ul class="is-hidden-tablet"><li class="is-active"><a href>Multi-Stream Outbreak</a></li></ul></nav><div class="docs-right"><a class="docs-navbar-link" href="https://github.com/epirecipes/Odin.jl" title="View the repository on GitHub"><span class="docs-icon fa-brands"></span><span class="docs-label is-hidden-touch">GitHub</span></a><a class="docs-settings-button docs-navbar-link fa-solid fa-gear" id="documenter-settings-button" href="#" title="Settings"></a><a class="docs-article-toggle-button fa-solid fa-chevron-up" id="documenter-article-toggle-button" href="javascript:;" title="Collapse all docstrings"></a></div></header><article class="content" id="documenter-page"><h1 id="Multi-Stream-Outbreak-Inference"><a class="docs-heading-anchor" href="#Multi-Stream-Outbreak-Inference">Multi-Stream Outbreak Inference</a><a id="Multi-Stream-Outbreak-Inference-1"></a><a class="docs-heading-anchor-permalink" href="#Multi-Stream-Outbreak-Inference" title="Permalink"></a></h1><h2 id="Introduction"><a class="docs-heading-anchor" href="#Introduction">Introduction</a><a id="Introduction-1"></a><a class="docs-heading-anchor-permalink" href="#Introduction" title="Permalink"></a></h2><p>Real-world outbreak surveillance rarely delivers a single, clean data stream. Instead, public health agencies collect <strong>multiple overlapping signals</strong> — case notifications, death reports, serological surveys, wastewater concentrations — each with its own noise, bias and delay. Fitting to a single stream can leave key parameters poorly identified: for instance, the reporting rate ρ and the transmission rate β may be confounded because only the product ρ × β is constrained by case data.</p><p>This vignette demonstrates how to:</p><ol><li>Build a deterministic <strong>SEIRD</strong> ODE model with <strong>two comparison  operators</strong></li><li>Generate synthetic case and death data</li><li>Fit the model using only case data (<em>single-stream</em>)</li><li>Fit the model using cases <strong>and</strong> deaths (<em>multi-stream</em>)</li><li>Compare posteriors to show how additional data streams tighten  inference</li></ol><p>The approach is inspired by the <a href="https://github.com/mrc-ide/mpoxseir">mpoxseir</a> package, which fits mpox transmission models to multiple surveillance data streams simultaneously.</p><pre><code class="language-julia hljs">using Odin
+using Distributions
+using Plots
+using Statistics
+using LinearAlgebra: diagm
+using Random</code></pre><h2 id="Model-Definition"><a class="docs-heading-anchor" href="#Model-Definition">Model Definition</a><a id="Model-Definition-1"></a><a class="docs-heading-anchor-permalink" href="#Model-Definition" title="Permalink"></a></h2><h3 id="SEIRD-dynamics"><a class="docs-heading-anchor" href="#SEIRD-dynamics">SEIRD dynamics</a><a id="SEIRD-dynamics-1"></a><a class="docs-heading-anchor-permalink" href="#SEIRD-dynamics" title="Permalink"></a></h3><p>We define a deterministic SEIRD model:</p><ul><li><strong>S → E</strong>: susceptible individuals become exposed at rate β S I / N</li><li><strong>E → I</strong>: exposed progress to infectious at rate σ (mean latent period 1/σ)</li><li><strong>I → R</strong>: infectious individuals recover at rate γ</li><li><strong>I → D</strong>: infectious individuals die at rate μ</li></ul><p>Only a fraction ρ of new infections are <strong>reported as cases</strong>, and a (typically higher) fraction ρ_d of deaths are <strong>reported</strong>.</p><p>At each data time point the unfilter evaluates the ODE state and compares the instantaneous flow rates to observed counts via Poisson log-likelihoods. Each <code>~</code> statement contributes additively to the total log-likelihood:</p><p class="math-container">\[\ell = \sum_t \bigl[\log p(\text{cases}_t \mid \lambda_c(t)) + \log p(\text{deaths}_t \mid \lambda_d(t))\bigr]\]</p><blockquote><p><strong>Note:</strong> Comparing the instantaneous rate against a daily count is a standard approximation that works well when the dynamics are smooth relative to the observation interval.</p></blockquote><h3 id="Multi-stream-model-(cases-deaths)"><a class="docs-heading-anchor" href="#Multi-stream-model-(cases-deaths)">Multi-stream model (cases + deaths)</a><a id="Multi-stream-model-(cases-deaths)-1"></a><a class="docs-heading-anchor-permalink" href="#Multi-stream-model-(cases-deaths)" title="Permalink"></a></h3><pre><code class="language-julia hljs">seird_multi = @odin begin
+    deriv(S) = -beta * S * I / N
+    deriv(E) = beta * S * I / N - sigma * E
+    deriv(I) = sigma * E - gamma * I - mu * I
+    deriv(R) = gamma * I
+    deriv(D) = mu * I
+
+    initial(S) = N - E0
+    initial(E) = E0
+    initial(I) = 0
+    initial(R) = 0
+    initial(D) = 0
+
+    # Parameters
+    N = parameter(100000.0)
+    E0 = parameter(10.0)
+    beta = parameter(0.3)
+    sigma = parameter(0.2)      # 5-day mean latent period
+    gamma = parameter(0.1)      # 10-day mean infectious period
+    mu = parameter(0.005)       # death rate from I
+    rho = parameter(0.3)        # case reporting rate
+    rho_d = parameter(0.9)      # death reporting rate
+
+    # Two data streams
+    reported_cases = data()
+    reported_deaths = data()
+    reported_cases ~ Poisson(rho * sigma * E + 1e-6)
+    reported_deaths ~ Poisson(rho_d * mu * I + 1e-6)
+end</code></pre><pre><code class="nohighlight hljs">Odin.DustSystemGenerator{var&quot;##OdinModel#277&quot;}(var&quot;##OdinModel#277&quot;(5, [:S, :E, :I, :R, :D], [:N, :E0, :beta, :sigma, :gamma, :mu, :rho, :rho_d], true, false, true, false, false, Dict{Symbol, Array}()))</code></pre><h3 id="Single-stream-model-(cases-only)"><a class="docs-heading-anchor" href="#Single-stream-model-(cases-only)">Single-stream model (cases only)</a><a id="Single-stream-model-(cases-only)-1"></a><a class="docs-heading-anchor-permalink" href="#Single-stream-model-(cases-only)" title="Permalink"></a></h3><p>For comparison we define a model with <strong>identical dynamics</strong> but only one comparison statement. Because the death likelihood is absent, the data cannot directly constrain μ.</p><pre><code class="language-julia hljs">seird_cases = @odin begin
+    deriv(S) = -beta * S * I / N
+    deriv(E) = beta * S * I / N - sigma * E
+    deriv(I) = sigma * E - gamma * I - mu * I
+    deriv(R) = gamma * I
+    deriv(D) = mu * I
+
+    initial(S) = N - E0
+    initial(E) = E0
+    initial(I) = 0
+    initial(R) = 0
+    initial(D) = 0
+
+    N = parameter(100000.0)
+    E0 = parameter(10.0)
+    beta = parameter(0.3)
+    sigma = parameter(0.2)
+    gamma = parameter(0.1)
+    mu = parameter(0.005)
+    rho = parameter(0.3)
+
+    # Single data stream
+    reported_cases = data()
+    reported_cases ~ Poisson(rho * sigma * E + 1e-6)
+end</code></pre><pre><code class="nohighlight hljs">Odin.DustSystemGenerator{var&quot;##OdinModel#278&quot;}(var&quot;##OdinModel#278&quot;(5, [:S, :E, :I, :R, :D], [:N, :E0, :beta, :sigma, :gamma, :mu, :rho], true, false, true, false, false, Dict{Symbol, Array}()))</code></pre><h2 id="Synthetic-Data"><a class="docs-heading-anchor" href="#Synthetic-Data">Synthetic Data</a><a id="Synthetic-Data-1"></a><a class="docs-heading-anchor-permalink" href="#Synthetic-Data" title="Permalink"></a></h2><h3 id="True-parameters"><a class="docs-heading-anchor" href="#True-parameters">True parameters</a><a id="True-parameters-1"></a><a class="docs-heading-anchor-permalink" href="#True-parameters" title="Permalink"></a></h3><pre><code class="language-julia hljs">true_pars = (
+    N = 100000.0,
+    E0 = 10.0,
+    beta = 0.3,
+    sigma = 0.2,
+    gamma = 0.1,
+    mu = 0.005,
+    rho = 0.3,
+    rho_d = 0.9,
+)
+
+R0 = true_pars.beta / (true_pars.gamma + true_pars.mu)
+cfr = true_pars.mu / (true_pars.gamma + true_pars.mu)
+println(&quot;R₀ = &quot;, round(R0, digits=2))
+println(&quot;Case fatality ratio = &quot;, round(100 * cfr, digits=1), &quot;%&quot;)</code></pre><pre><code class="nohighlight hljs">R₀ = 2.86
+Case fatality ratio = 4.8%</code></pre><h3 id="Simulate-the-ODE"><a class="docs-heading-anchor" href="#Simulate-the-ODE">Simulate the ODE</a><a id="Simulate-the-ODE-1"></a><a class="docs-heading-anchor-permalink" href="#Simulate-the-ODE" title="Permalink"></a></h3><pre><code class="language-julia hljs">times = collect(0.0:1.0:120.0)
+result = simulate(seird_multi, true_pars; times=times, seed=1)
+
+true_S = result[1, 1, :]
+true_E = result[2, 1, :]
+true_I = result[3, 1, :]
+true_D = result[5, 1, :]</code></pre><pre><code class="nohighlight hljs">121-element Vector{Float64}:
+    0.0
+    0.004542595262782869
+    0.016691138820042205
+    0.034855779617763094
+    0.05806752934775733
+    0.08578220776018268
+    0.1177505089357978
+    0.15393205445914826
+    0.19443908144641295
+    0.2395000956528348
+    ⋮
+ 2778.6325452287674
+ 2859.000152466352
+ 2937.160665951919
+ 3012.99040866865
+ 3086.3874510692945
+ 3157.272225056838
+ 3225.585893951305
+ 3291.2886434059833
+ 3354.359368734131</code></pre><pre><code class="language-julia hljs">p_dyn = plot(times, true_I, label=&quot;Infectious (I)&quot;, lw=2,
+             xlabel=&quot;Day&quot;, ylabel=&quot;Individuals&quot;,
+             title=&quot;True SEIRD Dynamics&quot;, legend=:topright)
+plot!(p_dyn, times, true_E, label=&quot;Exposed (E)&quot;, lw=2)
+plot!(p_dyn, times, true_D, label=&quot;Cumulative Deaths (D)&quot;, lw=2, ls=:dash)
+p_dyn</code></pre><p><img src="../16_multi_stream_files/figure-commonmark/cell-7-output-1.svg" alt/></p><h3 id="Generate-observations"><a class="docs-heading-anchor" href="#Generate-observations">Generate observations</a><a id="Generate-observations-1"></a><a class="docs-heading-anchor-permalink" href="#Generate-observations" title="Permalink"></a></h3><p>At each day we draw reported cases and deaths from the instantaneous flow rates, matching the comparison model.</p><pre><code class="language-julia hljs">Random.seed!(42)
+obs_times = times[2:end]
+E_obs = true_E[2:end]
+I_obs = true_I[2:end]
+
+expected_cases  = true_pars.rho   .* true_pars.sigma .* E_obs
+expected_deaths = true_pars.rho_d .* true_pars.mu    .* I_obs
+
+obs_cases  = [rand(Poisson(max(λ, 1e-10))) for λ in expected_cases]
+obs_deaths = [rand(Poisson(max(λ, 1e-10))) for λ in expected_deaths]</code></pre><pre><code class="nohighlight hljs">120-element Vector{Int64}:
+  0
+  0
+  0
+  0
+  0
+  0
+  0
+  0
+  0
+  0
+  ⋮
+ 62
+ 58
+ 85
+ 69
+ 63
+ 66
+ 62
+ 57
+ 53</code></pre><pre><code class="language-julia hljs">p_data = plot(xlabel=&quot;Day&quot;, ylabel=&quot;Count&quot;,
+              title=&quot;Observed Data (Two Streams)&quot;,
+              size=(800, 350), legend=:topright)
+scatter!(p_data, obs_times, obs_cases,  ms=3, alpha=0.7, label=&quot;Reported cases&quot;)
+scatter!(p_data, obs_times, obs_deaths, ms=3, alpha=0.7, label=&quot;Reported deaths&quot;)
+p_data</code></pre><p><img src="../16_multi_stream_files/figure-commonmark/cell-9-output-1.svg" alt/></p><h3 id="Prepare-data-objects"><a class="docs-heading-anchor" href="#Prepare-data-objects">Prepare data objects</a><a id="Prepare-data-objects-1"></a><a class="docs-heading-anchor-permalink" href="#Prepare-data-objects" title="Permalink"></a></h3><p>The multi-stream data includes both columns; the single-stream data only cases.</p><pre><code class="language-julia hljs">data_multi = ObservedData([
+    (time=Float64(t), reported_cases=Float64(c), reported_deaths=Float64(d))
+    for (t, c, d) in zip(obs_times, obs_cases, obs_deaths)
+])
+
+data_cases = ObservedData([
+    (time=Float64(t), reported_cases=Float64(c))
+    for (t, c) in zip(obs_times, obs_cases)
+])</code></pre><pre><code class="nohighlight hljs">Odin.FilterData{@NamedTuple{reported_cases::Float64}}([1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0, 10.0  …  111.0, 112.0, 113.0, 114.0, 115.0, 116.0, 117.0, 118.0, 119.0, 120.0], [(reported_cases = 0.0,), (reported_cases = 0.0,), (reported_cases = 0.0,), (reported_cases = 0.0,), (reported_cases = 0.0,), (reported_cases = 1.0,), (reported_cases = 0.0,), (reported_cases = 0.0,), (reported_cases = 0.0,), (reported_cases = 0.0,)  …  (reported_cases = 410.0,), (reported_cases = 358.0,), (reported_cases = 380.0,), (reported_cases = 393.0,), (reported_cases = 318.0,), (reported_cases = 346.0,), (reported_cases = 284.0,), (reported_cases = 259.0,), (reported_cases = 236.0,), (reported_cases = 243.0,)])</code></pre><h2 id="Priors"><a class="docs-heading-anchor" href="#Priors">Priors</a><a id="Priors-1"></a><a class="docs-heading-anchor-permalink" href="#Priors" title="Permalink"></a></h2><p>We fit three parameters — β (transmission rate), ρ (case reporting fraction), and μ (death rate) — keeping all others fixed at their true values.</p><pre><code class="language-julia hljs">prior = @prior begin
+    beta ~ Gamma(3.0, 0.1)      # mean 0.3, moderate uncertainty
+    rho  ~ Beta(3.0, 7.0)       # mean 0.3
+    mu   ~ Gamma(2.0, 0.0025)   # mean 0.005
+end</code></pre><pre><code class="nohighlight hljs">MontyModel{var&quot;#16#17&quot;, var&quot;#18#19&quot;{var&quot;#16#17&quot;}, var&quot;#20#21&quot;, Matrix{Float64}}([&quot;beta&quot;, &quot;rho&quot;, &quot;mu&quot;], var&quot;#16#17&quot;(), var&quot;#18#19&quot;{var&quot;#16#17&quot;}(var&quot;#16#17&quot;()), var&quot;#20#21&quot;(), [0.0 Inf; 0.0 1.0; 0.0 Inf], Odin.MontyModelProperties(true, true, false, false))</code></pre><p>We need separate packers because the two models have different parameter sets:</p><pre><code class="language-julia hljs">packer_cases = Packer([:beta, :rho, :mu];
+    fixed=(N=100000.0, E0=10.0, sigma=0.2, gamma=0.1))
+
+packer_multi = Packer([:beta, :rho, :mu];
+    fixed=(N=100000.0, E0=10.0, sigma=0.2, gamma=0.1, rho_d=0.9))</code></pre><pre><code class="nohighlight hljs">MontyPacker([:beta, :rho, :mu], [:beta, :rho, :mu], Symbol[], Dict{Symbol, Tuple}(), Dict{Symbol, UnitRange{Int64}}(:beta =&gt; 1:1, :mu =&gt; 3:3, :rho =&gt; 2:2), 3, (N = 100000.0, E0 = 10.0, sigma = 0.2, gamma = 0.1, rho_d = 0.9), nothing)</code></pre><h2 id="Single-Stream-Inference-(Cases-Only)"><a class="docs-heading-anchor" href="#Single-Stream-Inference-(Cases-Only)">Single-Stream Inference (Cases Only)</a><a id="Single-Stream-Inference-(Cases-Only)-1"></a><a class="docs-heading-anchor-permalink" href="#Single-Stream-Inference-(Cases-Only)" title="Permalink"></a></h2><pre><code class="language-julia hljs">uf_cases = Likelihood(seird_cases, data_cases; time_start=0.0)
+ll_cases = as_model(uf_cases, packer_cases)
+posterior_cases = ll_cases + prior
+
+ll_at_truth = ll_cases([true_pars.beta, true_pars.rho, true_pars.mu])
+println(&quot;Log-likelihood at true parameters (cases only): &quot;,
+        round(ll_at_truth, digits=2))</code></pre><pre><code class="nohighlight hljs">Log-likelihood at true parameters (cases only): -393.42</code></pre><pre><code class="language-julia hljs">vcv = diagm([0.001, 0.005, 0.000001])
+sampler = adaptive_mh(vcv)
+
+initial = reshape([0.3, 0.3, 0.005], 3, 1)
+samples_cases = sample(posterior_cases, sampler, 5000;
+    initial=initial, n_chains=1, n_burnin=1000, seed=42)</code></pre><pre><code class="nohighlight hljs">Odin.MontySamples([0.2996790312291133 0.2996790312291133 … 0.2984058226521222 0.2984058226521222; 0.296558786489021 0.296558786489021 … 0.29641483560069126 0.29641483560069126; 0.004980133788119273 0.004980133788119273 … 0.00452248357855978 0.00452248357855978;;;], [-386.0755954022559; -386.0755954022559; … ; -386.35980122993385; -386.35980122993385;;], [0.3; 0.3; 0.005;;], [&quot;beta&quot;, &quot;rho&quot;, &quot;mu&quot;], Dict{Symbol, Any}(:acceptance_rate =&gt; [0.2474]))</code></pre><h2 id="Multi-Stream-Inference-(Cases-Deaths)"><a class="docs-heading-anchor" href="#Multi-Stream-Inference-(Cases-Deaths)">Multi-Stream Inference (Cases + Deaths)</a><a id="Multi-Stream-Inference-(Cases-Deaths)-1"></a><a class="docs-heading-anchor-permalink" href="#Multi-Stream-Inference-(Cases-Deaths)" title="Permalink"></a></h2><pre><code class="language-julia hljs">uf_multi = Likelihood(seird_multi, data_multi; time_start=0.0)
+ll_multi = as_model(uf_multi, packer_multi)
+posterior_multi = ll_multi + prior
+
+ll_at_truth_multi = ll_multi([true_pars.beta, true_pars.rho, true_pars.mu])
+println(&quot;Log-likelihood at true parameters (multi-stream): &quot;,
+        round(ll_at_truth_multi, digits=2))</code></pre><pre><code class="nohighlight hljs">Log-likelihood at true parameters (multi-stream): -646.99</code></pre><pre><code class="language-julia hljs">samples_multi = sample(posterior_multi, sampler, 5000;
+    initial=initial, n_chains=1, n_burnin=1000, seed=42)</code></pre><pre><code class="nohighlight hljs">Odin.MontySamples([0.29952928297174564 0.29952928297174564 … 0.29915539463959523 0.29915539463959523; 0.2975201003613681 0.2975201003613681 … 0.2967292685227886 0.2967292685227886; 0.00494212283526462 0.00494212283526462 … 0.0047483083270744054 0.0047483083270744054;;;], [-639.7277928699692; -639.7277928699692; … ; -644.4509770061409; -644.4509770061409;;], [0.3; 0.3; 0.005;;], [&quot;beta&quot;, &quot;rho&quot;, &quot;mu&quot;], Dict{Symbol, Any}(:acceptance_rate =&gt; [0.244]))</code></pre><h2 id="Posterior-Comparison"><a class="docs-heading-anchor" href="#Posterior-Comparison">Posterior Comparison</a><a id="Posterior-Comparison-1"></a><a class="docs-heading-anchor-permalink" href="#Posterior-Comparison" title="Permalink"></a></h2><pre><code class="language-julia hljs">beta_c = samples_cases.pars[1, :, 1]
+rho_c  = samples_cases.pars[2, :, 1]
+mu_c   = samples_cases.pars[3, :, 1]
+
+beta_m = samples_multi.pars[1, :, 1]
+rho_m  = samples_multi.pars[2, :, 1]
+mu_m   = samples_multi.pars[3, :, 1]</code></pre><pre><code class="nohighlight hljs">4000-element Vector{Float64}:
+ 0.00494212283526462
+ 0.00494212283526462
+ 0.004943446908437733
+ 0.004943446908437733
+ 0.004943446908437733
+ 0.004943446908437733
+ 0.004943446908437733
+ 0.004943446908437733
+ 0.004939753136447237
+ 0.004939753136447237
+ ⋮
+ 0.004748995482436466
+ 0.004748995482436466
+ 0.004748995482436466
+ 0.004748995482436466
+ 0.004748995482436466
+ 0.004748995482436466
+ 0.0047483083270744054
+ 0.0047483083270744054
+ 0.0047483083270744054</code></pre><pre><code class="language-julia hljs">function summarise(name, vals, truth)
+    m  = round(mean(vals), sigdigits=3)
+    lo = round(quantile(vals, 0.025), sigdigits=3)
+    hi = round(quantile(vals, 0.975), sigdigits=3)
+    w  = round(hi - lo, sigdigits=3)
+    println(&quot;  $name: $m [$lo, $hi]  (width=$w, true=$truth)&quot;)
+end
+
+println(&quot;Single-stream (cases only):&quot;)
+summarise(&quot;β&quot;, beta_c, 0.3)
+summarise(&quot;ρ&quot;, rho_c, 0.3)
+summarise(&quot;μ&quot;, mu_c, 0.005)
+
+println(&quot;\nMulti-stream (cases + deaths):&quot;)
+summarise(&quot;β&quot;, beta_m, 0.3)
+summarise(&quot;ρ&quot;, rho_m, 0.3)
+summarise(&quot;μ&quot;, mu_m, 0.005)</code></pre><pre><code class="nohighlight hljs">Single-stream (cases only):
+  β: 0.3 [0.299, 0.302]  (width=0.003, true=0.3)
+  ρ: 0.299 [0.295, 0.303]  (width=0.008, true=0.3)
+  μ: 0.00552 [0.00469, 0.00673]  (width=0.00204, true=0.005)
+
+Multi-stream (cases + deaths):
+  β: 0.299 [0.299, 0.3]  (width=0.001, true=0.3)
+  ρ: 0.299 [0.295, 0.302]  (width=0.007, true=0.3)
+  μ: 0.00505 [0.00481, 0.00527]  (width=0.00046, true=0.005)</code></pre><h3 id="Marginal-posterior-densities"><a class="docs-heading-anchor" href="#Marginal-posterior-densities">Marginal posterior densities</a><a id="Marginal-posterior-densities-1"></a><a class="docs-heading-anchor-permalink" href="#Marginal-posterior-densities" title="Permalink"></a></h3><pre><code class="language-julia hljs">p1 = histogram(beta_c, bins=40, alpha=0.5, normalize=true, label=&quot;Cases only&quot;,
+               xlabel=&quot;β&quot;, ylabel=&quot;Density&quot;, title=&quot;Posterior: β (transmission)&quot;)
+histogram!(p1, beta_m, bins=40, alpha=0.5, normalize=true, label=&quot;Cases + deaths&quot;)
+vline!(p1, [0.3], color=:red, lw=2, label=&quot;True&quot;)
+
+p2 = histogram(rho_c, bins=40, alpha=0.5, normalize=true, label=&quot;Cases only&quot;,
+               xlabel=&quot;ρ&quot;, ylabel=&quot;Density&quot;, title=&quot;Posterior: ρ (reporting)&quot;)
+histogram!(p2, rho_m, bins=40, alpha=0.5, normalize=true, label=&quot;Cases + deaths&quot;)
+vline!(p2, [0.3], color=:red, lw=2, label=&quot;True&quot;)
+
+p3 = histogram(mu_c, bins=40, alpha=0.5, normalize=true, label=&quot;Cases only&quot;,
+               xlabel=&quot;μ&quot;, ylabel=&quot;Density&quot;, title=&quot;Posterior: μ (death rate)&quot;)
+histogram!(p3, mu_m, bins=40, alpha=0.5, normalize=true, label=&quot;Cases + deaths&quot;)
+vline!(p3, [0.005], color=:red, lw=2, label=&quot;True&quot;)
+
+plot(p1, p2, p3, layout=(1, 3), size=(1100, 350))</code></pre><p><img src="../16_multi_stream_files/figure-commonmark/cell-19-output-1.svg" alt/></p><p>The death data is particularly informative for μ and ρ:</p><ul><li><strong>μ (death rate)</strong>: With cases only, μ is weakly identified because deaths are not directly observed. Adding the death stream pins μ down.</li><li><strong>ρ (reporting rate)</strong>: Case counts constrain the product ρ × β but not ρ individually. Deaths provide an independent signal about the absolute infection level, breaking this confounding.</li><li><strong>β (transmission rate)</strong>: Also tightens because ρ and β are less correlated once both streams contribute.</li></ul><h3 id="Joint-β–ρ-posterior"><a class="docs-heading-anchor" href="#Joint-β–ρ-posterior">Joint β–ρ posterior</a><a id="Joint-β–ρ-posterior-1"></a><a class="docs-heading-anchor-permalink" href="#Joint-β–ρ-posterior" title="Permalink"></a></h3><pre><code class="language-julia hljs">p_joint = scatter(beta_c, rho_c, alpha=0.15, ms=2, label=&quot;Cases only&quot;,
+                  xlabel=&quot;β&quot;, ylabel=&quot;ρ&quot;,
+                  title=&quot;Joint Posterior: β vs ρ&quot;,
+                  size=(600, 500))
+scatter!(p_joint, beta_m, rho_m, alpha=0.15, ms=2, label=&quot;Cases + deaths&quot;)
+scatter!(p_joint, [0.3], [0.3], ms=8, color=:red, marker=:star5, label=&quot;True&quot;)
+p_joint</code></pre><p><img src="../16_multi_stream_files/figure-commonmark/cell-20-output-1.svg" alt/></p><p>The single-stream posterior shows a strong <strong>negative correlation</strong> between β and ρ — higher transmission with lower reporting can produce the same case count. The multi-stream posterior is tighter and better centred because the death data breaks this degeneracy.</p><h2 id="Forecasting-from-the-Posterior"><a class="docs-heading-anchor" href="#Forecasting-from-the-Posterior">Forecasting from the Posterior</a><a id="Forecasting-from-the-Posterior-1"></a><a class="docs-heading-anchor-permalink" href="#Forecasting-from-the-Posterior" title="Permalink"></a></h2><p>We project the epidemic forward using posterior draws from each fit, propagating parameter uncertainty into forecasts.</p><pre><code class="language-julia hljs">proj_times = collect(0.0:1.0:180.0)
+n_proj = 200
+n_t = length(proj_times)
+
+function project(samples, n_proj, seed)
+    Random.seed!(seed)
+    n_total = size(samples.pars, 2)
+    idx = rand(1:n_total, n_proj)
+
+    I_traj = zeros(n_proj, n_t)
+    D_traj = zeros(n_proj, n_t)
+
+    for j in 1:n_proj
+        pars = (
+            N = 100000.0, E0 = 10.0, sigma = 0.2,
+            gamma = 0.1, rho_d = 0.9,
+            beta = samples.pars[1, idx[j], 1],
+            rho  = samples.pars[2, idx[j], 1],
+            mu   = samples.pars[3, idx[j], 1],
+        )
+        r = simulate(seird_multi, pars; times=proj_times, seed=j)
+        I_traj[j, :] = r[3, 1, :]
+        D_traj[j, :] = r[5, 1, :]
+    end
+
+    return (I=I_traj, D=D_traj)
+end
+
+proj_single = project(samples_cases, n_proj, 10)
+proj_multi  = project(samples_multi, n_proj, 10)</code></pre><pre><code class="nohighlight hljs">(I = [0.0 1.7350240142908795 … 279.80994471351556 260.5197268830239; 0.0 1.7349751131398403 … 274.5667390597252 255.606900453154; … ; 0.0 1.7347474531815783 … 272.6288971529986 253.78608348977366; 0.0 1.7349038486963708 … 276.889742235222 257.78107941006414], D = [0.0 0.004470513258371335 … 4340.085998629188 4341.414804876905; 0.0 0.004554652474442917 … 4419.477490395545 4420.805886264411; … ; 0.0 0.004810915355031232 … 4654.414627073775 4655.807937944144; 0.0 0.004617064851487403 … 4475.594828505705 4476.952885963334])</code></pre><pre><code class="language-julia hljs">function ribbon_plot!(p, t, traj; color, label)
+    med = [median(traj[:, k]) for k in 1:size(traj, 2)]
+    lo  = [quantile(traj[:, k], 0.025) for k in 1:size(traj, 2)]
+    hi  = [quantile(traj[:, k], 0.975) for k in 1:size(traj, 2)]
+    plot!(p, t, med, ribbon=(med .- lo, hi .- med),
+          fillalpha=0.2, lw=2, color=color, label=label)
+end
+
+p_fI = plot(xlabel=&quot;Day&quot;, ylabel=&quot;Infectious (I)&quot;,
+            title=&quot;Projections: Infectious&quot;, legend=:topright)
+ribbon_plot!(p_fI, proj_times, proj_single.I, color=:blue, label=&quot;Cases only&quot;)
+ribbon_plot!(p_fI, proj_times, proj_multi.I, color=:orange, label=&quot;Cases + deaths&quot;)
+plot!(p_fI, times, true_I, color=:red, lw=2, ls=:dash, label=&quot;Truth&quot;)
+
+p_fD = plot(xlabel=&quot;Day&quot;, ylabel=&quot;Cumulative Deaths&quot;,
+            title=&quot;Projections: Deaths&quot;, legend=:topleft)
+ribbon_plot!(p_fD, proj_times, proj_single.D, color=:blue, label=&quot;Cases only&quot;)
+ribbon_plot!(p_fD, proj_times, proj_multi.D, color=:orange, label=&quot;Cases + deaths&quot;)
+plot!(p_fD, times, true_D, color=:red, lw=2, ls=:dash, label=&quot;Truth&quot;)
+
+plot(p_fI, p_fD, layout=(2, 1), size=(800, 600))</code></pre><p><img src="../16_multi_stream_files/figure-commonmark/cell-22-output-1.svg" alt/></p><p>Projections from the multi-stream fit (orange) have <strong>narrower credible intervals</strong> and track the true trajectory more closely, especially for cumulative deaths. The single-stream fit (blue) shows wider uncertainty because the death rate μ is poorly constrained by case data alone.</p><h2 id="Summary"><a class="docs-heading-anchor" href="#Summary">Summary</a><a id="Summary-1"></a><a class="docs-heading-anchor-permalink" href="#Summary" title="Permalink"></a></h2><table><tr><th style="text-align: right">Aspect</th><th style="text-align: right">Single-stream</th><th style="text-align: right">Multi-stream</th></tr><tr><td style="text-align: right"><strong>Data used</strong></td><td style="text-align: right">Cases only</td><td style="text-align: right">Cases + deaths</td></tr><tr><td style="text-align: right"><strong><code>~</code> operators</strong></td><td style="text-align: right">1</td><td style="text-align: right">2</td></tr><tr><td style="text-align: right"><strong>μ identifiability</strong></td><td style="text-align: right">Weak — prior-driven</td><td style="text-align: right">Strong — data-driven</td></tr><tr><td style="text-align: right"><strong>ρ–β confounding</strong></td><td style="text-align: right">Yes</td><td style="text-align: right">Reduced</td></tr><tr><td style="text-align: right"><strong>Projection uncertainty</strong></td><td style="text-align: right">Wide</td><td style="text-align: right">Narrow</td></tr></table><h3 id="Key-takeaways"><a class="docs-heading-anchor" href="#Key-takeaways">Key takeaways</a><a id="Key-takeaways-1"></a><a class="docs-heading-anchor-permalink" href="#Key-takeaways" title="Permalink"></a></h3><ol><li><strong>Each <code>~</code> statement adds a log-likelihood term.</strong> Multiple  comparison operators let the model learn from every available data  stream.</li><li><strong>Different streams constrain different parameters.</strong> Case data pins  down the product ρ × β; death data independently constrains μ.</li><li><strong>Multi-stream fitting reduces posterior uncertainty</strong> and gives  more reliable forecasts — critical for real-time outbreak response.</li><li><strong>The workflow is the same</strong> regardless of the number of streams:  declare <code>data()</code> variables, write <code>~</code> comparisons, and pass a data  object containing all columns.</li></ol><table><tr><th style="text-align: right">Step</th><th style="text-align: right">API</th></tr><tr><td style="text-align: right">Define model</td><td style="text-align: right"><code>@odin begin … end</code> with <code>~</code> for each data stream</td></tr><tr><td style="text-align: right">Prepare data</td><td style="text-align: right"><code>ObservedData([(time=…, col1=…, col2=…), …])</code></td></tr><tr><td style="text-align: right">Likelihood</td><td style="text-align: right"><code>Likelihood()</code> → <code>as_model()</code></td></tr><tr><td style="text-align: right">Prior</td><td style="text-align: right"><code>@prior begin … end</code></td></tr><tr><td style="text-align: right">Posterior</td><td style="text-align: right"><code>likelihood + prior</code></td></tr><tr><td style="text-align: right">Sample</td><td style="text-align: right"><code>sample(posterior, sampler, n; …)</code></td></tr></table></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../15_vector_borne/">« Vector-Borne Disease Dynamics</a><a class="docs-footer-nextpage" href="../17_mpox_seir/">Mpox SEIR: Age-Structured »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="auto">Automatic (OS)</option><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option><option value="catppuccin-latte">catppuccin-latte</option><option value="catppuccin-frappe">catppuccin-frappe</option><option value="catppuccin-macchiato">catppuccin-macchiato</option><option value="catppuccin-mocha">catppuccin-mocha</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 1.17.0 on <span class="colophon-date" title="Friday 27 March 2026 16:28">Friday 27 March 2026</span>. Using Julia version 1.12.5.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>

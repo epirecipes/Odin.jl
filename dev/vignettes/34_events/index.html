@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width, initial-scale=1.0"/><title>Event Handling · Odin.jl</title><meta name="title" content="Event Handling · Odin.jl"/><meta property="og:title" content="Event Handling · Odin.jl"/><meta property="twitter:title" content="Event Handling · Odin.jl"/><meta name="description" content="Documentation for Odin.jl."/><meta property="og:description" content="Documentation for Odin.jl."/><meta property="twitter:description" content="Documentation for Odin.jl."/><script data-outdated-warner src="../../assets/warner.js"></script><link href="https://cdnjs.cloudflare.com/ajax/libs/lato-font/3.0.0/css/lato-font.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/juliamono/0.050/juliamono.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/fontawesome.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/solid.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/brands.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.8/katex.min.css" rel="stylesheet" type="text/css"/><script>documenterBaseURL="../.."</script><script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.6/require.min.js" data-main="../../assets/documenter.js"></script><script src="../../search_index.js"></script><script src="../../siteinfo.js"></script><script src="../../../versions.js"></script><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/catppuccin-mocha.css" data-theme-name="catppuccin-mocha"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/catppuccin-macchiato.css" data-theme-name="catppuccin-macchiato"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/catppuccin-frappe.css" data-theme-name="catppuccin-frappe"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/catppuccin-latte.css" data-theme-name="catppuccin-latte"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/documenter-dark.css" data-theme-name="documenter-dark" data-theme-primary-dark/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/documenter-light.css" data-theme-name="documenter-light" data-theme-primary/><script src="../../assets/themeswap.js"></script></head><body><div id="documenter"><nav class="docs-sidebar"><div class="docs-package-name"><span class="docs-autofit"><a href="../../">Odin.jl</a></span></div><button class="docs-search-query input is-rounded is-small is-clickable my-2 mx-auto py-1 px-2" id="documenter-search-query">Search docs (Ctrl + /)</button><ul class="docs-menu"><li><a class="tocitem" href="../../">Home</a></li><li><a class="tocitem" href="../../getting_started/">Getting Started</a></li><li><span class="tocitem">Guide</span><ul><li><a class="tocitem" href="../../dsl/">DSL Reference</a></li><li><a class="tocitem" href="../../simulation/">Simulation</a></li><li><a class="tocitem" href="../../filtering/">Filtering &amp; Likelihood</a></li><li><a class="tocitem" href="../../inference/">Inference</a></li><li><a class="tocitem" href="../../solvers/">ODE Solvers</a></li><li><a class="tocitem" href="../../gpu/">GPU Acceleration</a></li><li><a class="tocitem" href="../../categorical/">Categorical Models</a></li></ul></li><li><span class="tocitem">Vignettes</span><ul><li><input class="collapse-toggle" id="menuitem-4-1" type="checkbox"/><label class="tocitem" for="menuitem-4-1"><span class="docs-label">Basics</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../01_basic_ode/">Basic ODE Model: SIR</a></li><li><a class="tocitem" href="../02_stochastic/">Stochastic Discrete-Time SIR</a></li><li><a class="tocitem" href="../03_observations/">Incidence Tracking with zero_every</a></li><li><a class="tocitem" href="../04_arrays/">Age-Structured SIR with Arrays</a></li><li><a class="tocitem" href="../05_particle_filter/">Particle Filter and Likelihood</a></li><li><a class="tocitem" href="../06_inference/">Bayesian Inference with MCMC</a></li></ul></li><li><input class="collapse-toggle" id="menuitem-4-2" type="checkbox"/><label class="tocitem" for="menuitem-4-2"><span class="docs-label">Intermediate</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../07_categorical/">Compositional Model Building</a></li><li><a class="tocitem" href="../08_time_varying/">Time-Varying Parameters</a></li><li><a class="tocitem" href="../09_advanced/">SEIR with Vaccination and Waning</a></li><li><a class="tocitem" href="../10_projections/">Counterfactual Projections</a></li><li><a class="tocitem" href="../11_delay_model/">Delay Compartments</a></li><li><a class="tocitem" href="../12_reactive_policy/">Reactive Vaccination Policy</a></li><li><a class="tocitem" href="../13_dynamicppl/">DynamicPPL Integration</a></li><li><a class="tocitem" href="../14_delay_vaccination/">SEIR with Delay and Vaccination</a></li><li><a class="tocitem" href="../15_vector_borne/">Vector-Borne Disease Dynamics</a></li></ul></li><li><input class="collapse-toggle" id="menuitem-4-3" type="checkbox"/><label class="tocitem" for="menuitem-4-3"><span class="docs-label">Advanced Models</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../16_multi_stream/">Multi-Stream Outbreak</a></li><li><a class="tocitem" href="../17_mpox_seir/">Mpox SEIR: Age-Structured</a></li><li><a class="tocitem" href="../18_malaria_simple/">Malaria: Ross-Macdonald</a></li><li><a class="tocitem" href="../19_sarscov2_multiregion/">SARS-CoV-2 Multi-Region</a></li><li><a class="tocitem" href="../20_yellowfever/">Yellow Fever SEIRV</a></li><li><a class="tocitem" href="../21_school_closure/">SIS with School Closure</a></li><li><a class="tocitem" href="../22_beta_blocks/">Beta Blocks</a></li><li><a class="tocitem" href="../23_orov/">OROV Vector-Borne</a></li><li><a class="tocitem" href="../24_yf_delay/">Yellow Fever with Erlang Delay</a></li><li><a class="tocitem" href="../25_yf_vtrack/">Yellow Fever 2-Track Vaccination</a></li><li><a class="tocitem" href="../26_fitting_workflow/">Complete Fitting Workflow</a></li><li><a class="tocitem" href="../27_spatial_composition/">Spatial Composition</a></li><li><a class="tocitem" href="../28_stratification/">Age Stratification</a></li><li><a class="tocitem" href="../29_multi_pathogen/">Multi-Pathogen Composition</a></li></ul></li><li><input class="collapse-toggle" id="menuitem-4-4" type="checkbox" checked/><label class="tocitem" for="menuitem-4-4"><span class="docs-label">Techniques</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../30_stiff_ode/">Stiff ODEs: SDIRK4 Solver</a></li><li><a class="tocitem" href="../31_gpu_filter/">GPU-Accelerated Filtering</a></li><li><a class="tocitem" href="../32_advanced_samplers/">Advanced MCMC Samplers</a></li><li><a class="tocitem" href="../33_sensitivity/">Sensitivity Analysis</a></li><li class="is-active"><a class="tocitem" href>Event Handling</a><ul class="internal"><li><a class="tocitem" href="#Introduction"><span>Introduction</span></a></li><li><a class="tocitem" href="#Setup"><span>Setup</span></a></li><li><a class="tocitem" href="#SIR-Model-Definition"><span>SIR Model Definition</span></a></li><li><a class="tocitem" href="#Baseline:-No-Events"><span>Baseline: No Events</span></a></li><li><a class="tocitem" href="#Timed-Events:-Vaccination-Campaign"><span>Timed Events: Vaccination Campaign</span></a></li><li><a class="tocitem" href="#Continuous-Events:-Reactive-Intervention"><span>Continuous Events: Reactive Intervention</span></a></li><li><a class="tocitem" href="#Discrete-Events:-Step-Based-Monitoring"><span>Discrete Events: Step-Based Monitoring</span></a></li><li><a class="tocitem" href="#Combined-Events"><span>Combined Events</span></a></li><li><a class="tocitem" href="#Root-Finding-Accuracy"><span>Root Finding Accuracy</span></a></li><li><a class="tocitem" href="#Summary"><span>Summary</span></a></li></ul></li><li><a class="tocitem" href="../35_sde/">Stochastic Differential Equations</a></li><li><a class="tocitem" href="../36_model_selection/">Model Selection</a></li><li><a class="tocitem" href="../37_model_validation/">Model Validation</a></li></ul></li></ul></li><li><a class="tocitem" href="../../api/">API Reference</a></li></ul><div class="docs-version-selector field has-addons"><div class="control"><span class="docs-label button is-static is-size-7">Version</span></div><div class="docs-selector control is-expanded"><div class="select is-fullwidth is-size-7"><select id="documenter-version-selector"></select></div></div></div></nav><div class="docs-main"><header class="docs-navbar"><a class="docs-sidebar-button docs-navbar-link fa-solid fa-bars is-hidden-desktop" id="documenter-sidebar-button" href="#"></a><nav class="breadcrumb"><ul class="is-hidden-mobile"><li><a class="is-disabled">Vignettes</a></li><li><a class="is-disabled">Techniques</a></li><li class="is-active"><a href>Event Handling</a></li></ul><ul class="is-hidden-tablet"><li class="is-active"><a href>Event Handling</a></li></ul></nav><div class="docs-right"><a class="docs-navbar-link" href="https://github.com/epirecipes/Odin.jl" title="View the repository on GitHub"><span class="docs-icon fa-brands"></span><span class="docs-label is-hidden-touch">GitHub</span></a><a class="docs-settings-button docs-navbar-link fa-solid fa-gear" id="documenter-settings-button" href="#" title="Settings"></a><a class="docs-article-toggle-button fa-solid fa-chevron-up" id="documenter-article-toggle-button" href="javascript:;" title="Collapse all docstrings"></a></div></header><article class="content" id="documenter-page"><h1 id="Event-Handling-in-ODE-Models"><a class="docs-heading-anchor" href="#Event-Handling-in-ODE-Models">Event Handling in ODE Models</a><a id="Event-Handling-in-ODE-Models-1"></a><a class="docs-heading-anchor-permalink" href="#Event-Handling-in-ODE-Models" title="Permalink"></a></h1><h2 id="Introduction"><a class="docs-heading-anchor" href="#Introduction">Introduction</a><a id="Introduction-1"></a><a class="docs-heading-anchor-permalink" href="#Introduction" title="Permalink"></a></h2><p>Real epidemiological models frequently involve <strong>discontinuities</strong> — sudden changes in state or parameters at specific times or when conditions are met. Examples include:</p><ul><li><strong>Vaccination campaigns</strong> at scheduled times</li><li><strong>Reactive interventions</strong> triggered when hospital capacity is exceeded</li><li><strong>Seasonal forcing</strong> switching between school term and holiday contact rates</li><li><strong>Drug administration</strong> at periodic dosing intervals</li></ul><p>Odin.jl supports three types of events:</p><table><tr><th style="text-align: right">Type</th><th style="text-align: right">Trigger</th><th style="text-align: right">Example</th></tr><tr><td style="text-align: right"><code>TimedEvent</code></td><td style="text-align: right">Pre-scheduled times</td><td style="text-align: right">Pulse vaccination at t = 100, 200</td></tr><tr><td style="text-align: right"><code>ContinuousEvent</code></td><td style="text-align: right">Zero-crossing of a condition function</td><td style="text-align: right">Lockdown when ICU \&gt; capacity</td></tr><tr><td style="text-align: right"><code>DiscreteEvent</code></td><td style="text-align: right">Boolean check at each accepted step</td><td style="text-align: right">Treatment if I \&gt; threshold</td></tr></table><p>Events integrate with the DP5 adaptive ODE solver. Continuous events use Brent’s method on the dense output polynomial to locate the exact crossing time to machine precision.</p><h2 id="Setup"><a class="docs-heading-anchor" href="#Setup">Setup</a><a id="Setup-1"></a><a class="docs-heading-anchor-permalink" href="#Setup" title="Permalink"></a></h2><pre><code class="language-julia hljs">using Odin</code></pre><h2 id="SIR-Model-Definition"><a class="docs-heading-anchor" href="#SIR-Model-Definition">SIR Model Definition</a><a id="SIR-Model-Definition-1"></a><a class="docs-heading-anchor-permalink" href="#SIR-Model-Definition" title="Permalink"></a></h2><p>We define a standard SIR model that will be used throughout this vignette:</p><pre><code class="language-julia hljs">sir = @odin begin
+    deriv(S) = -beta * S * I / N
+    deriv(I) = beta * S * I / N - gamma * I
+    deriv(R) = gamma * I
+    initial(S) = N - I0
+    initial(I) = I0
+    initial(R) = 0
+    N = parameter(1000)
+    I0 = parameter(10)
+    beta = parameter(0.5)
+    gamma = parameter(0.1)
+end
+
+pars = (N=1000.0, I0=10.0, beta=0.5, gamma=0.1)
+times = collect(0.0:0.5:50.0);</code></pre><h2 id="Baseline:-No-Events"><a class="docs-heading-anchor" href="#Baseline:-No-Events">Baseline: No Events</a><a id="Baseline:-No-Events-1"></a><a class="docs-heading-anchor-permalink" href="#Baseline:-No-Events" title="Permalink"></a></h2><pre><code class="language-julia hljs">out_baseline = simulate(sir, pars; times=times)
+
+# Extract S, I, R
+S_base = out_baseline[1, 1, :]
+I_base = out_baseline[2, 1, :]
+R_base = out_baseline[3, 1, :]
+println(&quot;Peak I (no events): &quot;, round(maximum(I_base), digits=1),
+        &quot; at t = &quot;, times[argmax(I_base)])</code></pre><pre><code class="nohighlight hljs">Peak I (no events): 480.0 at t = 15.5</code></pre><h2 id="Timed-Events:-Vaccination-Campaign"><a class="docs-heading-anchor" href="#Timed-Events:-Vaccination-Campaign">Timed Events: Vaccination Campaign</a><a id="Timed-Events:-Vaccination-Campaign-1"></a><a class="docs-heading-anchor-permalink" href="#Timed-Events:-Vaccination-Campaign" title="Permalink"></a></h2><p>A <code>TimedEvent</code> fires at pre-specified times. Here we model pulse vaccination at t = 3 and t = 6, each vaccinating 20% of remaining susceptibles:</p><pre><code class="language-julia hljs">vaccination = TimedEvent(
+    [3.0, 6.0],
+    (u, pars, t) -&gt; begin
+        susceptibles = u[1]
+        vaccinated = susceptibles * 0.2
+        u[1] -= vaccinated   # remove from S
+        u[3] += vaccinated   # add to R (immune)
+    end
+)
+
+events_vax = EventSet(timed=[vaccination])
+sys = System(sir, pars)
+reset!(sys)
+out_vax = simulate(sys, times; events=events_vax)
+
+S_vax = out_vax[1, 1, :]
+I_vax = out_vax[2, 1, :]
+println(&quot;Peak I (with vaccination): &quot;, round(maximum(I_vax), digits=1),
+        &quot; at t = &quot;, times[argmax(I_vax)])
+println(&quot;Peak reduction: &quot;, round(maximum(I_base) - maximum(I_vax), digits=1))</code></pre><pre><code class="nohighlight hljs">Peak I (with vaccination): 234.1 at t = 18.5
+Peak reduction: 245.8</code></pre><p>The vaccination pulses reduce the susceptible pool early in the epidemic, substantially lowering the peak number of infected individuals.</p><h2 id="Continuous-Events:-Reactive-Intervention"><a class="docs-heading-anchor" href="#Continuous-Events:-Reactive-Intervention">Continuous Events: Reactive Intervention</a><a id="Continuous-Events:-Reactive-Intervention-1"></a><a class="docs-heading-anchor-permalink" href="#Continuous-Events:-Reactive-Intervention" title="Permalink"></a></h2><p>A <code>ContinuousEvent</code> triggers when a condition function crosses zero. The solver uses Brent’s method on the DP5 dense output to locate the exact crossing time.</p><p>Here we model a reactive intervention: when infected individuals exceed 200, emergency treatment is applied (transferring 30% of I to R):</p><pre><code class="language-julia hljs">intervention = ContinuousEvent(
+    (u, pars, t) -&gt; u[2] - 200.0,     # trigger when I crosses 200
+    (u, pars, t) -&gt; begin
+        treated = u[2] * 0.3
+        u[2] -= treated
+        u[3] += treated
+    end;
+    direction = :up,       # only trigger on upcrossing
+    rootfind = true         # use Brent&#39;s method for exact timing
+)
+
+events_react = EventSet(continuous=[intervention])
+sys2 = System(sir, pars)
+reset!(sys2)
+out_react = simulate(sys2, times; events=events_react)
+
+I_react = out_react[2, 1, :]
+println(&quot;Peak I (reactive): &quot;, round(maximum(I_react), digits=1))
+println(&quot;Peak I (baseline):  &quot;, round(maximum(I_base), digits=1))</code></pre><pre><code class="nohighlight hljs">Peak I (reactive): 199.3
+Peak I (baseline):  480.0</code></pre><h2 id="Discrete-Events:-Step-Based-Monitoring"><a class="docs-heading-anchor" href="#Discrete-Events:-Step-Based-Monitoring">Discrete Events: Step-Based Monitoring</a><a id="Discrete-Events:-Step-Based-Monitoring-1"></a><a class="docs-heading-anchor-permalink" href="#Discrete-Events:-Step-Based-Monitoring" title="Permalink"></a></h2><p>A <code>DiscreteEvent</code> is checked at every accepted solver step. It’s useful for conditions that don’t require precise timing:</p><pre><code class="language-julia hljs">monitor = DiscreteEvent(
+    (u, pars, t) -&gt; u[2] &gt; 300.0,   # check at each step
+    (u, pars, t) -&gt; begin
+        treated = u[2] * 0.05        # mild treatment
+        u[2] -= treated
+        u[3] += treated
+    end
+)
+
+events_disc = EventSet(discrete=[monitor])
+sys3 = System(sir, pars)
+reset!(sys3)
+out_disc = simulate(sys3, times; events=events_disc)
+
+I_disc = out_disc[2, 1, :]
+println(&quot;Peak I (discrete monitoring): &quot;, round(maximum(I_disc), digits=1))</code></pre><pre><code class="nohighlight hljs">Peak I (discrete monitoring): 415.0</code></pre><h2 id="Combined-Events"><a class="docs-heading-anchor" href="#Combined-Events">Combined Events</a><a id="Combined-Events-1"></a><a class="docs-heading-anchor-permalink" href="#Combined-Events" title="Permalink"></a></h2><p>Multiple event types can be combined in a single <code>EventSet</code>:</p><pre><code class="language-julia hljs"># Scheduled vaccination + reactive treatment
+combined_events = EventSet(
+    timed = [
+        TimedEvent([3.0], (u, p, t) -&gt; begin
+            v = u[1] * 0.15; u[1] -= v; u[3] += v
+        end)
+    ],
+    continuous = [
+        ContinuousEvent(
+            (u, p, t) -&gt; u[2] - 250.0,
+            (u, p, t) -&gt; begin
+                tr = u[2] * 0.2; u[2] -= tr; u[3] += tr
+            end;
+            direction = :up
+        )
+    ]
+)
+
+sys4 = System(sir, pars)
+reset!(sys4)
+out_combined = simulate(sys4, times; events=combined_events)
+
+println(&quot;Peak I (combined):  &quot;, round(maximum(out_combined[2,1,:]), digits=1))
+println(&quot;Peak I (baseline):  &quot;, round(maximum(I_base), digits=1))</code></pre><pre><code class="nohighlight hljs">Peak I (combined):  245.6
+Peak I (baseline):  480.0</code></pre><h2 id="Root-Finding-Accuracy"><a class="docs-heading-anchor" href="#Root-Finding-Accuracy">Root Finding Accuracy</a><a id="Root-Finding-Accuracy-1"></a><a class="docs-heading-anchor-permalink" href="#Root-Finding-Accuracy" title="Permalink"></a></h2><p>The continuous event detector uses Brent’s method on the DP5 dense output polynomial. This achieves near-machine-precision event timing:</p><pre><code class="language-julia hljs"># Simple test: du/dt = 1, u(0) = 0. Event at u = 17.3 (exact time = 17.3)
+f! = (du, u, pars, t) -&gt; (du[1] = 1.0)
+
+exact_event = ContinuousEvent(
+    (u, pars, t) -&gt; u[1] - 17.3,
+    (u, pars, t) -&gt; nothing;   # no-op
+    direction = :up
+)
+
+result, log = Odin.dp5_solve_events!(
+    f!, [0.0], (0.0, 30.0), nothing, collect(0.0:1.0:30.0);
+    events = EventSet(continuous=[exact_event])
+)
+
+event_time = log[1].time
+error = abs(event_time - 17.3)
+println(&quot;Event time: &quot;, event_time)
+println(&quot;Error:      &quot;, error)
+println(&quot;Tolerance:  &lt; 1e-10? &quot;, error &lt; 1e-10)</code></pre><pre><code class="nohighlight hljs">Event time: 17.300000000000004
+Error:      3.552713678800501e-15
+Tolerance:  &lt; 1e-10? true</code></pre><h2 id="Summary"><a class="docs-heading-anchor" href="#Summary">Summary</a><a id="Summary-1"></a><a class="docs-heading-anchor-permalink" href="#Summary" title="Permalink"></a></h2><table><tr><th style="text-align: right">Feature</th><th style="text-align: right">Mechanism</th><th style="text-align: right">Precision</th></tr><tr><td style="text-align: right">Timed events</td><td style="text-align: right">Step to exact event time</td><td style="text-align: right">Machine precision</td></tr><tr><td style="text-align: right">Continuous events</td><td style="text-align: right">Brent’s method + dense output</td><td style="text-align: right">\&lt; 1e-10</td></tr><tr><td style="text-align: right">Discrete events</td><td style="text-align: right">Check at accepted steps</td><td style="text-align: right">Step-size dependent</td></tr></table><p>Events are fully compatible with the <code>dust_system_simulate</code> interface and work with both single-particle and multi-particle simulations. The zero-allocation DP5 core path is preserved for simulations without events.</p></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../33_sensitivity/">« Sensitivity Analysis</a><a class="docs-footer-nextpage" href="../35_sde/">Stochastic Differential Equations »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="auto">Automatic (OS)</option><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option><option value="catppuccin-latte">catppuccin-latte</option><option value="catppuccin-frappe">catppuccin-frappe</option><option value="catppuccin-macchiato">catppuccin-macchiato</option><option value="catppuccin-mocha">catppuccin-mocha</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 1.17.0 on <span class="colophon-date" title="Friday 27 March 2026 16:28">Friday 27 March 2026</span>. Using Julia version 1.12.5.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>

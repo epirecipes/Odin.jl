@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width, initial-scale=1.0"/><title>Advanced MCMC Samplers · Odin.jl</title><meta name="title" content="Advanced MCMC Samplers · Odin.jl"/><meta property="og:title" content="Advanced MCMC Samplers · Odin.jl"/><meta property="twitter:title" content="Advanced MCMC Samplers · Odin.jl"/><meta name="description" content="Documentation for Odin.jl."/><meta property="og:description" content="Documentation for Odin.jl."/><meta property="twitter:description" content="Documentation for Odin.jl."/><script data-outdated-warner src="../../assets/warner.js"></script><link href="https://cdnjs.cloudflare.com/ajax/libs/lato-font/3.0.0/css/lato-font.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/juliamono/0.050/juliamono.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/fontawesome.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/solid.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/brands.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.8/katex.min.css" rel="stylesheet" type="text/css"/><script>documenterBaseURL="../.."</script><script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.6/require.min.js" data-main="../../assets/documenter.js"></script><script src="../../search_index.js"></script><script src="../../siteinfo.js"></script><script src="../../../versions.js"></script><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/catppuccin-mocha.css" data-theme-name="catppuccin-mocha"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/catppuccin-macchiato.css" data-theme-name="catppuccin-macchiato"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/catppuccin-frappe.css" data-theme-name="catppuccin-frappe"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/catppuccin-latte.css" data-theme-name="catppuccin-latte"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/documenter-dark.css" data-theme-name="documenter-dark" data-theme-primary-dark/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/documenter-light.css" data-theme-name="documenter-light" data-theme-primary/><script src="../../assets/themeswap.js"></script></head><body><div id="documenter"><nav class="docs-sidebar"><div class="docs-package-name"><span class="docs-autofit"><a href="../../">Odin.jl</a></span></div><button class="docs-search-query input is-rounded is-small is-clickable my-2 mx-auto py-1 px-2" id="documenter-search-query">Search docs (Ctrl + /)</button><ul class="docs-menu"><li><a class="tocitem" href="../../">Home</a></li><li><a class="tocitem" href="../../getting_started/">Getting Started</a></li><li><span class="tocitem">Guide</span><ul><li><a class="tocitem" href="../../dsl/">DSL Reference</a></li><li><a class="tocitem" href="../../simulation/">Simulation</a></li><li><a class="tocitem" href="../../filtering/">Filtering &amp; Likelihood</a></li><li><a class="tocitem" href="../../inference/">Inference</a></li><li><a class="tocitem" href="../../solvers/">ODE Solvers</a></li><li><a class="tocitem" href="../../gpu/">GPU Acceleration</a></li><li><a class="tocitem" href="../../categorical/">Categorical Models</a></li></ul></li><li><span class="tocitem">Vignettes</span><ul><li><input class="collapse-toggle" id="menuitem-4-1" type="checkbox"/><label class="tocitem" for="menuitem-4-1"><span class="docs-label">Basics</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../01_basic_ode/">Basic ODE Model: SIR</a></li><li><a class="tocitem" href="../02_stochastic/">Stochastic Discrete-Time SIR</a></li><li><a class="tocitem" href="../03_observations/">Incidence Tracking with zero_every</a></li><li><a class="tocitem" href="../04_arrays/">Age-Structured SIR with Arrays</a></li><li><a class="tocitem" href="../05_particle_filter/">Particle Filter and Likelihood</a></li><li><a class="tocitem" href="../06_inference/">Bayesian Inference with MCMC</a></li></ul></li><li><input class="collapse-toggle" id="menuitem-4-2" type="checkbox"/><label class="tocitem" for="menuitem-4-2"><span class="docs-label">Intermediate</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../07_categorical/">Compositional Model Building</a></li><li><a class="tocitem" href="../08_time_varying/">Time-Varying Parameters</a></li><li><a class="tocitem" href="../09_advanced/">SEIR with Vaccination and Waning</a></li><li><a class="tocitem" href="../10_projections/">Counterfactual Projections</a></li><li><a class="tocitem" href="../11_delay_model/">Delay Compartments</a></li><li><a class="tocitem" href="../12_reactive_policy/">Reactive Vaccination Policy</a></li><li><a class="tocitem" href="../13_dynamicppl/">DynamicPPL Integration</a></li><li><a class="tocitem" href="../14_delay_vaccination/">SEIR with Delay and Vaccination</a></li><li><a class="tocitem" href="../15_vector_borne/">Vector-Borne Disease Dynamics</a></li></ul></li><li><input class="collapse-toggle" id="menuitem-4-3" type="checkbox"/><label class="tocitem" for="menuitem-4-3"><span class="docs-label">Advanced Models</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../16_multi_stream/">Multi-Stream Outbreak</a></li><li><a class="tocitem" href="../17_mpox_seir/">Mpox SEIR: Age-Structured</a></li><li><a class="tocitem" href="../18_malaria_simple/">Malaria: Ross-Macdonald</a></li><li><a class="tocitem" href="../19_sarscov2_multiregion/">SARS-CoV-2 Multi-Region</a></li><li><a class="tocitem" href="../20_yellowfever/">Yellow Fever SEIRV</a></li><li><a class="tocitem" href="../21_school_closure/">SIS with School Closure</a></li><li><a class="tocitem" href="../22_beta_blocks/">Beta Blocks</a></li><li><a class="tocitem" href="../23_orov/">OROV Vector-Borne</a></li><li><a class="tocitem" href="../24_yf_delay/">Yellow Fever with Erlang Delay</a></li><li><a class="tocitem" href="../25_yf_vtrack/">Yellow Fever 2-Track Vaccination</a></li><li><a class="tocitem" href="../26_fitting_workflow/">Complete Fitting Workflow</a></li><li><a class="tocitem" href="../27_spatial_composition/">Spatial Composition</a></li><li><a class="tocitem" href="../28_stratification/">Age Stratification</a></li><li><a class="tocitem" href="../29_multi_pathogen/">Multi-Pathogen Composition</a></li></ul></li><li><input class="collapse-toggle" id="menuitem-4-4" type="checkbox" checked/><label class="tocitem" for="menuitem-4-4"><span class="docs-label">Techniques</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../30_stiff_ode/">Stiff ODEs: SDIRK4 Solver</a></li><li><a class="tocitem" href="../31_gpu_filter/">GPU-Accelerated Filtering</a></li><li class="is-active"><a class="tocitem" href>Advanced MCMC Samplers</a><ul class="internal"><li><a class="tocitem" href="#Overview"><span>Overview</span></a></li><li><a class="tocitem" href="#Target-distributions"><span>Target distributions</span></a></li><li><a class="tocitem" href="#Slice-sampler"><span>Slice sampler</span></a></li><li><a class="tocitem" href="#MALA-sampler"><span>MALA sampler</span></a></li><li><a class="tocitem" href="#Gibbs-sampler"><span>Gibbs sampler</span></a></li><li><a class="tocitem" href="#ESS-comparison"><span>ESS comparison</span></a></li><li><a class="tocitem" href="#Summary"><span>Summary</span></a></li><li><a class="tocitem" href="#R-companion"><span>R companion</span></a></li></ul></li><li><a class="tocitem" href="../33_sensitivity/">Sensitivity Analysis</a></li><li><a class="tocitem" href="../34_events/">Event Handling</a></li><li><a class="tocitem" href="../35_sde/">Stochastic Differential Equations</a></li><li><a class="tocitem" href="../36_model_selection/">Model Selection</a></li><li><a class="tocitem" href="../37_model_validation/">Model Validation</a></li></ul></li></ul></li><li><a class="tocitem" href="../../api/">API Reference</a></li></ul><div class="docs-version-selector field has-addons"><div class="control"><span class="docs-label button is-static is-size-7">Version</span></div><div class="docs-selector control is-expanded"><div class="select is-fullwidth is-size-7"><select id="documenter-version-selector"></select></div></div></div></nav><div class="docs-main"><header class="docs-navbar"><a class="docs-sidebar-button docs-navbar-link fa-solid fa-bars is-hidden-desktop" id="documenter-sidebar-button" href="#"></a><nav class="breadcrumb"><ul class="is-hidden-mobile"><li><a class="is-disabled">Vignettes</a></li><li><a class="is-disabled">Techniques</a></li><li class="is-active"><a href>Advanced MCMC Samplers</a></li></ul><ul class="is-hidden-tablet"><li class="is-active"><a href>Advanced MCMC Samplers</a></li></ul></nav><div class="docs-right"><a class="docs-navbar-link" href="https://github.com/epirecipes/Odin.jl" title="View the repository on GitHub"><span class="docs-icon fa-brands"></span><span class="docs-label is-hidden-touch">GitHub</span></a><a class="docs-settings-button docs-navbar-link fa-solid fa-gear" id="documenter-settings-button" href="#" title="Settings"></a><a class="docs-article-toggle-button fa-solid fa-chevron-up" id="documenter-article-toggle-button" href="javascript:;" title="Collapse all docstrings"></a></div></header><article class="content" id="documenter-page"><h1 id="Advanced-MCMC-Samplers"><a class="docs-heading-anchor" href="#Advanced-MCMC-Samplers">Advanced MCMC Samplers</a><a id="Advanced-MCMC-Samplers-1"></a><a class="docs-heading-anchor-permalink" href="#Advanced-MCMC-Samplers" title="Permalink"></a></h1><p>Odin.jl</p><h2 id="Overview"><a class="docs-heading-anchor" href="#Overview">Overview</a><a id="Overview-1"></a><a class="docs-heading-anchor-permalink" href="#Overview" title="Permalink"></a></h2><p>Odin.jl provides three advanced MCMC samplers beyond the standard random walk and HMC:</p><table><tr><th style="text-align: right">Sampler</th><th style="text-align: right">Gradient?</th><th style="text-align: right">Key advantage</th></tr><tr><td style="text-align: right"><strong>Slice</strong> (<code>monty_sampler_slice</code>)</td><td style="text-align: right">No</td><td style="text-align: right">Auto-tuning, no rejections</td></tr><tr><td style="text-align: right"><strong>MALA</strong> (<code>monty_sampler_mala</code>)</td><td style="text-align: right">Yes</td><td style="text-align: right">Gradient-guided proposals, simpler than HMC</td></tr><tr><td style="text-align: right"><strong>Gibbs</strong> (<code>monty_sampler_gibbs</code>)</td><td style="text-align: right">Optional</td><td style="text-align: right">Block structure, mix-and-match sub-samplers</td></tr></table><pre><code class="language-julia hljs">using Odin
+using Distributions
+using LinearAlgebra
+using Statistics
+using Random</code></pre><h2 id="Target-distributions"><a class="docs-heading-anchor" href="#Target-distributions">Target distributions</a><a id="Target-distributions-1"></a><a class="docs-heading-anchor-permalink" href="#Target-distributions" title="Permalink"></a></h2><p>We compare all samplers on two challenging targets.</p><h3 id="Banana-shaped-distribution"><a class="docs-heading-anchor" href="#Banana-shaped-distribution">Banana-shaped distribution</a><a id="Banana-shaped-distribution-1"></a><a class="docs-heading-anchor-permalink" href="#Banana-shaped-distribution" title="Permalink"></a></h3><p>A twisted Gaussian (“banana”) that challenges samplers with strong nonlinear correlation:</p><pre><code class="language-julia hljs">function banana_density(x; b=0.1)
+    return -0.5 * (x[1]^2 + (x[2] - b * x[1]^2 + 100 * b)^2)
+end
+
+function banana_gradient(x; b=0.1)
+    dx1 = -x[1] - 2 * b * x[1] * (x[2] - b * x[1]^2 + 100 * b)
+    dx2 = -(x[2] - b * x[1]^2 + 100 * b)
+    return [dx1, dx2]
+end
+
+banana_no_grad = DensityModel(
+    banana_density;
+    parameters=[&quot;x&quot;, &quot;y&quot;],
+)
+
+banana_with_grad = DensityModel(
+    banana_density;
+    parameters=[&quot;x&quot;, &quot;y&quot;],
+    gradient=banana_gradient,
+)</code></pre><pre><code class="nohighlight hljs">MontyModel{typeof(banana_density), typeof(banana_gradient), Nothing, Nothing}([&quot;x&quot;, &quot;y&quot;], banana_density, banana_gradient, nothing, nothing, Odin.MontyModelProperties(true, false, false, false))</code></pre><h3 id="Correlated-Gaussian"><a class="docs-heading-anchor" href="#Correlated-Gaussian">Correlated Gaussian</a><a id="Correlated-Gaussian-1"></a><a class="docs-heading-anchor-permalink" href="#Correlated-Gaussian" title="Permalink"></a></h3><p>A strongly correlated 2D Gaussian to test ESS:</p><pre><code class="language-julia hljs">target_mean = [0.0, 0.0]
+target_cov = [1.0 0.95; 0.95 1.0]
+target_dist = MvNormal(target_mean, target_cov)
+
+gauss_model = DensityModel(
+    x -&gt; logpdf(target_dist, x);
+    parameters=[&quot;x&quot;, &quot;y&quot;],
+    gradient=x -&gt; -inv(target_cov) * (x .- target_mean),
+)</code></pre><pre><code class="nohighlight hljs">MontyModel{var&quot;#5#6&quot;, var&quot;#7#8&quot;, Nothing, Nothing}([&quot;x&quot;, &quot;y&quot;], var&quot;#5#6&quot;(), var&quot;#7#8&quot;(), nothing, nothing, Odin.MontyModelProperties(true, false, false, false))</code></pre><h2 id="Slice-sampler"><a class="docs-heading-anchor" href="#Slice-sampler">Slice sampler</a><a id="Slice-sampler-1"></a><a class="docs-heading-anchor-permalink" href="#Slice-sampler" title="Permalink"></a></h2><p>The slice sampler uses Neal’s stepping-out and shrinking procedure. It requires no gradient and no tuning of proposal variance — only the bracket width <code>w</code>:</p><pre><code class="language-julia hljs">sl = slice(w=2.0, max_steps=20)
+initial = zeros(Float64, 2, 4)
+
+samples_slice = sample(banana_no_grad, sl, 5000;
+    n_chains=4, initial=initial, n_burnin=1000, seed=42)
+
+println(&quot;Slice sampler on banana target:&quot;)
+println(&quot;  Mean: &quot;, round.(mean(samples_slice.pars[:, :, :], dims=(2, 3))[:, 1, 1], digits=2))
+println(&quot;  Acceptance rate: &quot;, round.(samples_slice.details[:acceptance_rate], digits=3))</code></pre><pre><code class="nohighlight hljs">Slice sampler on banana target:
+  Mean: [-0.0, -9.9]
+  Acceptance rate: [1.0, 1.0, 1.0, 1.0]</code></pre><h2 id="MALA-sampler"><a class="docs-heading-anchor" href="#MALA-sampler">MALA sampler</a><a id="MALA-sampler-1"></a><a class="docs-heading-anchor-permalink" href="#MALA-sampler" title="Permalink"></a></h2><p>MALA uses gradient information for smarter proposals. It’s simpler than HMC (one gradient evaluation per step) but still makes directed moves:</p><pre><code class="language-julia hljs">ml = mala(0.3)
+initial = zeros(Float64, 2, 4)
+
+samples_ml = sample(banana_with_grad, ml, 5000;
+    n_chains=4, initial=initial, n_burnin=1000, seed=42)
+
+println(&quot;MALA on banana target:&quot;)
+println(&quot;  Mean: &quot;, round.(mean(samples_ml.pars[:, :, :], dims=(2, 3))[:, 1, 1], digits=2))
+println(&quot;  Acceptance rate: &quot;, round.(samples_ml.details[:acceptance_rate], digits=3))</code></pre><pre><code class="nohighlight hljs">MALA on banana target:
+  Mean: [0.1, -9.93]
+  Acceptance rate: [0.96, 0.964, 0.97, 0.97]</code></pre><h3 id="MALA-with-preconditioning"><a class="docs-heading-anchor" href="#MALA-with-preconditioning">MALA with preconditioning</a><a id="MALA-with-preconditioning-1"></a><a class="docs-heading-anchor-permalink" href="#MALA-with-preconditioning" title="Permalink"></a></h3><p>A mass matrix can improve MALA on poorly scaled targets:</p><pre><code class="language-julia hljs">M = [1.0 0.0; 0.0 4.0]
+ml_precond = mala(0.2; vcv=M)
+
+samples_ml_p = sample(banana_with_grad, ml_precond, 5000;
+    n_chains=4, initial=zeros(Float64, 2, 4), n_burnin=1000, seed=42)
+
+println(&quot;Preconditioned MALA acceptance: &quot;,
+    round.(samples_ml_p.details[:acceptance_rate], digits=3))</code></pre><pre><code class="nohighlight hljs">Preconditioned MALA acceptance: [0.881, 0.863, 0.875, 0.872]</code></pre><h2 id="Gibbs-sampler"><a class="docs-heading-anchor" href="#Gibbs-sampler">Gibbs sampler</a><a id="Gibbs-sampler-1"></a><a class="docs-heading-anchor-permalink" href="#Gibbs-sampler" title="Permalink"></a></h2><p>The Gibbs sampler cycles through parameter blocks. Each block can use a different sub-sampler — useful for hierarchical models or mixed parameter types.</p><h3 id="Block-wise-slice-sampling"><a class="docs-heading-anchor" href="#Block-wise-slice-sampling">Block-wise slice sampling</a><a id="Block-wise-slice-sampling-1"></a><a class="docs-heading-anchor-permalink" href="#Block-wise-slice-sampling" title="Permalink"></a></h3><pre><code class="language-julia hljs">blocks = [[1], [2]]
+sub_samplers = [
+    slice(w=2.0),
+    slice(w=2.0),
+]
+gibbs_slice = gibbs(blocks, sub_samplers)
+
+samples_gibbs = sample(banana_no_grad, gibbs_slice, 5000;
+    n_chains=4, initial=zeros(Float64, 2, 4), n_burnin=1000, seed=42)
+
+println(&quot;Gibbs (slice blocks) on banana:&quot;)
+println(&quot;  Mean: &quot;, round.(mean(samples_gibbs.pars[:, :, :], dims=(2, 3))[:, 1, 1], digits=2))</code></pre><pre><code class="nohighlight hljs">Gibbs (slice blocks) on banana:
+  Mean: [-0.0, -9.9]</code></pre><h3 id="Mixed-sub-samplers:-MALA-Slice"><a class="docs-heading-anchor" href="#Mixed-sub-samplers:-MALA-Slice">Mixed sub-samplers: MALA + Slice</a><a id="Mixed-sub-samplers:-MALA-Slice-1"></a><a class="docs-heading-anchor-permalink" href="#Mixed-sub-samplers:-MALA-Slice" title="Permalink"></a></h3><p>Combine gradient-based and gradient-free samplers in one Gibbs sweep:</p><pre><code class="language-julia hljs">mixed_blocks = [[1], [2]]
+mixed_subs = Odin.AbstractMontySampler[
+    mala(0.5; vcv=reshape([1.0], 1, 1)),
+    slice(w=2.0),
+]
+gibbs_mixed = gibbs(mixed_blocks, mixed_subs)
+
+samples_mixed = sample(banana_with_grad, gibbs_mixed, 5000;
+    n_chains=4, initial=zeros(Float64, 2, 4), n_burnin=1000, seed=42)
+
+println(&quot;Gibbs (MALA + Slice) on banana:&quot;)
+println(&quot;  Mean: &quot;, round.(mean(samples_mixed.pars[:, :, :], dims=(2, 3))[:, 1, 1], digits=2))</code></pre><pre><code class="nohighlight hljs">Gibbs (MALA + Slice) on banana:
+  Mean: [0.06, -9.9]</code></pre><h2 id="ESS-comparison"><a class="docs-heading-anchor" href="#ESS-comparison">ESS comparison</a><a id="ESS-comparison-1"></a><a class="docs-heading-anchor-permalink" href="#ESS-comparison" title="Permalink"></a></h2><p>We compare effective sample sizes per second across all samplers on the correlated Gaussian:</p><pre><code class="language-julia hljs">n_steps = 5000
+n_burnin = 1000
+initial = zeros(Float64, 2, 4)
+
+function simple_ess(chain::AbstractVector{Float64})
+    n = length(chain)
+    n &lt; 10 &amp;&amp; return Float64(n)
+    m = mean(chain)
+    v = var(chain)
+    v &lt; 1e-12 &amp;&amp; return Float64(n)
+    max_lag = min(n - 1, 100)
+    rho_sum = 0.0
+    for k in 1:max_lag
+        acf = sum((chain[1:end-k] .- m) .* (chain[k+1:end] .- m)) / ((n - k) * v)
+        acf &lt; 0.05 &amp;&amp; break
+        rho_sum += acf
+    end
+    return n / (1.0 + 2.0 * rho_sum)
+end
+
+# Random Walk
+rw = random_walk(Matrix{Float64}(0.5I, 2, 2))
+t_rw = @elapsed s_rw = sample(gauss_model, rw, n_steps;
+    n_chains=4, initial=initial, n_burnin=n_burnin, seed=42)
+
+# Slice
+sl = slice(w=1.5)
+t_sl = @elapsed s_sl = sample(gauss_model, sl, n_steps;
+    n_chains=4, initial=initial, n_burnin=n_burnin, seed=42)
+
+# MALA
+ml = mala(0.5)
+t_ml = @elapsed s_ml = sample(gauss_model, ml, n_steps;
+    n_chains=4, initial=initial, n_burnin=n_burnin, seed=42)
+
+# HMC
+hm = hmc(0.1, 10)
+t_hm = @elapsed s_hm = sample(gauss_model, hm, n_steps;
+    n_chains=4, initial=initial, n_burnin=n_burnin, seed=42)
+
+for (name, samp, t) in [(&quot;RW&quot;, s_rw, t_rw), (&quot;Slice&quot;, s_sl, t_sl),
+                          (&quot;MALA&quot;, s_ml, t_ml), (&quot;HMC&quot;, s_hm, t_hm)]
+    ess_x = simple_ess(samp.pars[1, :, 1])
+    ess_y = simple_ess(samp.pars[2, :, 1])
+    min_ess = min(ess_x, ess_y)
+    acc = round(samp.details[:acceptance_rate][1], digits=3)
+    println(&quot;$name: ESS(x)=$(round(ess_x, digits=0)), ESS(y)=$(round(ess_y, digits=0)), &quot;,
+            &quot;min_ESS/s=$(round(min_ess/t, digits=0)), accept=$acc&quot;)
+end</code></pre><pre><code class="nohighlight hljs">RW: ESS(x)=73.0, ESS(y)=74.0, min_ESS/s=343.0, accept=0.323
+Slice: ESS(x)=213.0, ESS(y)=213.0, min_ESS/s=919.0, accept=1.0
+MALA: ESS(x)=58.0, ESS(y)=59.0, min_ESS/s=185.0, accept=0.39
+HMC: ESS(x)=570.0, ESS(y)=571.0, min_ESS/s=550.0, accept=0.985</code></pre><h2 id="Summary"><a class="docs-heading-anchor" href="#Summary">Summary</a><a id="Summary-1"></a><a class="docs-heading-anchor-permalink" href="#Summary" title="Permalink"></a></h2><table><tr><th style="text-align: right">Sampler</th><th style="text-align: right">When to use</th></tr><tr><td style="text-align: right"><strong>Slice</strong></td><td style="text-align: right">No gradient available; want automatic step size; low-dimensional models</td></tr><tr><td style="text-align: right"><strong>MALA</strong></td><td style="text-align: right">Gradient available; want simpler alternative to HMC; moderate dimensions</td></tr><tr><td style="text-align: right"><strong>Gibbs</strong></td><td style="text-align: right">Block structure (e.g. hierarchical models); mixed parameter types; combining different samplers for different parameter groups</td></tr><tr><td style="text-align: right"><strong>RW</strong></td><td style="text-align: right">Simple baseline; stochastic likelihoods where gradient is unavailable</td></tr><tr><td style="text-align: right"><strong>HMC/NUTS</strong></td><td style="text-align: right">High-dimensional smooth targets with gradient; maximum ESS/step</td></tr></table><h2 id="R-companion"><a class="docs-heading-anchor" href="#R-companion">R companion</a><a id="R-companion-1"></a><a class="docs-heading-anchor-permalink" href="#R-companion" title="Permalink"></a></h2><p>For comparison, here is equivalent R code using the monty R package:</p><pre><code class="language-r hljs"># Slice-like behaviour in R monty via the random walk with adaptive step
+library(monty)
+library(dust2)
+
+# Define target
+m &lt;- monty_model_function(
+  function(x) -0.5 * (x[1]^2 + (x[2] - 0.1 * x[1]^2 + 10)^2),
+  packer = Packer(c(&quot;x&quot;, &quot;y&quot;))
+)
+
+# Random walk baseline
+sampler_rw &lt;- random_walk(vcv = diag(2) * 0.5)
+samples_rw &lt;- sample(m, sampler_rw, 5000, n_chains = 4)
+
+# HMC (requires gradient)
+sampler_hmc &lt;- hmc(epsilon = 0.1, n_integration_steps = 10)
+# Note: R monty does not yet include slice, MALA, or Gibbs —
+# these are new in Odin.jl&#39;s Monty module.</code></pre></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../31_gpu_filter/">« GPU-Accelerated Filtering</a><a class="docs-footer-nextpage" href="../33_sensitivity/">Sensitivity Analysis »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="auto">Automatic (OS)</option><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option><option value="catppuccin-latte">catppuccin-latte</option><option value="catppuccin-frappe">catppuccin-frappe</option><option value="catppuccin-macchiato">catppuccin-macchiato</option><option value="catppuccin-mocha">catppuccin-mocha</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 1.17.0 on <span class="colophon-date" title="Friday 27 March 2026 16:28">Friday 27 March 2026</span>. Using Julia version 1.12.5.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>

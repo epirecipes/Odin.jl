@@ -1,0 +1,438 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width, initial-scale=1.0"/><title>SARS-CoV-2 Multi-Region · Odin.jl</title><meta name="title" content="SARS-CoV-2 Multi-Region · Odin.jl"/><meta property="og:title" content="SARS-CoV-2 Multi-Region · Odin.jl"/><meta property="twitter:title" content="SARS-CoV-2 Multi-Region · Odin.jl"/><meta name="description" content="Documentation for Odin.jl."/><meta property="og:description" content="Documentation for Odin.jl."/><meta property="twitter:description" content="Documentation for Odin.jl."/><script data-outdated-warner src="../../assets/warner.js"></script><link href="https://cdnjs.cloudflare.com/ajax/libs/lato-font/3.0.0/css/lato-font.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/juliamono/0.050/juliamono.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/fontawesome.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/solid.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/brands.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.8/katex.min.css" rel="stylesheet" type="text/css"/><script>documenterBaseURL="../.."</script><script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.6/require.min.js" data-main="../../assets/documenter.js"></script><script src="../../search_index.js"></script><script src="../../siteinfo.js"></script><script src="../../../versions.js"></script><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/catppuccin-mocha.css" data-theme-name="catppuccin-mocha"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/catppuccin-macchiato.css" data-theme-name="catppuccin-macchiato"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/catppuccin-frappe.css" data-theme-name="catppuccin-frappe"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/catppuccin-latte.css" data-theme-name="catppuccin-latte"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/documenter-dark.css" data-theme-name="documenter-dark" data-theme-primary-dark/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/documenter-light.css" data-theme-name="documenter-light" data-theme-primary/><script src="../../assets/themeswap.js"></script></head><body><div id="documenter"><nav class="docs-sidebar"><div class="docs-package-name"><span class="docs-autofit"><a href="../../">Odin.jl</a></span></div><button class="docs-search-query input is-rounded is-small is-clickable my-2 mx-auto py-1 px-2" id="documenter-search-query">Search docs (Ctrl + /)</button><ul class="docs-menu"><li><a class="tocitem" href="../../">Home</a></li><li><a class="tocitem" href="../../getting_started/">Getting Started</a></li><li><span class="tocitem">Guide</span><ul><li><a class="tocitem" href="../../dsl/">DSL Reference</a></li><li><a class="tocitem" href="../../simulation/">Simulation</a></li><li><a class="tocitem" href="../../filtering/">Filtering &amp; Likelihood</a></li><li><a class="tocitem" href="../../inference/">Inference</a></li><li><a class="tocitem" href="../../solvers/">ODE Solvers</a></li><li><a class="tocitem" href="../../gpu/">GPU Acceleration</a></li><li><a class="tocitem" href="../../categorical/">Categorical Models</a></li></ul></li><li><span class="tocitem">Vignettes</span><ul><li><input class="collapse-toggle" id="menuitem-4-1" type="checkbox"/><label class="tocitem" for="menuitem-4-1"><span class="docs-label">Basics</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../01_basic_ode/">Basic ODE Model: SIR</a></li><li><a class="tocitem" href="../02_stochastic/">Stochastic Discrete-Time SIR</a></li><li><a class="tocitem" href="../03_observations/">Incidence Tracking with zero_every</a></li><li><a class="tocitem" href="../04_arrays/">Age-Structured SIR with Arrays</a></li><li><a class="tocitem" href="../05_particle_filter/">Particle Filter and Likelihood</a></li><li><a class="tocitem" href="../06_inference/">Bayesian Inference with MCMC</a></li></ul></li><li><input class="collapse-toggle" id="menuitem-4-2" type="checkbox"/><label class="tocitem" for="menuitem-4-2"><span class="docs-label">Intermediate</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../07_categorical/">Compositional Model Building</a></li><li><a class="tocitem" href="../08_time_varying/">Time-Varying Parameters</a></li><li><a class="tocitem" href="../09_advanced/">SEIR with Vaccination and Waning</a></li><li><a class="tocitem" href="../10_projections/">Counterfactual Projections</a></li><li><a class="tocitem" href="../11_delay_model/">Delay Compartments</a></li><li><a class="tocitem" href="../12_reactive_policy/">Reactive Vaccination Policy</a></li><li><a class="tocitem" href="../13_dynamicppl/">DynamicPPL Integration</a></li><li><a class="tocitem" href="../14_delay_vaccination/">SEIR with Delay and Vaccination</a></li><li><a class="tocitem" href="../15_vector_borne/">Vector-Borne Disease Dynamics</a></li></ul></li><li><input class="collapse-toggle" id="menuitem-4-3" type="checkbox" checked/><label class="tocitem" for="menuitem-4-3"><span class="docs-label">Advanced Models</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../16_multi_stream/">Multi-Stream Outbreak</a></li><li><a class="tocitem" href="../17_mpox_seir/">Mpox SEIR: Age-Structured</a></li><li><a class="tocitem" href="../18_malaria_simple/">Malaria: Ross-Macdonald</a></li><li class="is-active"><a class="tocitem" href>SARS-CoV-2 Multi-Region</a><ul class="internal"><li><a class="tocitem" href="#Introduction"><span>Introduction</span></a></li><li><a class="tocitem" href="#Regional-Setup"><span>Regional Setup</span></a></li><li><a class="tocitem" href="#Model-Definition"><span>Model Definition</span></a></li><li><a class="tocitem" href="#Simulation"><span>Simulation</span></a></li><li><a class="tocitem" href="#Synthetic-Data"><span>Synthetic Data</span></a></li><li><a class="tocitem" href="#Inference"><span>Inference</span></a></li><li><a class="tocitem" href="#Posterior-Analysis"><span>Posterior Analysis</span></a></li><li><a class="tocitem" href="#The-Role-of-Coupling"><span>The Role of Coupling</span></a></li><li><a class="tocitem" href="#Summary"><span>Summary</span></a></li></ul></li><li><a class="tocitem" href="../20_yellowfever/">Yellow Fever SEIRV</a></li><li><a class="tocitem" href="../21_school_closure/">SIS with School Closure</a></li><li><a class="tocitem" href="../22_beta_blocks/">Beta Blocks</a></li><li><a class="tocitem" href="../23_orov/">OROV Vector-Borne</a></li><li><a class="tocitem" href="../24_yf_delay/">Yellow Fever with Erlang Delay</a></li><li><a class="tocitem" href="../25_yf_vtrack/">Yellow Fever 2-Track Vaccination</a></li><li><a class="tocitem" href="../26_fitting_workflow/">Complete Fitting Workflow</a></li><li><a class="tocitem" href="../27_spatial_composition/">Spatial Composition</a></li><li><a class="tocitem" href="../28_stratification/">Age Stratification</a></li><li><a class="tocitem" href="../29_multi_pathogen/">Multi-Pathogen Composition</a></li></ul></li><li><input class="collapse-toggle" id="menuitem-4-4" type="checkbox"/><label class="tocitem" for="menuitem-4-4"><span class="docs-label">Techniques</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../30_stiff_ode/">Stiff ODEs: SDIRK4 Solver</a></li><li><a class="tocitem" href="../31_gpu_filter/">GPU-Accelerated Filtering</a></li><li><a class="tocitem" href="../32_advanced_samplers/">Advanced MCMC Samplers</a></li><li><a class="tocitem" href="../33_sensitivity/">Sensitivity Analysis</a></li><li><a class="tocitem" href="../34_events/">Event Handling</a></li><li><a class="tocitem" href="../35_sde/">Stochastic Differential Equations</a></li><li><a class="tocitem" href="../36_model_selection/">Model Selection</a></li><li><a class="tocitem" href="../37_model_validation/">Model Validation</a></li></ul></li></ul></li><li><a class="tocitem" href="../../api/">API Reference</a></li></ul><div class="docs-version-selector field has-addons"><div class="control"><span class="docs-label button is-static is-size-7">Version</span></div><div class="docs-selector control is-expanded"><div class="select is-fullwidth is-size-7"><select id="documenter-version-selector"></select></div></div></div></nav><div class="docs-main"><header class="docs-navbar"><a class="docs-sidebar-button docs-navbar-link fa-solid fa-bars is-hidden-desktop" id="documenter-sidebar-button" href="#"></a><nav class="breadcrumb"><ul class="is-hidden-mobile"><li><a class="is-disabled">Vignettes</a></li><li><a class="is-disabled">Advanced Models</a></li><li class="is-active"><a href>SARS-CoV-2 Multi-Region</a></li></ul><ul class="is-hidden-tablet"><li class="is-active"><a href>SARS-CoV-2 Multi-Region</a></li></ul></nav><div class="docs-right"><a class="docs-navbar-link" href="https://github.com/epirecipes/Odin.jl" title="View the repository on GitHub"><span class="docs-icon fa-brands"></span><span class="docs-label is-hidden-touch">GitHub</span></a><a class="docs-settings-button docs-navbar-link fa-solid fa-gear" id="documenter-settings-button" href="#" title="Settings"></a><a class="docs-article-toggle-button fa-solid fa-chevron-up" id="documenter-article-toggle-button" href="javascript:;" title="Collapse all docstrings"></a></div></header><article class="content" id="documenter-page"><h1 id="SARS-CoV-2-Multi-Region:-Coupled-Epidemics-with-Shared-Parameters"><a class="docs-heading-anchor" href="#SARS-CoV-2-Multi-Region:-Coupled-Epidemics-with-Shared-Parameters">SARS-CoV-2 Multi-Region: Coupled Epidemics with Shared Parameters</a><a id="SARS-CoV-2-Multi-Region:-Coupled-Epidemics-with-Shared-Parameters-1"></a><a class="docs-heading-anchor-permalink" href="#SARS-CoV-2-Multi-Region:-Coupled-Epidemics-with-Shared-Parameters" title="Permalink"></a></h1><ul><li><a href="#introduction">Introduction</a></li><li><a href="#regional-setup">Regional Setup</a><ul><li><a href="#rt-trajectories">Rt trajectories</a></li><li><a href="#inter-region-coupling">Inter-region coupling</a></li></ul></li><li><a href="#model-definition">Model Definition</a></li><li><a href="#simulation">Simulation</a><ul><li><a href="#parameter-setup">Parameter setup</a></li><li><a href="#run-simulation">Run simulation</a></li><li><a href="#epidemic-dynamics">Epidemic dynamics</a></li></ul></li><li><a href="#synthetic-data">Synthetic Data</a><ul><li><a href="#prepare-data-for-the-unfilter">Prepare data for the unfilter</a></li></ul></li><li><a href="#inference">Inference</a><ul><li><a href="#parameters-to-fit">Parameters to fit</a></li><li><a href="#packer-and-fixed-parameters">Packer and fixed parameters</a></li><li><a href="#prior-distributions">Prior distributions</a></li><li><a href="#likelihood-via-unfilter">Likelihood via unfilter</a></li><li><a href="#run-mcmc">Run MCMC</a></li></ul></li><li><a href="#posterior-analysis">Posterior Analysis</a><ul><li><a href="#recovered-rt-trajectories">Recovered Rt trajectories</a></li><li><a href="#shared-parameter-posteriors">Shared parameter posteriors</a></li><li><a href="#posterior-predictive-check">Posterior predictive check</a></li><li><a href="#trace-plots">Trace plots</a></li></ul></li><li><a href="#the-role-of-coupling">The Role of Coupling</a></li><li><a href="#summary">Summary</a><ul><li><a href="#key-takeaways">Key takeaways</a></li></ul></li></ul><h2 id="Introduction"><a class="docs-heading-anchor" href="#Introduction">Introduction</a><a id="Introduction-1"></a><a class="docs-heading-anchor-permalink" href="#Introduction" title="Permalink"></a></h2><p>In real epidemics, disease does not respect administrative boundaries. SARS-CoV-2 swept through cities before reaching surrounding suburbs and rural areas, with each region experiencing waves of different size and timing. Understanding these spatial dynamics requires models that capture <strong>region- specific transmission</strong> (driven by population density, behaviour, and policy) alongside <strong>inter-region coupling</strong> (commuter flows, travel).</p><p>This vignette demonstrates how to:</p><ol><li>Build a <strong>multi-region SEIRD</strong> ODE model with per-region state  variables</li><li>Use <strong>per-region time-varying Rt</strong> via separate interpolated  trajectories</li><li>Include weak <strong>inter-region coupling</strong> through pairwise coupling  parameters</li><li>Simulate heterogeneous epidemic waves across three regions</li><li>Generate synthetic weekly case data and fit the model using an  <strong>unfilter</strong></li><li>Recover region-specific Rt trajectories and shared reporting  parameters via adaptive MCMC</li></ol><p>The approach is inspired by the <a href="https://github.com/mrc-ide/sarscov2-multiregion">sarscov2-multiregion</a> package, which fits SARS-CoV-2 transmission models to multiple English regions simultaneously. Here we build a simplified but instructive version with three regions.</p><pre><code class="language-julia hljs">using Odin
+using Distributions
+using Plots
+using Statistics
+using LinearAlgebra: diagm
+using Random</code></pre><h2 id="Regional-Setup"><a class="docs-heading-anchor" href="#Regional-Setup">Regional Setup</a><a id="Regional-Setup-1"></a><a class="docs-heading-anchor-permalink" href="#Regional-Setup" title="Permalink"></a></h2><p>We model three regions with different population sizes and epidemic trajectories:</p><table><tr><th style="text-align: right">Region</th><th style="text-align: right">Type</th><th style="text-align: right">Population</th><th style="text-align: right">Epidemic character</th></tr><tr><td style="text-align: right">1</td><td style="text-align: right">Urban</td><td style="text-align: right">5,000,000</td><td style="text-align: right">Early, large wave — Rt peaks at 2.5 then drops sharply with lockdown</td></tr><tr><td style="text-align: right">2</td><td style="text-align: right">Suburban</td><td style="text-align: right">3,000,000</td><td style="text-align: right">Delayed wave — Rt rises more slowly, peaks at 2.0</td></tr><tr><td style="text-align: right">3</td><td style="text-align: right">Rural</td><td style="text-align: right">1,000,000</td><td style="text-align: right">Small wave — Rt stays low, peaks at 1.5</td></tr></table><h3 id="Rt-trajectories"><a class="docs-heading-anchor" href="#Rt-trajectories">Rt trajectories</a><a id="Rt-trajectories-1"></a><a class="docs-heading-anchor-permalink" href="#Rt-trajectories" title="Permalink"></a></h3><p>Each region has a piecewise-linear reproduction number that reflects different intervention timelines:</p><pre><code class="language-julia hljs">n_regions = 3
+Rt_times = [0.0, 30.0, 60.0, 90.0, 120.0, 180.0, 250.0, 365.0]
+n_Rt = length(Rt_times)
+
+# Rt values per region at each time point
+Rt_region1 = [2.5, 2.5, 1.2, 0.8, 1.1, 1.3, 1.5, 1.2]  # Urban: early lockdown
+Rt_region2 = [1.0, 1.8, 2.0, 1.0, 0.9, 1.2, 1.4, 1.1]  # Suburban: delayed
+Rt_region3 = [1.0, 1.2, 1.5, 1.3, 0.9, 1.0, 1.1, 1.0]  # Rural: mild
+
+p_rt = plot(Rt_times, Rt_region1, label=&quot;Region 1 (Urban)&quot;, lw=2,
+            marker=:circle, xlabel=&quot;Day&quot;, ylabel=&quot;Rt&quot;,
+            title=&quot;Prescribed Rt Trajectories&quot;, legend=:topright)
+plot!(p_rt, Rt_times, Rt_region2, label=&quot;Region 2 (Suburban)&quot;, lw=2, marker=:square)
+plot!(p_rt, Rt_times, Rt_region3, label=&quot;Region 3 (Rural)&quot;, lw=2, marker=:diamond)
+hline!(p_rt, [1.0], ls=:dash, color=:gray, label=&quot;Rt = 1&quot;)
+p_rt</code></pre><p><img src="../19_sarscov2_multiregion_files/figure-commonmark/cell-3-output-1.svg" alt/></p><h3 id="Inter-region-coupling"><a class="docs-heading-anchor" href="#Inter-region-coupling">Inter-region coupling</a><a id="Inter-region-coupling-1"></a><a class="docs-heading-anchor-permalink" href="#Inter-region-coupling" title="Permalink"></a></h3><p>Coupling between regions is captured by pairwise parameters. The coupling strengths are small, representing commuter or travel-based importation:</p><ul><li>Urban ↔ Suburban: <code>c12 = 0.1</code> (strongest, commuter flows)</li><li>Urban ↔ Rural: <code>c13 = 0.05</code> (weaker)</li><li>Suburban ↔ Rural: <code>c23 = 0.1</code></li></ul><p>A global scaling parameter <code>epsilon = 0.05</code> controls the overall importation pressure.</p><h2 id="Model-Definition"><a class="docs-heading-anchor" href="#Model-Definition">Model Definition</a><a id="Model-Definition-1"></a><a class="docs-heading-anchor-permalink" href="#Model-Definition" title="Permalink"></a></h2><p>Since we have three regions with distinct Rt trajectories, we define a separate interpolation for each region’s Rt. With only three regions, we expand the SEIRD dynamics explicitly per region rather than using arrays.</p><p>The <strong>force of infection</strong> in region <em>i</em> combines local transmission with a small contribution from infectious individuals in connected regions:</p><p class="math-container">\[\lambda_i = \beta_i \left( \frac{I_i}{N_i} + \varepsilon \sum_j C_{ij} \frac{I_j}{N_j} \right)\]</p><p>where <span>$\beta_i = \text{Rt}_i \times \gamma$</span>, <span>$\varepsilon$</span> is the coupling strength, and <span>$C_{ij}$</span> are the pairwise coupling coefficients.</p><pre><code class="language-julia hljs">seird_regions = @odin begin
+    # Per-region Rt via interpolation
+    n_Rt_times = parameter()
+    dim(Rt_t) = n_Rt_times
+    dim(Rt_v1) = n_Rt_times
+    dim(Rt_v2) = n_Rt_times
+    dim(Rt_v3) = n_Rt_times
+    Rt_t = parameter()
+    Rt_v1 = parameter()
+    Rt_v2 = parameter()
+    Rt_v3 = parameter()
+    Rt_1 = interpolate(Rt_t, Rt_v1, :linear)
+    Rt_2 = interpolate(Rt_t, Rt_v2, :linear)
+    Rt_3 = interpolate(Rt_t, Rt_v3, :linear)
+
+    # Epidemiological parameters
+    gamma = parameter(0.2)
+    sigma = parameter(0.333)
+    ifr = parameter(0.005)
+    rho = parameter(0.3)
+    epsilon = parameter(0.05)
+
+    # Population and initial conditions
+    N1 = parameter(5e6)
+    N2 = parameter(3e6)
+    N3 = parameter(1e6)
+    I0_1 = parameter(100.0)
+    I0_2 = parameter(10.0)
+    I0_3 = parameter(1.0)
+
+    # Coupling (symmetric pairwise)
+    c12 = parameter(0.1)
+    c13 = parameter(0.05)
+    c23 = parameter(0.1)
+
+    # Force of infection per region
+    foi_1 = Rt_1 * gamma * (I1 / N1 + epsilon * (c12 * I2 / N2 + c13 * I3 / N3))
+    foi_2 = Rt_2 * gamma * (I2 / N2 + epsilon * (c12 * I1 / N1 + c23 * I3 / N3))
+    foi_3 = Rt_3 * gamma * (I3 / N3 + epsilon * (c13 * I1 / N1 + c23 * I2 / N2))
+
+    # Region 1 (Urban)
+    deriv(S1) = -foi_1 * S1
+    deriv(E1) = foi_1 * S1 - sigma * E1
+    deriv(I1) = sigma * E1 - gamma * I1
+    deriv(R1) = (1 - ifr) * gamma * I1
+    deriv(D1) = ifr * gamma * I1
+    deriv(cum1) = foi_1 * S1
+
+    # Region 2 (Suburban)
+    deriv(S2) = -foi_2 * S2
+    deriv(E2) = foi_2 * S2 - sigma * E2
+    deriv(I2) = sigma * E2 - gamma * I2
+    deriv(R2) = (1 - ifr) * gamma * I2
+    deriv(D2) = ifr * gamma * I2
+    deriv(cum2) = foi_2 * S2
+
+    # Region 3 (Rural)
+    deriv(S3) = -foi_3 * S3
+    deriv(E3) = foi_3 * S3 - sigma * E3
+    deriv(I3) = sigma * E3 - gamma * I3
+    deriv(R3) = (1 - ifr) * gamma * I3
+    deriv(D3) = ifr * gamma * I3
+    deriv(cum3) = foi_3 * S3
+
+    # Initial conditions
+    initial(S1) = N1 - I0_1
+    initial(E1) = 0
+    initial(I1) = I0_1
+    initial(R1) = 0
+    initial(D1) = 0
+    initial(cum1) = 0
+
+    initial(S2) = N2 - I0_2
+    initial(E2) = 0
+    initial(I2) = I0_2
+    initial(R2) = 0
+    initial(D2) = 0
+    initial(cum2) = 0
+
+    initial(S3) = N3 - I0_3
+    initial(E3) = 0
+    initial(I3) = I0_3
+    initial(R3) = 0
+    initial(D3) = 0
+    initial(cum3) = 0
+
+    # Outputs
+    output(daily_cases_1) = rho * sigma * E1
+    output(daily_cases_2) = rho * sigma * E2
+    output(daily_cases_3) = rho * sigma * E3
+    output(sero_1) = cum1 / N1
+    output(sero_2) = cum2 / N2
+    output(sero_3) = cum3 / N3
+
+    # Data comparison
+    cases1 = data()
+    cases2 = data()
+    cases3 = data()
+    cases1 ~ Poisson(rho * sigma * E1 * 7 + 1e-6)
+    cases2 ~ Poisson(rho * sigma * E2 * 7 + 1e-6)
+    cases3 ~ Poisson(rho * sigma * E3 * 7 + 1e-6)
+end</code></pre><pre><code class="nohighlight hljs">Odin.DustSystemGenerator{var&quot;##OdinModel#278&quot;}(var&quot;##OdinModel#278&quot;(18, [:S1, :E1, :I1, :R1, :D1, :cum1, :S2, :E2, :I2, :R2, :D2, :cum2, :S3, :E3, :I3, :R3, :D3, :cum3], [:n_Rt_times, :Rt_t, :Rt_v1, :Rt_v2, :Rt_v3, :gamma, :sigma, :ifr, :rho, :epsilon, :N1, :N2, :N3, :I0_1, :I0_2, :I0_3, :c12, :c13, :c23], true, false, true, true, true, Dict{Symbol, Array}()))</code></pre><p><strong>Key features of this model:</strong></p><ul><li><strong>Explicit per-region states</strong>: <code>S1</code>, <code>E1</code>, <code>I1</code>, etc. are written out for each of the three regions, avoiding DSL array edge cases while keeping the dynamics identical</li><li><strong>Separate Rt interpolation</strong>: Each region has its own piecewise-linear Rt trajectory, reflecting different intervention timings</li><li><strong>Pairwise coupling</strong>: The <code>c12</code>, <code>c13</code>, <code>c23</code> parameters and <code>epsilon</code> control importation pressure between regions</li><li><strong>Two outputs per region</strong>: <code>daily_cases_*</code> (reported case rate) and <code>sero_*</code> (cumulative attack rate) for monitoring</li></ul><h2 id="Simulation"><a class="docs-heading-anchor" href="#Simulation">Simulation</a><a id="Simulation-1"></a><a class="docs-heading-anchor-permalink" href="#Simulation" title="Permalink"></a></h2><h3 id="Parameter-setup"><a class="docs-heading-anchor" href="#Parameter-setup">Parameter setup</a><a id="Parameter-setup-1"></a><a class="docs-heading-anchor-permalink" href="#Parameter-setup" title="Permalink"></a></h3><pre><code class="language-julia hljs">true_pars = (
+    n_Rt_times = Float64(n_Rt),
+    Rt_t = Rt_times,
+    Rt_v1 = Rt_region1,
+    Rt_v2 = Rt_region2,
+    Rt_v3 = Rt_region3,
+    epsilon = 0.05,
+    N1 = 5.0e6,
+    N2 = 3.0e6,
+    N3 = 1.0e6,
+    I0_1 = 100.0,
+    I0_2 = 10.0,
+    I0_3 = 1.0,
+    c12 = 0.1,
+    c13 = 0.05,
+    c23 = 0.1,
+    gamma = 0.2,
+    sigma = 1.0 / 3.0,
+    ifr = 0.005,
+    rho = 0.3,
+)
+
+println(&quot;Infectious period: &quot;, 1 / true_pars.gamma, &quot; days&quot;)
+println(&quot;Latent period: &quot;, round(1 / true_pars.sigma, digits=1), &quot; days&quot;)
+println(&quot;IFR: &quot;, 100 * true_pars.ifr, &quot;%&quot;)
+println(&quot;Reporting rate: &quot;, 100 * true_pars.rho, &quot;%&quot;)</code></pre><pre><code class="nohighlight hljs">Infectious period: 5.0 days
+Latent period: 3.0 days
+IFR: 0.5%
+Reporting rate: 30.0%</code></pre><h3 id="Run-simulation"><a class="docs-heading-anchor" href="#Run-simulation">Run simulation</a><a id="Run-simulation-1"></a><a class="docs-heading-anchor-permalink" href="#Run-simulation" title="Permalink"></a></h3><pre><code class="language-julia hljs">sim_times = collect(0.0:1.0:365.0)
+result = simulate(seird_regions, true_pars; times=sim_times, seed=1)
+println(&quot;Output shape: &quot;, size(result))</code></pre><pre><code class="nohighlight hljs">Output shape: (24, 1, 366)</code></pre><p>The state vector is ordered as: <code>S1, E1, I1, R1, D1, cum1, S2, E2, I2, R2, D2, cum2, S3, E3, I3, R3, D3, cum3</code> (18 states), followed by the outputs <code>daily_cases_1, daily_cases_2, daily_cases_3, sero_1, sero_2, sero_3</code> (6 outputs).</p><h3 id="Epidemic-dynamics"><a class="docs-heading-anchor" href="#Epidemic-dynamics">Epidemic dynamics</a><a id="Epidemic-dynamics-1"></a><a class="docs-heading-anchor-permalink" href="#Epidemic-dynamics" title="Permalink"></a></h3><pre><code class="language-julia hljs">region_names = [&quot;Urban (5M)&quot;, &quot;Suburban (3M)&quot;, &quot;Rural (1M)&quot;]
+region_colors = [:steelblue :orange :green]
+
+# State indices for I (infectious): I1=3, I2=9, I3=15
+I_idx = [3, 9, 15]
+
+# Infectious individuals by region
+p_I = plot(xlabel=&quot;Day&quot;, ylabel=&quot;Infectious (I)&quot;,
+           title=&quot;Infectious Individuals by Region&quot;,
+           legend=:topright, size=(700, 350))
+for i in 1:n_regions
+    plot!(p_I, sim_times, result[I_idx[i], 1, :],
+          label=region_names[i], lw=2, color=region_colors[i])
+end
+p_I</code></pre><p><img src="../19_sarscov2_multiregion_files/figure-commonmark/cell-7-output-1.svg" alt/></p><pre><code class="language-julia hljs"># State indices for D (deaths): D1=5, D2=11, D3=17
+D_idx = [5, 11, 17]
+
+# Cumulative deaths by region
+p_D = plot(xlabel=&quot;Day&quot;, ylabel=&quot;Cumulative Deaths&quot;,
+           title=&quot;Cumulative Deaths by Region&quot;,
+           legend=:topleft, size=(700, 350))
+for i in 1:n_regions
+    plot!(p_D, sim_times, result[D_idx[i], 1, :],
+          label=region_names[i], lw=2, color=region_colors[i])
+end
+p_D</code></pre><p><img src="../19_sarscov2_multiregion_files/figure-commonmark/cell-8-output-1.svg" alt/></p><pre><code class="language-julia hljs"># Output indices: daily_cases_1=19, daily_cases_2=20, daily_cases_3=21
+cases_idx = [19, 20, 21]
+
+# Daily reported cases (output)
+p_cases = plot(xlabel=&quot;Day&quot;, ylabel=&quot;Daily Reported Cases&quot;,
+               title=&quot;Expected Daily Cases by Region&quot;,
+               legend=:topright, size=(700, 350))
+for i in 1:n_regions
+    plot!(p_cases, sim_times, result[cases_idx[i], 1, :],
+          label=region_names[i], lw=2, color=region_colors[i])
+end
+p_cases</code></pre><p><img src="../19_sarscov2_multiregion_files/figure-commonmark/cell-9-output-1.svg" alt/></p><pre><code class="language-julia hljs"># Output indices: sero_1=22, sero_2=23, sero_3=24
+sero_idx = [22, 23, 24]
+
+# Seroprevalence over time
+p_sero = plot(xlabel=&quot;Day&quot;, ylabel=&quot;Seroprevalence&quot;,
+              title=&quot;Cumulative Seroprevalence by Region&quot;,
+              legend=:topleft, size=(700, 350))
+for i in 1:n_regions
+    plot!(p_sero, sim_times, result[sero_idx[i], 1, :],
+          label=region_names[i], lw=2, color=region_colors[i])
+end
+p_sero</code></pre><p><img src="../19_sarscov2_multiregion_files/figure-commonmark/cell-10-output-1.svg" alt/></p><p>The urban region (blue) experiences the earliest and largest wave due to its high initial Rt of 2.5. The suburban region (orange) follows with a delayed peak. The rural region (green) has a much smaller epidemic, partly because its Rt stays closer to 1, but inter-region coupling ensures it still experiences some transmission even when local Rt is below 1.</p><h2 id="Synthetic-Data"><a class="docs-heading-anchor" href="#Synthetic-Data">Synthetic Data</a><a id="Synthetic-Data-1"></a><a class="docs-heading-anchor-permalink" href="#Synthetic-Data" title="Permalink"></a></h2><p>We generate weekly reported case counts for each region, matching the Poisson comparison in the model.</p><pre><code class="language-julia hljs">Random.seed!(42)
+
+# Weekly observation times
+obs_weeks = collect(7.0:7.0:364.0)
+n_weeks = length(obs_weeks)
+
+# Simulate to get state at weekly intervals
+result_weekly = simulate(seird_regions, true_pars; times=obs_weeks, seed=1)
+
+# State indices for E (exposed): E1=2, E2=8, E3=14
+E_idx = [2, 8, 14]
+
+# Generate Poisson-distributed weekly case counts
+obs_cases = zeros(Int, n_weeks, n_regions)
+for w in 1:n_weeks
+    for i in 1:n_regions
+        E_i = result_weekly[E_idx[i], 1, w]
+        expected = true_pars.rho * true_pars.sigma * E_i * 7
+        obs_cases[w, i] = rand(Poisson(max(expected, 1e-10)))
+    end
+end
+
+println(&quot;Total observed cases: &quot;, sum(obs_cases))
+println(&quot;Cases per region: &quot;, [sum(obs_cases[:, i]) for i in 1:n_regions])</code></pre><pre><code class="nohighlight hljs">Total observed cases: 929599
+Cases per region: [571669, 329671, 28259]</code></pre><pre><code class="language-julia hljs">p_data = plot(xlabel=&quot;Day&quot;, ylabel=&quot;Weekly Reported Cases&quot;,
+              title=&quot;Synthetic Weekly Case Data&quot;,
+              legend=:topright, size=(700, 400))
+for i in 1:n_regions
+    scatter!(p_data, obs_weeks, obs_cases[:, i],
+             ms=3, alpha=0.7, color=region_colors[i],
+             label=region_names[i])
+    plot!(p_data, obs_weeks, obs_cases[:, i],
+          alpha=0.3, color=region_colors[i], label=nothing)
+end
+p_data</code></pre><p><img src="../19_sarscov2_multiregion_files/figure-commonmark/cell-12-output-1.svg" alt/></p><h3 id="Prepare-data-for-the-unfilter"><a class="docs-heading-anchor" href="#Prepare-data-for-the-unfilter">Prepare data for the unfilter</a><a id="Prepare-data-for-the-unfilter-1"></a><a class="docs-heading-anchor-permalink" href="#Prepare-data-for-the-unfilter" title="Permalink"></a></h3><pre><code class="language-julia hljs">data = ObservedData([
+    (time = obs_weeks[w],
+     cases1 = Float64(obs_cases[w, 1]),
+     cases2 = Float64(obs_cases[w, 2]),
+     cases3 = Float64(obs_cases[w, 3]))
+    for w in 1:n_weeks
+])</code></pre><pre><code class="nohighlight hljs">Odin.FilterData{@NamedTuple{cases1::Float64, cases2::Float64, cases3::Float64}}([7.0, 14.0, 21.0, 28.0, 35.0, 42.0, 49.0, 56.0, 63.0, 70.0  …  301.0, 308.0, 315.0, 322.0, 329.0, 336.0, 343.0, 350.0, 357.0, 364.0], [(cases1 = 126.0, cases2 = 3.0, cases3 = 1.0), (cases1 = 343.0, cases2 = 3.0, cases3 = 2.0), (cases1 = 931.0, cases2 = 8.0, cases3 = 1.0), (cases1 = 2600.0, cases2 = 23.0, cases3 = 1.0), (cases1 = 6599.0, cases2 = 57.0, cases3 = 9.0), (cases1 = 14345.0, cases2 = 184.0, cases3 = 11.0), (cases1 = 24437.0, cases2 = 404.0, cases3 = 24.0), (cases1 = 32356.0, cases2 = 1068.0, cases3 = 58.0), (cases1 = 34323.0, cases2 = 2350.0, cases3 = 114.0), (cases1 = 33383.0, cases2 = 4120.0, cases3 = 182.0)  …  (cases1 = 11029.0, cases2 = 12352.0, cases3 = 912.0), (cases1 = 10088.0, cases2 = 10772.0, cases3 = 962.0), (cases1 = 8730.0, cases2 = 9241.0, cases3 = 949.0), (cases1 = 7727.0, cases2 = 7933.0, cases3 = 909.0), (cases1 = 6735.0, cases2 = 6297.0, cases3 = 878.0), (cases1 = 5434.0, cases2 = 5110.0, cases3 = 857.0), (cases1 = 4565.0, cases2 = 3924.0, cases3 = 821.0), (cases1 = 3732.0, cases2 = 3106.0, cases3 = 755.0), (cases1 = 3016.0, cases2 = 2371.0, cases3 = 723.0), (cases1 = 2406.0, cases2 = 1779.0, cases3 = 706.0)])</code></pre><h2 id="Inference"><a class="docs-heading-anchor" href="#Inference">Inference</a><a id="Inference-1"></a><a class="docs-heading-anchor-permalink" href="#Inference" title="Permalink"></a></h2><h3 id="Parameters-to-fit"><a class="docs-heading-anchor" href="#Parameters-to-fit">Parameters to fit</a><a id="Parameters-to-fit-1"></a><a class="docs-heading-anchor-permalink" href="#Parameters-to-fit" title="Permalink"></a></h3><p>We fit the <strong>Rt trajectory values</strong> for each region plus the shared <strong>reporting rate</strong> and <strong>IFR</strong>, while fixing the epidemiological time scales and coupling structure.</p><table><tr><th style="text-align: right">Parameter</th><th style="text-align: right">Fitted?</th><th style="text-align: right">Notes</th></tr><tr><td style="text-align: right"><code>Rt_v1[1:8]</code></td><td style="text-align: right">✓</td><td style="text-align: right">Region 1 Rt at 8 time points</td></tr><tr><td style="text-align: right"><code>Rt_v2[1:8]</code></td><td style="text-align: right">✓</td><td style="text-align: right">Region 2 Rt at 8 time points</td></tr><tr><td style="text-align: right"><code>Rt_v3[1:8]</code></td><td style="text-align: right">✓</td><td style="text-align: right">Region 3 Rt at 8 time points</td></tr><tr><td style="text-align: right"><code>rho</code></td><td style="text-align: right">✓</td><td style="text-align: right">Shared reporting rate</td></tr><tr><td style="text-align: right"><code>ifr</code></td><td style="text-align: right">✓</td><td style="text-align: right">Shared infection fatality rate</td></tr><tr><td style="text-align: right"><code>gamma</code>, <code>sigma</code></td><td style="text-align: right">✗</td><td style="text-align: right">Fixed at known values</td></tr><tr><td style="text-align: right"><code>epsilon</code>, <code>c12</code>, <code>c13</code>, <code>c23</code></td><td style="text-align: right">✗</td><td style="text-align: right">Fixed — coupling structure assumed known</td></tr><tr><td style="text-align: right"><code>N1</code>, <code>N2</code>, <code>N3</code>, <code>I0_*</code></td><td style="text-align: right">✗</td><td style="text-align: right">Fixed population sizes and seeds</td></tr></table><p>This gives <strong>26 parameters</strong> total: 8 × 3 = 24 Rt values + <code>rho</code> + <code>ifr</code>.</p><h3 id="Packer-and-fixed-parameters"><a class="docs-heading-anchor" href="#Packer-and-fixed-parameters">Packer and fixed parameters</a><a id="Packer-and-fixed-parameters-1"></a><a class="docs-heading-anchor-permalink" href="#Packer-and-fixed-parameters" title="Permalink"></a></h3><p>We use scalar parameter names with a <code>process</code> function that reassembles the Rt knot values into the vectors the model expects:</p><pre><code class="language-julia hljs">Rt_names = Symbol[]
+for region in 1:3
+    for k in 1:n_Rt
+        push!(Rt_names, Symbol(&quot;Rt_v$(region)_$(k)&quot;))
+    end
+end
+all_scalars = vcat([:rho, :ifr], Rt_names)
+
+packer = Packer(
+    all_scalars;
+    fixed = (
+        n_Rt_times = Float64(n_Rt),
+        Rt_t = Rt_times,
+        epsilon = 0.05,
+        N1 = 5.0e6,
+        N2 = 3.0e6,
+        N3 = 1.0e6,
+        I0_1 = 100.0,
+        I0_2 = 10.0,
+        I0_3 = 1.0,
+        c12 = 0.1,
+        c13 = 0.05,
+        c23 = 0.1,
+        gamma = 0.2,
+        sigma = 1.0 / 3.0,
+    ),
+    process = function(nt)
+        Rt_v1 = Float64[getfield(nt, Symbol(&quot;Rt_v1_$k&quot;)) for k in 1:Int(nt.n_Rt_times)]
+        Rt_v2 = Float64[getfield(nt, Symbol(&quot;Rt_v2_$k&quot;)) for k in 1:Int(nt.n_Rt_times)]
+        Rt_v3 = Float64[getfield(nt, Symbol(&quot;Rt_v3_$k&quot;)) for k in 1:Int(nt.n_Rt_times)]
+        merge(nt, (Rt_v1=Rt_v1, Rt_v2=Rt_v2, Rt_v3=Rt_v3))
+    end,
+)
+
+println(&quot;Number of fitted parameters: &quot;, packer.len)</code></pre><pre><code class="nohighlight hljs">Number of fitted parameters: 26</code></pre><h3 id="Prior-distributions"><a class="docs-heading-anchor" href="#Prior-distributions">Prior distributions</a><a id="Prior-distributions-1"></a><a class="docs-heading-anchor-permalink" href="#Prior-distributions" title="Permalink"></a></h3><p>We place weakly informative priors on each parameter:</p><pre><code class="language-julia hljs">prior = @prior begin
+    rho ~ Beta(3.0, 7.0)             # mean 0.3
+    ifr ~ Beta(2.0, 398.0)           # mean ~0.005
+    Rt_v1_1 ~ Normal(1.5, 0.7)
+    Rt_v1_2 ~ Normal(1.5, 0.7)
+    Rt_v1_3 ~ Normal(1.5, 0.7)
+    Rt_v1_4 ~ Normal(1.5, 0.7)
+    Rt_v1_5 ~ Normal(1.5, 0.7)
+    Rt_v1_6 ~ Normal(1.5, 0.7)
+    Rt_v1_7 ~ Normal(1.5, 0.7)
+    Rt_v1_8 ~ Normal(1.5, 0.7)
+    Rt_v2_1 ~ Normal(1.5, 0.7)
+    Rt_v2_2 ~ Normal(1.5, 0.7)
+    Rt_v2_3 ~ Normal(1.5, 0.7)
+    Rt_v2_4 ~ Normal(1.5, 0.7)
+    Rt_v2_5 ~ Normal(1.5, 0.7)
+    Rt_v2_6 ~ Normal(1.5, 0.7)
+    Rt_v2_7 ~ Normal(1.5, 0.7)
+    Rt_v2_8 ~ Normal(1.5, 0.7)
+    Rt_v3_1 ~ Normal(1.5, 0.7)
+    Rt_v3_2 ~ Normal(1.5, 0.7)
+    Rt_v3_3 ~ Normal(1.5, 0.7)
+    Rt_v3_4 ~ Normal(1.5, 0.7)
+    Rt_v3_5 ~ Normal(1.5, 0.7)
+    Rt_v3_6 ~ Normal(1.5, 0.7)
+    Rt_v3_7 ~ Normal(1.5, 0.7)
+    Rt_v3_8 ~ Normal(1.5, 0.7)
+end</code></pre><pre><code class="nohighlight hljs">MontyModel{var&quot;#13#14&quot;, var&quot;#15#16&quot;{var&quot;#13#14&quot;}, var&quot;#17#18&quot;, Matrix{Float64}}([&quot;rho&quot;, &quot;ifr&quot;, &quot;Rt_v1_1&quot;, &quot;Rt_v1_2&quot;, &quot;Rt_v1_3&quot;, &quot;Rt_v1_4&quot;, &quot;Rt_v1_5&quot;, &quot;Rt_v1_6&quot;, &quot;Rt_v1_7&quot;, &quot;Rt_v1_8&quot;  …  &quot;Rt_v2_7&quot;, &quot;Rt_v2_8&quot;, &quot;Rt_v3_1&quot;, &quot;Rt_v3_2&quot;, &quot;Rt_v3_3&quot;, &quot;Rt_v3_4&quot;, &quot;Rt_v3_5&quot;, &quot;Rt_v3_6&quot;, &quot;Rt_v3_7&quot;, &quot;Rt_v3_8&quot;], var&quot;#13#14&quot;(), var&quot;#15#16&quot;{var&quot;#13#14&quot;}(var&quot;#13#14&quot;()), var&quot;#17#18&quot;(), [0.0 1.0; 0.0 1.0; … ; -Inf Inf; -Inf Inf], Odin.MontyModelProperties(true, true, false, false))</code></pre><h3 id="Likelihood-via-unfilter"><a class="docs-heading-anchor" href="#Likelihood-via-unfilter">Likelihood via unfilter</a><a id="Likelihood-via-unfilter-1"></a><a class="docs-heading-anchor-permalink" href="#Likelihood-via-unfilter" title="Permalink"></a></h3><p>The unfilter evaluates the ODE at each data time point and computes the Poisson log-likelihood of the weekly case counts:</p><pre><code class="language-julia hljs">uf = Likelihood(seird_regions, data; time_start=0.0)
+ll = as_model(uf, packer)
+posterior = ll + prior
+
+# Check log-likelihood at true values
+true_theta = vcat(
+    [true_pars.rho, true_pars.ifr],
+    Rt_region1, Rt_region2, Rt_region3
+)
+ll_true = ll(true_theta)
+println(&quot;Log-likelihood at true parameters: &quot;, round(ll_true, digits=2))</code></pre><pre><code class="nohighlight hljs">Log-likelihood at true parameters: -807.5</code></pre><h3 id="Run-MCMC"><a class="docs-heading-anchor" href="#Run-MCMC">Run MCMC</a><a id="Run-MCMC-1"></a><a class="docs-heading-anchor-permalink" href="#Run-MCMC" title="Permalink"></a></h3><p>We use an adaptive random walk sampler with a diagonal initial proposal. The adaptation phase adjusts the proposal covariance to achieve efficient mixing across all 26 parameters.</p><pre><code class="language-julia hljs">n_pars = packer.len
+vcv_init = diagm(vcat(
+    [0.01, 0.000001],                 # rho, ifr
+    fill(0.01, n_Rt),                 # Rt_v1
+    fill(0.01, n_Rt),                 # Rt_v2
+    fill(0.01, n_Rt),                 # Rt_v3
+))
+
+sampler = adaptive_mh(vcv_init)
+
+initial = reshape(true_theta, n_pars, 1)
+samples = sample(posterior, sampler, 3000;
+    initial=initial, n_chains=1, n_burnin=500, seed=42)</code></pre><pre><code class="nohighlight hljs">Odin.MontySamples([0.3003276262481722 0.3003276262481722 … 0.2987568705007241 0.2987568705007241; 0.005016538692474207 0.005016538692474207 … 0.005147366684948783 0.005147366684948783; … ; 1.0968638561689361 1.0968638561689361 … 1.0976224226637812 1.0976224226637812; 1.0049873890432082 1.0049873890432082 … 1.009778738352336 1.009778738352336;;;], [-821.5120222532977; -821.5120222532977; … ; -831.1853070560694; -831.1853070560694;;], [0.3; 0.005; … ; 1.1; 1.0;;], [&quot;rho&quot;, &quot;ifr&quot;, &quot;Rt_v1_1&quot;, &quot;Rt_v1_2&quot;, &quot;Rt_v1_3&quot;, &quot;Rt_v1_4&quot;, &quot;Rt_v1_5&quot;, &quot;Rt_v1_6&quot;, &quot;Rt_v1_7&quot;, &quot;Rt_v1_8&quot;  …  &quot;Rt_v2_7&quot;, &quot;Rt_v2_8&quot;, &quot;Rt_v3_1&quot;, &quot;Rt_v3_2&quot;, &quot;Rt_v3_3&quot;, &quot;Rt_v3_4&quot;, &quot;Rt_v3_5&quot;, &quot;Rt_v3_6&quot;, &quot;Rt_v3_7&quot;, &quot;Rt_v3_8&quot;], Dict{Symbol, Any}(:acceptance_rate =&gt; [0.25966666666666666]))</code></pre><h2 id="Posterior-Analysis"><a class="docs-heading-anchor" href="#Posterior-Analysis">Posterior Analysis</a><a id="Posterior-Analysis-1"></a><a class="docs-heading-anchor-permalink" href="#Posterior-Analysis" title="Permalink"></a></h2><h3 id="Recovered-Rt-trajectories"><a class="docs-heading-anchor" href="#Recovered-Rt-trajectories">Recovered Rt trajectories</a><a id="Recovered-Rt-trajectories-1"></a><a class="docs-heading-anchor-permalink" href="#Recovered-Rt-trajectories" title="Permalink"></a></h3><p>The main output of interest is the posterior distribution of Rt over time for each region. We extract the Rt values at each time point and visualise the posterior uncertainty:</p><pre><code class="language-julia hljs"># Extract Rt posterior samples (after packer ordering: rho, ifr, Rt_v1[1:8], Rt_v2[1:8], Rt_v3[1:8])
+rho_post = samples.pars[1, :, 1]
+ifr_post = samples.pars[2, :, 1]
+Rt1_post = samples.pars[3:10, :, 1]   # 8 × n_samples
+Rt2_post = samples.pars[11:18, :, 1]
+Rt3_post = samples.pars[19:26, :, 1]</code></pre><pre><code class="nohighlight hljs">8×2500 Matrix{Float64}:
+ 0.997501  0.997501  0.997613  0.997613  …  1.00794   1.008     1.008
+ 1.19637   1.19637   1.19607   1.19607      1.20031   1.19993   1.19993
+ 1.49974   1.49974   1.50004   1.50004      1.50875   1.5084    1.5084
+ 1.2962    1.2962    1.29568   1.29568      1.29657   1.2969    1.2969
+ 0.894238  0.894238  0.894514  0.894514     0.892725  0.892682  0.892682
+ 1.00237   1.00237   1.00235   1.00235   …  1.00401   1.0038    1.0038
+ 1.09686   1.09686   1.09712   1.09712      1.09742   1.09762   1.09762
+ 1.00499   1.00499   1.00545   1.00545      1.00991   1.00978   1.00978</code></pre><pre><code class="language-julia hljs">function rt_ribbon!(p, times, Rt_post, true_vals; color, label)
+    med = [median(Rt_post[k, :]) for k in 1:size(Rt_post, 1)]
+    lo  = [quantile(Rt_post[k, :], 0.025) for k in 1:size(Rt_post, 1)]
+    hi  = [quantile(Rt_post[k, :], 0.975) for k in 1:size(Rt_post, 1)]
+    plot!(p, times, med, ribbon=(med .- lo, hi .- med),
+          fillalpha=0.2, lw=2, color=color, label=label)
+    scatter!(p, times, true_vals, ms=5, color=color,
+             markerstrokecolor=:white, label=nothing)
+end
+
+p_rt_post = plot(xlabel=&quot;Day&quot;, ylabel=&quot;Rt&quot;,
+                 title=&quot;Posterior Rt Trajectories (median + 95% CrI)&quot;,
+                 legend=:topright, size=(800, 400))
+rt_ribbon!(p_rt_post, Rt_times, Rt1_post, Rt_region1,
+           color=:steelblue, label=&quot;Region 1 (Urban)&quot;)
+rt_ribbon!(p_rt_post, Rt_times, Rt2_post, Rt_region2,
+           color=:orange, label=&quot;Region 2 (Suburban)&quot;)
+rt_ribbon!(p_rt_post, Rt_times, Rt3_post, Rt_region3,
+           color=:green, label=&quot;Region 3 (Rural)&quot;)
+hline!(p_rt_post, [1.0], ls=:dash, color=:gray, label=&quot;Rt = 1&quot;)
+p_rt_post</code></pre><p><img src="../19_sarscov2_multiregion_files/figure-commonmark/cell-19-output-1.svg" alt/></p><p>The dots show the true Rt values used to generate the data. The credible intervals should encompass the truth at most time points, demonstrating that the MCMC has successfully recovered the heterogeneous regional dynamics.</p><h3 id="Shared-parameter-posteriors"><a class="docs-heading-anchor" href="#Shared-parameter-posteriors">Shared parameter posteriors</a><a id="Shared-parameter-posteriors-1"></a><a class="docs-heading-anchor-permalink" href="#Shared-parameter-posteriors" title="Permalink"></a></h3><pre><code class="language-julia hljs">function summarise(name, vals, truth)
+    m  = round(mean(vals), sigdigits=3)
+    lo = round(quantile(vals, 0.025), sigdigits=3)
+    hi = round(quantile(vals, 0.975), sigdigits=3)
+    println(&quot;  $name: $m [$lo, $hi]  (true=$truth)&quot;)
+end
+
+println(&quot;Shared parameters:&quot;)
+summarise(&quot;ρ (reporting)&quot;, rho_post, 0.3)
+summarise(&quot;IFR&quot;, ifr_post, 0.005)</code></pre><pre><code class="nohighlight hljs">Shared parameters:
+  ρ (reporting): 0.298 [0.297, 0.3]  (true=0.3)
+  IFR: 0.00512 [0.00502, 0.00522]  (true=0.005)</code></pre><pre><code class="language-julia hljs">p1 = histogram(rho_post, bins=40, normalize=true, alpha=0.6,
+               xlabel=&quot;ρ&quot;, ylabel=&quot;Density&quot;,
+               title=&quot;Posterior: Reporting Rate&quot;, label=&quot;&quot;)
+vline!(p1, [0.3], color=:red, lw=2, label=&quot;True&quot;)
+
+p2 = histogram(ifr_post, bins=40, normalize=true, alpha=0.6,
+               xlabel=&quot;IFR&quot;, ylabel=&quot;Density&quot;,
+               title=&quot;Posterior: Infection Fatality Rate&quot;, label=&quot;&quot;)
+vline!(p2, [0.005], color=:red, lw=2, label=&quot;True&quot;)
+
+plot(p1, p2, layout=(1, 2), size=(800, 300))</code></pre><p><img src="../19_sarscov2_multiregion_files/figure-commonmark/cell-21-output-1.svg" alt/></p><h3 id="Posterior-predictive-check"><a class="docs-heading-anchor" href="#Posterior-predictive-check">Posterior predictive check</a><a id="Posterior-predictive-check-1"></a><a class="docs-heading-anchor-permalink" href="#Posterior-predictive-check" title="Permalink"></a></h3><p>We draw parameter sets from the posterior and simulate forward to compare the model predictions against observed data:</p><pre><code class="language-julia hljs">n_proj = 100
+proj_times = collect(0.0:1.0:365.0)
+n_t = length(proj_times)
+I_traj = zeros(n_proj, n_t, n_regions)
+
+Random.seed!(10)
+n_total = size(samples.pars, 2)
+idx = rand(1:n_total, n_proj)
+
+for j in 1:n_proj
+    pars_j = packer(samples.pars[:, idx[j], 1])
+    r = simulate(seird_regions, pars_j; times=proj_times, seed=j)
+    for i in 1:n_regions
+        I_traj[j, :, i] = r[I_idx[i], 1, :]
+    end
+end</code></pre><pre><code class="language-julia hljs">p_ppc = plot(xlabel=&quot;Day&quot;, ylabel=&quot;Infectious (I)&quot;,
+             title=&quot;Posterior Predictive: Infectious by Region&quot;,
+             legend=:topright, size=(800, 400))
+
+for i in 1:n_regions
+    med = [median(I_traj[:, k, i]) for k in 1:n_t]
+    lo  = [quantile(I_traj[:, k, i], 0.025) for k in 1:n_t]
+    hi  = [quantile(I_traj[:, k, i], 0.975) for k in 1:n_t]
+    plot!(p_ppc, proj_times, med, ribbon=(med .- lo, hi .- med),
+          fillalpha=0.15, lw=2, color=region_colors[i],
+          label=region_names[i])
+end
+
+# Overlay true trajectories
+for i in 1:n_regions
+    plot!(p_ppc, sim_times, result[I_idx[i], 1, :],
+          ls=:dash, lw=1.5, color=region_colors[i], label=nothing)
+end
+p_ppc</code></pre><p><img src="../19_sarscov2_multiregion_files/figure-commonmark/cell-23-output-1.svg" alt/></p><h3 id="Trace-plots"><a class="docs-heading-anchor" href="#Trace-plots">Trace plots</a><a id="Trace-plots-1"></a><a class="docs-heading-anchor-permalink" href="#Trace-plots" title="Permalink"></a></h3><pre><code class="language-julia hljs">p_tr1 = plot(rho_post, ylabel=&quot;ρ&quot;, xlabel=&quot;Iteration&quot;,
+             title=&quot;Trace: Reporting Rate&quot;, label=&quot;&quot;, alpha=0.5)
+hline!(p_tr1, [0.3], color=:red, lw=2, label=&quot;True&quot;)
+
+p_tr2 = plot(Rt1_post[1, :], ylabel=&quot;Rt₁(t=0)&quot;, xlabel=&quot;Iteration&quot;,
+             title=&quot;Trace: Region 1 Rt at t=0&quot;, label=&quot;&quot;, alpha=0.5)
+hline!(p_tr2, [2.5], color=:red, lw=2, label=&quot;True&quot;)
+
+p_tr3 = plot(Rt2_post[3, :], ylabel=&quot;Rt₂(t=60)&quot;, xlabel=&quot;Iteration&quot;,
+             title=&quot;Trace: Region 2 Rt at t=60&quot;, label=&quot;&quot;, alpha=0.5)
+hline!(p_tr3, [2.0], color=:red, lw=2, label=&quot;True&quot;)
+
+plot(p_tr1, p_tr2, p_tr3, layout=(3, 1), size=(700, 600))</code></pre><p><img src="../19_sarscov2_multiregion_files/figure-commonmark/cell-24-output-1.svg" alt/></p><h2 id="The-Role-of-Coupling"><a class="docs-heading-anchor" href="#The-Role-of-Coupling">The Role of Coupling</a><a id="The-Role-of-Coupling-1"></a><a class="docs-heading-anchor-permalink" href="#The-Role-of-Coupling" title="Permalink"></a></h2><p>To see the effect of inter-region coupling, we can compare the fit with and without the coupling term. When coupling is present, infections “leak” between regions, which means:</p><ul><li>The rural region sees cases even when its local Rt is below 1</li><li>The timing of peaks is shifted by importation pressure</li><li>Parameter estimates are subtly different because the coupling redistributes infection across regions</li></ul><pre><code class="language-julia hljs"># Simulate without coupling (epsilon = 0)
+pars_nocoupling = merge(true_pars, (epsilon=0.0,))
+result_nc = simulate(seird_regions, pars_nocoupling;
+                                 times=sim_times, seed=1)
+
+p_coupling = plot(xlabel=&quot;Day&quot;, ylabel=&quot;Infectious (I)&quot;,
+                  title=&quot;Effect of Inter-Region Coupling&quot;,
+                  legend=:topright, size=(800, 400))
+
+for i in 1:n_regions
+    plot!(p_coupling, sim_times, result[I_idx[i], 1, :],
+          lw=2, color=region_colors[i], label=&quot;$(region_names[i]) — coupled&quot;)
+    plot!(p_coupling, sim_times, result_nc[I_idx[i], 1, :],
+          lw=1.5, ls=:dash, color=region_colors[i],
+          label=&quot;$(region_names[i]) — isolated&quot;)
+end
+p_coupling</code></pre><p><img src="../19_sarscov2_multiregion_files/figure-commonmark/cell-25-output-1.svg" alt/></p><h2 id="Summary"><a class="docs-heading-anchor" href="#Summary">Summary</a><a id="Summary-1"></a><a class="docs-heading-anchor-permalink" href="#Summary" title="Permalink"></a></h2><table><tr><th style="text-align: right">Aspect</th><th style="text-align: right">Detail</th></tr><tr><td style="text-align: right"><strong>Model</strong></td><td style="text-align: right">Multi-region SEIRD with time-varying Rt and inter-region coupling</td></tr><tr><td style="text-align: right"><strong>Regions</strong></td><td style="text-align: right">3 (Urban, Suburban, Rural) with different populations and Rt</td></tr><tr><td style="text-align: right"><strong>Time-varying Rt</strong></td><td style="text-align: right">Piecewise linear via <code>interpolate()</code>, one per region</td></tr><tr><td style="text-align: right"><strong>Coupling</strong></td><td style="text-align: right">Pairwise parameters × coupling strength ε</td></tr><tr><td style="text-align: right"><strong>Data</strong></td><td style="text-align: right">Weekly reported cases per region (Poisson)</td></tr><tr><td style="text-align: right"><strong>Inference</strong></td><td style="text-align: right">Deterministic ODE unfilter + adaptive MCMC</td></tr><tr><td style="text-align: right"><strong>Fitted parameters</strong></td><td style="text-align: right">24 Rt values + ρ + IFR = 26 total</td></tr></table><h3 id="Key-takeaways"><a class="docs-heading-anchor" href="#Key-takeaways">Key takeaways</a><a id="Key-takeaways-1"></a><a class="docs-heading-anchor-permalink" href="#Key-takeaways" title="Permalink"></a></h3><ol><li><p><strong>Expanded per-region states avoid DSL array edge cases.</strong> With a  small fixed number of regions, writing <code>S1</code>, <code>E1</code>, <code>I1</code>, etc.  explicitly keeps the model straightforward and avoids complex array  indexing features.</p></li><li><p><strong>Separate interpolation per region</strong> allows each area to have its  own intervention timeline while sharing the same epidemiological  parameters (γ, σ, IFR).</p></li><li><p><strong>Inter-region coupling</strong> captures importation effects that pure  region-specific models miss — especially important for regions with  Rt \&lt; 1 that still experience cases from neighbouring areas.</p></li><li><p><strong>Joint fitting across regions</strong> enables information sharing: the  reporting rate ρ is constrained by data from all three regions  simultaneously, giving tighter posterior estimates than fitting each  region independently.</p></li><li><p><strong>The workflow scales naturally</strong>: the same pattern works for  additional data streams (deaths, serology) and more complex coupling  structures.</p></li></ol><table><tr><th style="text-align: right">Step</th><th style="text-align: right">API</th></tr><tr><td style="text-align: right">Define model</td><td style="text-align: right"><code>@odin begin … end</code> with per-region states and <code>interpolate()</code></td></tr><tr><td style="text-align: right">Prepare data</td><td style="text-align: right"><code>ObservedData([(time=…, cases1=…, …), …])</code></td></tr><tr><td style="text-align: right">Pack parameters</td><td style="text-align: right"><code>Packer([:rho, :ifr]; array=Dict(:Rt_v1 =&gt; 8, …), fixed=…)</code></td></tr><tr><td style="text-align: right">Likelihood</td><td style="text-align: right"><code>Likelihood()</code> → <code>as_model()</code></td></tr><tr><td style="text-align: right">Prior</td><td style="text-align: right"><code>@prior begin … end</code></td></tr><tr><td style="text-align: right">Posterior</td><td style="text-align: right"><code>likelihood + prior</code></td></tr><tr><td style="text-align: right">Sample</td><td style="text-align: right"><code>sample(posterior, sampler, n; …)</code></td></tr></table></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../18_malaria_simple/">« Malaria: Ross-Macdonald</a><a class="docs-footer-nextpage" href="../20_yellowfever/">Yellow Fever SEIRV »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="auto">Automatic (OS)</option><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option><option value="catppuccin-latte">catppuccin-latte</option><option value="catppuccin-frappe">catppuccin-frappe</option><option value="catppuccin-macchiato">catppuccin-macchiato</option><option value="catppuccin-mocha">catppuccin-mocha</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 1.17.0 on <span class="colophon-date" title="Friday 27 March 2026 16:28">Friday 27 March 2026</span>. Using Julia version 1.12.5.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>

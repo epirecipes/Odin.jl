@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width, initial-scale=1.0"/><title>Beta Blocks · Odin.jl</title><meta name="title" content="Beta Blocks · Odin.jl"/><meta property="og:title" content="Beta Blocks · Odin.jl"/><meta property="twitter:title" content="Beta Blocks · Odin.jl"/><meta name="description" content="Documentation for Odin.jl."/><meta property="og:description" content="Documentation for Odin.jl."/><meta property="twitter:description" content="Documentation for Odin.jl."/><script data-outdated-warner src="../../assets/warner.js"></script><link href="https://cdnjs.cloudflare.com/ajax/libs/lato-font/3.0.0/css/lato-font.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/juliamono/0.050/juliamono.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/fontawesome.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/solid.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/brands.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.8/katex.min.css" rel="stylesheet" type="text/css"/><script>documenterBaseURL="../.."</script><script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.6/require.min.js" data-main="../../assets/documenter.js"></script><script src="../../search_index.js"></script><script src="../../siteinfo.js"></script><script src="../../../versions.js"></script><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/catppuccin-mocha.css" data-theme-name="catppuccin-mocha"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/catppuccin-macchiato.css" data-theme-name="catppuccin-macchiato"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/catppuccin-frappe.css" data-theme-name="catppuccin-frappe"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/catppuccin-latte.css" data-theme-name="catppuccin-latte"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/documenter-dark.css" data-theme-name="documenter-dark" data-theme-primary-dark/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/documenter-light.css" data-theme-name="documenter-light" data-theme-primary/><script src="../../assets/themeswap.js"></script></head><body><div id="documenter"><nav class="docs-sidebar"><div class="docs-package-name"><span class="docs-autofit"><a href="../../">Odin.jl</a></span></div><button class="docs-search-query input is-rounded is-small is-clickable my-2 mx-auto py-1 px-2" id="documenter-search-query">Search docs (Ctrl + /)</button><ul class="docs-menu"><li><a class="tocitem" href="../../">Home</a></li><li><a class="tocitem" href="../../getting_started/">Getting Started</a></li><li><span class="tocitem">Guide</span><ul><li><a class="tocitem" href="../../dsl/">DSL Reference</a></li><li><a class="tocitem" href="../../simulation/">Simulation</a></li><li><a class="tocitem" href="../../filtering/">Filtering &amp; Likelihood</a></li><li><a class="tocitem" href="../../inference/">Inference</a></li><li><a class="tocitem" href="../../solvers/">ODE Solvers</a></li><li><a class="tocitem" href="../../gpu/">GPU Acceleration</a></li><li><a class="tocitem" href="../../categorical/">Categorical Models</a></li></ul></li><li><span class="tocitem">Vignettes</span><ul><li><input class="collapse-toggle" id="menuitem-4-1" type="checkbox"/><label class="tocitem" for="menuitem-4-1"><span class="docs-label">Basics</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../01_basic_ode/">Basic ODE Model: SIR</a></li><li><a class="tocitem" href="../02_stochastic/">Stochastic Discrete-Time SIR</a></li><li><a class="tocitem" href="../03_observations/">Incidence Tracking with zero_every</a></li><li><a class="tocitem" href="../04_arrays/">Age-Structured SIR with Arrays</a></li><li><a class="tocitem" href="../05_particle_filter/">Particle Filter and Likelihood</a></li><li><a class="tocitem" href="../06_inference/">Bayesian Inference with MCMC</a></li></ul></li><li><input class="collapse-toggle" id="menuitem-4-2" type="checkbox"/><label class="tocitem" for="menuitem-4-2"><span class="docs-label">Intermediate</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../07_categorical/">Compositional Model Building</a></li><li><a class="tocitem" href="../08_time_varying/">Time-Varying Parameters</a></li><li><a class="tocitem" href="../09_advanced/">SEIR with Vaccination and Waning</a></li><li><a class="tocitem" href="../10_projections/">Counterfactual Projections</a></li><li><a class="tocitem" href="../11_delay_model/">Delay Compartments</a></li><li><a class="tocitem" href="../12_reactive_policy/">Reactive Vaccination Policy</a></li><li><a class="tocitem" href="../13_dynamicppl/">DynamicPPL Integration</a></li><li><a class="tocitem" href="../14_delay_vaccination/">SEIR with Delay and Vaccination</a></li><li><a class="tocitem" href="../15_vector_borne/">Vector-Borne Disease Dynamics</a></li></ul></li><li><input class="collapse-toggle" id="menuitem-4-3" type="checkbox" checked/><label class="tocitem" for="menuitem-4-3"><span class="docs-label">Advanced Models</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../16_multi_stream/">Multi-Stream Outbreak</a></li><li><a class="tocitem" href="../17_mpox_seir/">Mpox SEIR: Age-Structured</a></li><li><a class="tocitem" href="../18_malaria_simple/">Malaria: Ross-Macdonald</a></li><li><a class="tocitem" href="../19_sarscov2_multiregion/">SARS-CoV-2 Multi-Region</a></li><li><a class="tocitem" href="../20_yellowfever/">Yellow Fever SEIRV</a></li><li><a class="tocitem" href="../21_school_closure/">SIS with School Closure</a></li><li class="is-active"><a class="tocitem" href>Beta Blocks</a><ul class="internal"><li><a class="tocitem" href="#Introduction"><span>Introduction</span></a></li><li><a class="tocitem" href="#Model-Definition"><span>Model Definition</span></a></li><li><a class="tocitem" href="#Simulation-Scenario"><span>Simulation Scenario</span></a></li><li><a class="tocitem" href="#Visualising-the-Simulation"><span>Visualising the Simulation</span></a></li><li><a class="tocitem" href="#Generate-Synthetic-Case-Data"><span>Generate Synthetic Case Data</span></a></li><li><a class="tocitem" href="#Inference-Setup"><span>Inference Setup</span></a></li><li><a class="tocitem" href="#Run-MCMC"><span>Run MCMC</span></a></li><li><a class="tocitem" href="#Results"><span>Results</span></a></li><li><a class="tocitem" href="#Benchmark"><span>Benchmark</span></a></li><li><a class="tocitem" href="#Summary"><span>Summary</span></a></li></ul></li><li><a class="tocitem" href="../23_orov/">OROV Vector-Borne</a></li><li><a class="tocitem" href="../24_yf_delay/">Yellow Fever with Erlang Delay</a></li><li><a class="tocitem" href="../25_yf_vtrack/">Yellow Fever 2-Track Vaccination</a></li><li><a class="tocitem" href="../26_fitting_workflow/">Complete Fitting Workflow</a></li><li><a class="tocitem" href="../27_spatial_composition/">Spatial Composition</a></li><li><a class="tocitem" href="../28_stratification/">Age Stratification</a></li><li><a class="tocitem" href="../29_multi_pathogen/">Multi-Pathogen Composition</a></li></ul></li><li><input class="collapse-toggle" id="menuitem-4-4" type="checkbox"/><label class="tocitem" for="menuitem-4-4"><span class="docs-label">Techniques</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../30_stiff_ode/">Stiff ODEs: SDIRK4 Solver</a></li><li><a class="tocitem" href="../31_gpu_filter/">GPU-Accelerated Filtering</a></li><li><a class="tocitem" href="../32_advanced_samplers/">Advanced MCMC Samplers</a></li><li><a class="tocitem" href="../33_sensitivity/">Sensitivity Analysis</a></li><li><a class="tocitem" href="../34_events/">Event Handling</a></li><li><a class="tocitem" href="../35_sde/">Stochastic Differential Equations</a></li><li><a class="tocitem" href="../36_model_selection/">Model Selection</a></li><li><a class="tocitem" href="../37_model_validation/">Model Validation</a></li></ul></li></ul></li><li><a class="tocitem" href="../../api/">API Reference</a></li></ul><div class="docs-version-selector field has-addons"><div class="control"><span class="docs-label button is-static is-size-7">Version</span></div><div class="docs-selector control is-expanded"><div class="select is-fullwidth is-size-7"><select id="documenter-version-selector"></select></div></div></div></nav><div class="docs-main"><header class="docs-navbar"><a class="docs-sidebar-button docs-navbar-link fa-solid fa-bars is-hidden-desktop" id="documenter-sidebar-button" href="#"></a><nav class="breadcrumb"><ul class="is-hidden-mobile"><li><a class="is-disabled">Vignettes</a></li><li><a class="is-disabled">Advanced Models</a></li><li class="is-active"><a href>Beta Blocks</a></li></ul><ul class="is-hidden-tablet"><li class="is-active"><a href>Beta Blocks</a></li></ul></nav><div class="docs-right"><a class="docs-navbar-link" href="https://github.com/epirecipes/Odin.jl" title="View the repository on GitHub"><span class="docs-icon fa-brands"></span><span class="docs-label is-hidden-touch">GitHub</span></a><a class="docs-settings-button docs-navbar-link fa-solid fa-gear" id="documenter-settings-button" href="#" title="Settings"></a><a class="docs-article-toggle-button fa-solid fa-chevron-up" id="documenter-article-toggle-button" href="javascript:;" title="Collapse all docstrings"></a></div></header><article class="content" id="documenter-page"><h1 id="Piecewise-Constant-Transmission-Rate-(Beta-Blocks)"><a class="docs-heading-anchor" href="#Piecewise-Constant-Transmission-Rate-(Beta-Blocks)">Piecewise-Constant Transmission Rate (Beta Blocks)</a><a id="Piecewise-Constant-Transmission-Rate-(Beta-Blocks)-1"></a><a class="docs-heading-anchor-permalink" href="#Piecewise-Constant-Transmission-Rate-(Beta-Blocks)" title="Permalink"></a></h1><h2 id="Introduction"><a class="docs-heading-anchor" href="#Introduction">Introduction</a><a id="Introduction-1"></a><a class="docs-heading-anchor-permalink" href="#Introduction" title="Permalink"></a></h2><p>Many infectious disease outbreaks exhibit time-varying transmission due to seasonality, interventions, or behavioural changes. A common and practical approach is to model the transmission rate β as a <strong>piecewise-constant</strong> (step) function over predefined time intervals — often called “beta blocks”.</p><p>This vignette demonstrates:</p><ol><li>Defining a <strong>deterministic</strong> discrete-time SIR model with  piecewise-constant β via <code>interpolate()</code></li><li>Simulating an epidemic with seasonal β changes</li><li>Generating synthetic Poisson-observed case data</li><li>Fitting the model with <strong>MCMC</strong> (random-walk Metropolis) to recover  the β values from data</li><li>Visualising posterior distributions and model fit</li></ol><p>The model is <em>deterministic</em> — new infections are computed as <code>S * p_SI</code> (a continuous quantity) rather than drawn from <code>Binomial(S, p_SI)</code>. This makes the state evolution reproducible and the likelihood exact with a single particle, which is ideal for fast inference.</p><pre><code class="language-julia hljs">using Odin
+using Distributions
+using Plots
+using Statistics
+using Random
+using LinearAlgebra: diagm</code></pre><h2 id="Model-Definition"><a class="docs-heading-anchor" href="#Model-Definition">Model Definition</a><a id="Model-Definition-1"></a><a class="docs-heading-anchor-permalink" href="#Model-Definition" title="Permalink"></a></h2><p>The model tracks susceptible (S), infectious (I), and daily incidence. The transmission rate β is a step function defined by breakpoint times and corresponding values.</p><pre><code class="language-julia hljs">sir_beta_blocks = @odin begin
+    # State updates (deterministic)
+    update(S) = S - new_inf
+    update(I) = I + new_inf - new_rec
+    initial(S) = N - I0
+    initial(I) = I0
+
+    # Incidence resets each integer time step
+    initial(incidence, zero_every = 1) = 0
+    update(incidence) = new_inf
+
+    # Deterministic transition probabilities
+    p_SI = 1 - exp(-beta_t * I / N * dt)
+    p_IR = 1 - exp(-gamma * dt)
+    new_inf = S * p_SI
+    new_rec = I * p_IR
+
+    # Piecewise-constant transmission rate
+    beta_times = parameter(rank = 1)
+    beta_values = parameter(rank = 1)
+    beta_t = interpolate(beta_times, beta_values, :constant)
+
+    # Fixed parameters
+    N = parameter()
+    I0 = parameter()
+    gamma = parameter()
+
+    # Data comparison: observed cases ~ Poisson(incidence)
+    cases = data()
+    cases ~ Poisson(incidence + 1e-6)
+end</code></pre><pre><code class="nohighlight hljs">Odin.DustSystemGenerator{var&quot;##OdinModel#277&quot;}(var&quot;##OdinModel#277&quot;(3, [:S, :I, :incidence], [:beta_times, :beta_values, :N, :I0, :gamma], false, false, true, false, true, Dict{Symbol, Array}()))</code></pre><h2 id="Simulation-Scenario"><a class="docs-heading-anchor" href="#Simulation-Scenario">Simulation Scenario</a><a id="Simulation-Scenario-1"></a><a class="docs-heading-anchor-permalink" href="#Simulation-Scenario" title="Permalink"></a></h2><p>We define four seasonal β blocks over one year (365 days):</p><table><tr><th style="text-align: right">Period</th><th style="text-align: right">Days</th><th style="text-align: right">β</th><th style="text-align: right">Interpretation</th></tr><tr><td style="text-align: right">Winter</td><td style="text-align: right">0–89</td><td style="text-align: right">0.4</td><td style="text-align: right">Moderate transmission</td></tr><tr><td style="text-align: right">Spring</td><td style="text-align: right">90–179</td><td style="text-align: right">0.2</td><td style="text-align: right">Low transmission</td></tr><tr><td style="text-align: right">Summer</td><td style="text-align: right">180–269</td><td style="text-align: right">0.3</td><td style="text-align: right">Rising transmission</td></tr><tr><td style="text-align: right">Autumn</td><td style="text-align: right">270–364</td><td style="text-align: right">0.5</td><td style="text-align: right">High transmission</td></tr></table><pre><code class="language-julia hljs">true_beta_times = [0.0, 90.0, 180.0, 270.0]
+true_beta_values = [0.4, 0.2, 0.3, 0.5]
+
+true_pars = (
+    beta_times = true_beta_times,
+    beta_values = true_beta_values,
+    N = 10000.0,
+    I0 = 10.0,
+    gamma = 0.1,
+)
+
+times = collect(0.0:1.0:365.0)
+result = simulate(sir_beta_blocks, true_pars;
+    times = times, dt = 1.0, seed = 1, n_particles = 1)</code></pre><pre><code class="nohighlight hljs">3×1×366 Array{Float64, 3}:
+[:, :, 1] =
+ 9990.0
+   10.0
+    0.0
+
+[:, :, 2] =
+ 9986.00479909345
+   13.043575086908714
+    3.99520090654912
+
+[:, :, 3] =
+ 9980.796029894445
+   17.011084002602374
+    5.208769199005726
+
+;;; … 
+
+[:, :, 364] =
+ 160.72376932557108
+   1.9804412473600367e-10
+   1.7487044472359757e-12
+
+[:, :, 365] =
+ 160.7237693255695
+   1.8078584362417422e-10
+   1.5881091408571441e-12
+
+[:, :, 366] =
+ 160.72376932556804
+   1.6502715371975984e-10
+   1.4453577574092968e-12</code></pre><h2 id="Visualising-the-Simulation"><a class="docs-heading-anchor" href="#Visualising-the-Simulation">Visualising the Simulation</a><a id="Visualising-the-Simulation-1"></a><a class="docs-heading-anchor-permalink" href="#Visualising-the-Simulation" title="Permalink"></a></h2><pre><code class="language-julia hljs">p1 = plot(times, result[1, 1, :], label = &quot;S&quot;, lw = 2, color = :blue)
+plot!(p1, times, result[2, 1, :], label = &quot;I&quot;, lw = 2, color = :red)
+vline!(p1, [90, 180, 270], ls = :dash, color = :gray, label = &quot;β changes&quot;)
+xlabel!(p1, &quot;Day&quot;)
+ylabel!(p1, &quot;Population&quot;)
+title!(p1, &quot;Deterministic SIR with Beta Blocks&quot;)
+
+# Transmission rate profile
+beta_plot_times = 0.0:1.0:365.0
+beta_profile = [t &lt; 90 ? 0.4 : t &lt; 180 ? 0.2 : t &lt; 270 ? 0.3 : 0.5
+                for t in beta_plot_times]
+p2 = plot(collect(beta_plot_times), beta_profile,
+    lw = 2, color = :darkgreen, label = &quot;β(t)&quot;,
+    xlabel = &quot;Day&quot;, ylabel = &quot;β&quot;, title = &quot;Transmission Rate&quot;)
+
+plot(p1, p2, layout = (2, 1), size = (800, 500))</code></pre><p><img src="../22_beta_blocks_files/figure-commonmark/cell-5-output-1.svg" alt/></p><h2 id="Generate-Synthetic-Case-Data"><a class="docs-heading-anchor" href="#Generate-Synthetic-Case-Data">Generate Synthetic Case Data</a><a id="Generate-Synthetic-Case-Data-1"></a><a class="docs-heading-anchor-permalink" href="#Generate-Synthetic-Case-Data" title="Permalink"></a></h2><p>We add Poisson observation noise to the deterministic incidence to create realistic case counts.</p><pre><code class="language-julia hljs">Random.seed!(42)
+true_incidence = result[3, 1, 2:end]  # incidence at times 1..365
+observed_cases = [rand(Poisson(max(inc, 1e-6))) for inc in true_incidence]
+
+p_cases = bar(1:365, observed_cases,
+    alpha = 0.6, color = :steelblue, label = &quot;Observed cases&quot;,
+    xlabel = &quot;Day&quot;, ylabel = &quot;Cases&quot;, title = &quot;Synthetic Epidemic Data&quot;)
+plot!(p_cases, 1:365, true_incidence,
+    lw = 2, color = :red, label = &quot;True incidence&quot;)
+vline!(p_cases, [90, 180, 270], ls = :dash, color = :gray, label = &quot;β changes&quot;)
+p_cases</code></pre><p><img src="../22_beta_blocks_files/figure-commonmark/cell-6-output-1.svg" alt/></p><h2 id="Inference-Setup"><a class="docs-heading-anchor" href="#Inference-Setup">Inference Setup</a><a id="Inference-Setup-1"></a><a class="docs-heading-anchor-permalink" href="#Inference-Setup" title="Permalink"></a></h2><p>We fit the four β values while holding all other parameters fixed at their true values.</p><h3 id="Prepare-filter-data"><a class="docs-heading-anchor" href="#Prepare-filter-data">Prepare filter data</a><a id="Prepare-filter-data-1"></a><a class="docs-heading-anchor-permalink" href="#Prepare-filter-data" title="Permalink"></a></h3><pre><code class="language-julia hljs">data = ObservedData(
+    [(time = Float64(t), cases = Float64(c))
+     for (t, c) in zip(times[2:end], observed_cases)]
+)</code></pre><pre><code class="nohighlight hljs">Odin.FilterData{@NamedTuple{cases::Float64}}([1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0, 10.0  …  356.0, 357.0, 358.0, 359.0, 360.0, 361.0, 362.0, 363.0, 364.0, 365.0], [(cases = 4.0,), (cases = 3.0,), (cases = 5.0,), (cases = 11.0,), (cases = 7.0,), (cases = 16.0,), (cases = 23.0,), (cases = 25.0,), (cases = 31.0,), (cases = 40.0,)  …  (cases = 0.0,), (cases = 0.0,), (cases = 0.0,), (cases = 0.0,), (cases = 0.0,), (cases = 0.0,), (cases = 0.0,), (cases = 0.0,), (cases = 0.0,), (cases = 0.0,)])</code></pre><h3 id="Parameter-packer"><a class="docs-heading-anchor" href="#Parameter-packer">Parameter packer</a><a id="Parameter-packer-1"></a><a class="docs-heading-anchor-permalink" href="#Parameter-packer" title="Permalink"></a></h3><p>The packer maps a flat 4-element vector to named β values, and assembles them into the <code>beta_values</code> array that the model expects.</p><pre><code class="language-julia hljs">packer = Packer(
+    [:beta1, :beta2, :beta3, :beta4];
+    fixed = (
+        N = 10000.0,
+        I0 = 10.0,
+        gamma = 0.1,
+        beta_times = [0.0, 90.0, 180.0, 270.0],
+    ),
+    process = nt -&gt; (beta_values = [nt.beta1, nt.beta2, nt.beta3, nt.beta4],),
+)</code></pre><pre><code class="nohighlight hljs">MontyPacker([:beta1, :beta2, :beta3, :beta4], [:beta1, :beta2, :beta3, :beta4], Symbol[], Dict{Symbol, Tuple}(), Dict{Symbol, UnitRange{Int64}}(:beta2 =&gt; 2:2, :beta4 =&gt; 4:4, :beta3 =&gt; 3:3, :beta1 =&gt; 1:1), 4, (N = 10000.0, I0 = 10.0, gamma = 0.1, beta_times = [0.0, 90.0, 180.0, 270.0]), var&quot;#11#12&quot;())</code></pre><h3 id="Likelihood"><a class="docs-heading-anchor" href="#Likelihood">Likelihood</a><a id="Likelihood-1"></a><a class="docs-heading-anchor-permalink" href="#Likelihood" title="Permalink"></a></h3><p>Since the model is deterministic, a single particle gives the exact likelihood — no particle filter variance.</p><pre><code class="language-julia hljs">filter = Likelihood(sir_beta_blocks, data;
+    n_particles = 1, dt = 1.0, seed = 1)
+likelihood = as_model(filter, packer)</code></pre><pre><code class="nohighlight hljs">MontyModel{Odin.var&quot;#dust_likelihood_monty##0#dust_likelihood_monty##1&quot;{DustFilter{var&quot;##OdinModel#277&quot;, Float64, @NamedTuple{cases::Float64}}, MontyPacker}, Nothing, Nothing, Nothing}([&quot;beta1&quot;, &quot;beta2&quot;, &quot;beta3&quot;, &quot;beta4&quot;], Odin.var&quot;#dust_likelihood_monty##0#dust_likelihood_monty##1&quot;{DustFilter{var&quot;##OdinModel#277&quot;, Float64, @NamedTuple{cases::Float64}}, MontyPacker}(DustFilter{var&quot;##OdinModel#277&quot;, Float64, @NamedTuple{cases::Float64}}(Odin.DustSystemGenerator{var&quot;##OdinModel#277&quot;}(var&quot;##OdinModel#277&quot;(3, [:S, :I, :incidence], [:beta_times, :beta_values, :N, :I0, :gamma], false, false, true, false, true, Dict{Symbol, Array}())), Odin.FilterData{@NamedTuple{cases::Float64}}([1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0, 10.0  …  356.0, 357.0, 358.0, 359.0, 360.0, 361.0, 362.0, 363.0, 364.0, 365.0], [(cases = 4.0,), (cases = 3.0,), (cases = 5.0,), (cases = 11.0,), (cases = 7.0,), (cases = 16.0,), (cases = 23.0,), (cases = 25.0,), (cases = 31.0,), (cases = 40.0,)  …  (cases = 0.0,), (cases = 0.0,), (cases = 0.0,), (cases = 0.0,), (cases = 0.0,), (cases = 0.0,), (cases = 0.0,), (cases = 0.0,), (cases = 0.0,), (cases = 0.0,)]), 0.0, 1, 1.0, 1, false, nothing), MontyPacker([:beta1, :beta2, :beta3, :beta4], [:beta1, :beta2, :beta3, :beta4], Symbol[], Dict{Symbol, Tuple}(), Dict{Symbol, UnitRange{Int64}}(:beta2 =&gt; 2:2, :beta4 =&gt; 4:4, :beta3 =&gt; 3:3, :beta1 =&gt; 1:1), 4, (N = 10000.0, I0 = 10.0, gamma = 0.1, beta_times = [0.0, 90.0, 180.0, 270.0]), var&quot;#11#12&quot;())), nothing, nothing, nothing, Odin.MontyModelProperties(false, false, true, false))</code></pre><h3 id="Prior"><a class="docs-heading-anchor" href="#Prior">Prior</a><a id="Prior-1"></a><a class="docs-heading-anchor-permalink" href="#Prior" title="Permalink"></a></h3><p>We place weakly informative Gamma priors on each β value, centred around plausible transmission rates.</p><pre><code class="language-julia hljs">prior = @prior begin
+    beta1 ~ Gamma(4.0, 0.1)
+    beta2 ~ Gamma(4.0, 0.1)
+    beta3 ~ Gamma(4.0, 0.1)
+    beta4 ~ Gamma(4.0, 0.1)
+end</code></pre><pre><code class="nohighlight hljs">MontyModel{var&quot;#16#17&quot;, var&quot;#18#19&quot;{var&quot;#16#17&quot;}, var&quot;#20#21&quot;, Matrix{Float64}}([&quot;beta1&quot;, &quot;beta2&quot;, &quot;beta3&quot;, &quot;beta4&quot;], var&quot;#16#17&quot;(), var&quot;#18#19&quot;{var&quot;#16#17&quot;}(var&quot;#16#17&quot;()), var&quot;#20#21&quot;(), [0.0 Inf; 0.0 Inf; 0.0 Inf; 0.0 Inf], Odin.MontyModelProperties(true, true, false, false))</code></pre><h3 id="Posterior"><a class="docs-heading-anchor" href="#Posterior">Posterior</a><a id="Posterior-1"></a><a class="docs-heading-anchor-permalink" href="#Posterior" title="Permalink"></a></h3><pre><code class="language-julia hljs">posterior = likelihood + prior</code></pre><pre><code class="nohighlight hljs">MontyModel{Odin.var&quot;#monty_model_combine##0#monty_model_combine##1&quot;{MontyModel{Odin.var&quot;#dust_likelihood_monty##0#dust_likelihood_monty##1&quot;{DustFilter{var&quot;##OdinModel#277&quot;, Float64, @NamedTuple{cases::Float64}}, MontyPacker}, Nothing, Nothing, Nothing}, MontyModel{var&quot;#16#17&quot;, var&quot;#18#19&quot;{var&quot;#16#17&quot;}, var&quot;#20#21&quot;, Matrix{Float64}}}, Odin.var&quot;#monty_model_combine##4#monty_model_combine##5&quot;{Odin.var&quot;#monty_model_combine##0#monty_model_combine##1&quot;{MontyModel{Odin.var&quot;#dust_likelihood_monty##0#dust_likelihood_monty##1&quot;{DustFilter{var&quot;##OdinModel#277&quot;, Float64, @NamedTuple{cases::Float64}}, MontyPacker}, Nothing, Nothing, Nothing}, MontyModel{var&quot;#16#17&quot;, var&quot;#18#19&quot;{var&quot;#16#17&quot;}, var&quot;#20#21&quot;, Matrix{Float64}}}}, Nothing, Matrix{Float64}}([&quot;beta1&quot;, &quot;beta2&quot;, &quot;beta3&quot;, &quot;beta4&quot;], Odin.var&quot;#monty_model_combine##0#monty_model_combine##1&quot;{MontyModel{Odin.var&quot;#dust_likelihood_monty##0#dust_likelihood_monty##1&quot;{DustFilter{var&quot;##OdinModel#277&quot;, Float64, @NamedTuple{cases::Float64}}, MontyPacker}, Nothing, Nothing, Nothing}, MontyModel{var&quot;#16#17&quot;, var&quot;#18#19&quot;{var&quot;#16#17&quot;}, var&quot;#20#21&quot;, Matrix{Float64}}}(MontyModel{Odin.var&quot;#dust_likelihood_monty##0#dust_likelihood_monty##1&quot;{DustFilter{var&quot;##OdinModel#277&quot;, Float64, @NamedTuple{cases::Float64}}, MontyPacker}, Nothing, Nothing, Nothing}([&quot;beta1&quot;, &quot;beta2&quot;, &quot;beta3&quot;, &quot;beta4&quot;], Odin.var&quot;#dust_likelihood_monty##0#dust_likelihood_monty##1&quot;{DustFilter{var&quot;##OdinModel#277&quot;, Float64, @NamedTuple{cases::Float64}}, MontyPacker}(DustFilter{var&quot;##OdinModel#277&quot;, Float64, @NamedTuple{cases::Float64}}(Odin.DustSystemGenerator{var&quot;##OdinModel#277&quot;}(var&quot;##OdinModel#277&quot;(3, [:S, :I, :incidence], [:beta_times, :beta_values, :N, :I0, :gamma], false, false, true, false, true, Dict{Symbol, Array}())), Odin.FilterData{@NamedTuple{cases::Float64}}([1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0, 10.0  …  356.0, 357.0, 358.0, 359.0, 360.0, 361.0, 362.0, 363.0, 364.0, 365.0], [(cases = 4.0,), (cases = 3.0,), (cases = 5.0,), (cases = 11.0,), (cases = 7.0,), (cases = 16.0,), (cases = 23.0,), (cases = 25.0,), (cases = 31.0,), (cases = 40.0,)  …  (cases = 0.0,), (cases = 0.0,), (cases = 0.0,), (cases = 0.0,), (cases = 0.0,), (cases = 0.0,), (cases = 0.0,), (cases = 0.0,), (cases = 0.0,), (cases = 0.0,)]), 0.0, 1, 1.0, 1, false, nothing), MontyPacker([:beta1, :beta2, :beta3, :beta4], [:beta1, :beta2, :beta3, :beta4], Symbol[], Dict{Symbol, Tuple}(), Dict{Symbol, UnitRange{Int64}}(:beta2 =&gt; 2:2, :beta4 =&gt; 4:4, :beta3 =&gt; 3:3, :beta1 =&gt; 1:1), 4, (N = 10000.0, I0 = 10.0, gamma = 0.1, beta_times = [0.0, 90.0, 180.0, 270.0]), var&quot;#11#12&quot;())), nothing, nothing, nothing, Odin.MontyModelProperties(false, false, true, false)), MontyModel{var&quot;#16#17&quot;, var&quot;#18#19&quot;{var&quot;#16#17&quot;}, var&quot;#20#21&quot;, Matrix{Float64}}([&quot;beta1&quot;, &quot;beta2&quot;, &quot;beta3&quot;, &quot;beta4&quot;], var&quot;#16#17&quot;(), var&quot;#18#19&quot;{var&quot;#16#17&quot;}(var&quot;#16#17&quot;()), var&quot;#20#21&quot;(), [0.0 Inf; 0.0 Inf; 0.0 Inf; 0.0 Inf], Odin.MontyModelProperties(true, true, false, false))), Odin.var&quot;#monty_model_combine##4#monty_model_combine##5&quot;{Odin.var&quot;#monty_model_combine##0#monty_model_combine##1&quot;{MontyModel{Odin.var&quot;#dust_likelihood_monty##0#dust_likelihood_monty##1&quot;{DustFilter{var&quot;##OdinModel#277&quot;, Float64, @NamedTuple{cases::Float64}}, MontyPacker}, Nothing, Nothing, Nothing}, MontyModel{var&quot;#16#17&quot;, var&quot;#18#19&quot;{var&quot;#16#17&quot;}, var&quot;#20#21&quot;, Matrix{Float64}}}}(Odin.var&quot;#monty_model_combine##0#monty_model_combine##1&quot;{MontyModel{Odin.var&quot;#dust_likelihood_monty##0#dust_likelihood_monty##1&quot;{DustFilter{var&quot;##OdinModel#277&quot;, Float64, @NamedTuple{cases::Float64}}, MontyPacker}, Nothing, Nothing, Nothing}, MontyModel{var&quot;#16#17&quot;, var&quot;#18#19&quot;{var&quot;#16#17&quot;}, var&quot;#20#21&quot;, Matrix{Float64}}}(MontyModel{Odin.var&quot;#dust_likelihood_monty##0#dust_likelihood_monty##1&quot;{DustFilter{var&quot;##OdinModel#277&quot;, Float64, @NamedTuple{cases::Float64}}, MontyPacker}, Nothing, Nothing, Nothing}([&quot;beta1&quot;, &quot;beta2&quot;, &quot;beta3&quot;, &quot;beta4&quot;], Odin.var&quot;#dust_likelihood_monty##0#dust_likelihood_monty##1&quot;{DustFilter{var&quot;##OdinModel#277&quot;, Float64, @NamedTuple{cases::Float64}}, MontyPacker}(DustFilter{var&quot;##OdinModel#277&quot;, Float64, @NamedTuple{cases::Float64}}(Odin.DustSystemGenerator{var&quot;##OdinModel#277&quot;}(var&quot;##OdinModel#277&quot;(3, [:S, :I, :incidence], [:beta_times, :beta_values, :N, :I0, :gamma], false, false, true, false, true, Dict{Symbol, Array}())), Odin.FilterData{@NamedTuple{cases::Float64}}([1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0, 10.0  …  356.0, 357.0, 358.0, 359.0, 360.0, 361.0, 362.0, 363.0, 364.0, 365.0], [(cases = 4.0,), (cases = 3.0,), (cases = 5.0,), (cases = 11.0,), (cases = 7.0,), (cases = 16.0,), (cases = 23.0,), (cases = 25.0,), (cases = 31.0,), (cases = 40.0,)  …  (cases = 0.0,), (cases = 0.0,), (cases = 0.0,), (cases = 0.0,), (cases = 0.0,), (cases = 0.0,), (cases = 0.0,), (cases = 0.0,), (cases = 0.0,), (cases = 0.0,)]), 0.0, 1, 1.0, 1, false, nothing), MontyPacker([:beta1, :beta2, :beta3, :beta4], [:beta1, :beta2, :beta3, :beta4], Symbol[], Dict{Symbol, Tuple}(), Dict{Symbol, UnitRange{Int64}}(:beta2 =&gt; 2:2, :beta4 =&gt; 4:4, :beta3 =&gt; 3:3, :beta1 =&gt; 1:1), 4, (N = 10000.0, I0 = 10.0, gamma = 0.1, beta_times = [0.0, 90.0, 180.0, 270.0]), var&quot;#11#12&quot;())), nothing, nothing, nothing, Odin.MontyModelProperties(false, false, true, false)), MontyModel{var&quot;#16#17&quot;, var&quot;#18#19&quot;{var&quot;#16#17&quot;}, var&quot;#20#21&quot;, Matrix{Float64}}([&quot;beta1&quot;, &quot;beta2&quot;, &quot;beta3&quot;, &quot;beta4&quot;], var&quot;#16#17&quot;(), var&quot;#18#19&quot;{var&quot;#16#17&quot;}(var&quot;#16#17&quot;()), var&quot;#20#21&quot;(), [0.0 Inf; 0.0 Inf; 0.0 Inf; 0.0 Inf], Odin.MontyModelProperties(true, true, false, false)))), nothing, [0.0 Inf; 0.0 Inf; 0.0 Inf; 0.0 Inf], Odin.MontyModelProperties(true, false, true, false))</code></pre><h3 id="Check-likelihood-at-truth"><a class="docs-heading-anchor" href="#Check-likelihood-at-truth">Check likelihood at truth</a><a id="Check-likelihood-at-truth-1"></a><a class="docs-heading-anchor-permalink" href="#Check-likelihood-at-truth" title="Permalink"></a></h3><pre><code class="language-julia hljs">theta_true = [0.4, 0.2, 0.3, 0.5]
+ll_true = likelihood(theta_true)
+println(&quot;Log-likelihood at true parameters: &quot;, round(ll_true, digits = 2))</code></pre><pre><code class="nohighlight hljs">Log-likelihood at true parameters: -231.75</code></pre><h2 id="Run-MCMC"><a class="docs-heading-anchor" href="#Run-MCMC">Run MCMC</a><a id="Run-MCMC-1"></a><a class="docs-heading-anchor-permalink" href="#Run-MCMC" title="Permalink"></a></h2><pre><code class="language-julia hljs">vcv = diagm([0.002, 0.002, 0.002, 0.002])
+sampler = random_walk(vcv)
+
+initial = reshape(theta_true, 4, 1)
+samples = sample(posterior, sampler, 5000;
+    initial = initial, n_chains = 1, n_burnin = 500)</code></pre><pre><code class="nohighlight hljs">Odin.MontySamples([0.4012387449028203 0.4012387449028203 … 0.3993797461617786 0.3993797461617786; 0.46683233200915375 0.46683233200915375 … 0.6473464841337686 0.6473464841337686; 0.25252037981634506 0.25252037981634506 … 0.1616272507242755 0.1616272507242755; 0.5633434318868803 0.5633434318868803 … 0.17252373015672118 0.17252373015672118;;;], [-231.09832489530922; -231.09832489530922; … ; -232.11384721629938; -232.11384721629938;;], [0.4; 0.2; 0.3; 0.5;;], [&quot;beta1&quot;, &quot;beta2&quot;, &quot;beta3&quot;, &quot;beta4&quot;], Dict{Symbol, Any}(:acceptance_rate =&gt; [0.0282]))</code></pre><h2 id="Results"><a class="docs-heading-anchor" href="#Results">Results</a><a id="Results-1"></a><a class="docs-heading-anchor-permalink" href="#Results" title="Permalink"></a></h2><h3 id="Parameter-Recovery"><a class="docs-heading-anchor" href="#Parameter-Recovery">Parameter Recovery</a><a id="Parameter-Recovery-1"></a><a class="docs-heading-anchor-permalink" href="#Parameter-Recovery" title="Permalink"></a></h3><pre><code class="language-julia hljs">par_names = [&quot;β₁ (winter)&quot;, &quot;β₂ (spring)&quot;, &quot;β₃ (summer)&quot;, &quot;β₄ (autumn)&quot;]
+
+println(&quot;Posterior summaries (after burn-in):&quot;)
+for i in 1:4
+    vals = samples.pars[i, :, 1]
+    m = round(mean(vals), digits = 3)
+    lo = round(quantile(vals, 0.025), digits = 3)
+    hi = round(quantile(vals, 0.975), digits = 3)
+    println(&quot;  $(par_names[i]): $m [$lo, $hi]  (true = $(theta_true[i]))&quot;)
+end</code></pre><pre><code class="nohighlight hljs">Posterior summaries (after burn-in):
+  β₁ (winter): 0.4 [0.398, 0.402]  (true = 0.4)
+  β₂ (spring): 0.383 [0.136, 0.633]  (true = 0.2)
+  β₃ (summer): 0.2 [0.063, 0.378]  (true = 0.3)
+  β₄ (autumn): 0.311 [0.145, 0.537]  (true = 0.5)</code></pre><h3 id="Trace-Plots"><a class="docs-heading-anchor" href="#Trace-Plots">Trace Plots</a><a id="Trace-Plots-1"></a><a class="docs-heading-anchor-permalink" href="#Trace-Plots" title="Permalink"></a></h3><pre><code class="language-julia hljs">p_tr = plot(layout = (2, 2), size = (900, 500))
+short_names = [&quot;β₁&quot;, &quot;β₂&quot;, &quot;β₃&quot;, &quot;β₄&quot;]
+for i in 1:4
+    plot!(p_tr, samples.pars[i, :, 1], subplot = i,
+        lw = 0.5, alpha = 0.7, label = nothing, color = :steelblue,
+        xlabel = &quot;Iteration&quot;, ylabel = short_names[i])
+    hline!(p_tr, [theta_true[i]], subplot = i,
+        lw = 2, color = :red, ls = :dash, label = &quot;True&quot;)
+end
+p_tr</code></pre><p><img src="../22_beta_blocks_files/figure-commonmark/cell-15-output-1.svg" alt/></p><h3 id="Posterior-Distributions"><a class="docs-heading-anchor" href="#Posterior-Distributions">Posterior Distributions</a><a id="Posterior-Distributions-1"></a><a class="docs-heading-anchor-permalink" href="#Posterior-Distributions" title="Permalink"></a></h3><pre><code class="language-julia hljs">p_hist = plot(layout = (2, 2), size = (900, 500))
+for i in 1:4
+    histogram!(p_hist, samples.pars[i, :, 1], bins = 40,
+        alpha = 0.6, normalize = true, label = nothing,
+        subplot = i, xlabel = par_names[i], ylabel = &quot;Density&quot;,
+        color = :steelblue)
+    vline!(p_hist, [theta_true[i]], subplot = i,
+        lw = 2, color = :red, label = &quot;True&quot;)
+end
+p_hist</code></pre><p><img src="../22_beta_blocks_files/figure-commonmark/cell-16-output-1.svg" alt/></p><h3 id="Fitted-Transmission-Rate"><a class="docs-heading-anchor" href="#Fitted-Transmission-Rate">Fitted Transmission Rate</a><a id="Fitted-Transmission-Rate-1"></a><a class="docs-heading-anchor-permalink" href="#Fitted-Transmission-Rate" title="Permalink"></a></h3><pre><code class="language-julia hljs">n_draw = 200
+Random.seed!(123)
+n_total = size(samples.pars, 2)
+idx = rand(1:n_total, n_draw)
+
+p_beta = plot(xlabel = &quot;Day&quot;, ylabel = &quot;β&quot;,
+    title = &quot;Posterior Transmission Rate Profile&quot;, legend = :topright)
+for j in 1:n_draw
+    b = samples.pars[:, idx[j], 1]
+    profile = [t &lt; 90 ? b[1] : t &lt; 180 ? b[2] : t &lt; 270 ? b[3] : b[4]
+               for t in 0.0:1.0:364.0]
+    plot!(p_beta, 0:364, profile, alpha = 0.03, color = :steelblue, label = nothing)
+end
+plot!(p_beta, collect(0.0:1.0:364.0), beta_profile[1:365],
+    lw = 3, color = :red, ls = :dash, label = &quot;True β(t)&quot;)
+p_beta</code></pre><p><img src="../22_beta_blocks_files/figure-commonmark/cell-17-output-1.svg" alt/></p><h3 id="Posterior-Predictive-Epidemic-Curve"><a class="docs-heading-anchor" href="#Posterior-Predictive-Epidemic-Curve">Posterior Predictive Epidemic Curve</a><a id="Posterior-Predictive-Epidemic-Curve-1"></a><a class="docs-heading-anchor-permalink" href="#Posterior-Predictive-Epidemic-Curve" title="Permalink"></a></h3><pre><code class="language-julia hljs">pred_inc = zeros(n_draw, 365)
+for j in 1:n_draw
+    b = samples.pars[:, idx[j], 1]
+    pars_j = merge(true_pars, (
+        beta_values = [b[1], b[2], b[3], b[4]],
+    ))
+    r = simulate(sir_beta_blocks, pars_j;
+        times = times, dt = 1.0, seed = 1, n_particles = 1)
+    pred_inc[j, :] = r[3, 1, 2:end]
+end
+
+med_inc = [median(pred_inc[:, k]) for k in 1:365]
+lo_inc = [quantile(pred_inc[:, k], 0.025) for k in 1:365]
+hi_inc = [quantile(pred_inc[:, k], 0.975) for k in 1:365]
+
+p_fit = plot(1:365, med_inc,
+    ribbon = (med_inc .- lo_inc, hi_inc .- med_inc),
+    fillalpha = 0.3, lw = 2, color = :steelblue,
+    label = &quot;Posterior median (95% CI)&quot;,
+    xlabel = &quot;Day&quot;, ylabel = &quot;Incidence&quot;,
+    title = &quot;Posterior Predictive Check&quot;)
+scatter!(p_fit, 1:365, observed_cases,
+    ms = 1.5, alpha = 0.5, color = :gray40, label = &quot;Observed data&quot;)
+vline!(p_fit, [90, 180, 270], ls = :dash, color = :gray, label = &quot;β changes&quot;)
+p_fit</code></pre><p><img src="../22_beta_blocks_files/figure-commonmark/cell-18-output-1.svg" alt/></p><h2 id="Benchmark"><a class="docs-heading-anchor" href="#Benchmark">Benchmark</a><a id="Benchmark-1"></a><a class="docs-heading-anchor-permalink" href="#Benchmark" title="Permalink"></a></h2><pre><code class="language-julia hljs"># Benchmark a single likelihood evaluation
+t_ll = @elapsed for _ in 1:1000
+    likelihood(theta_true)
+end
+println(&quot;Likelihood evaluation: &quot;, round(t_ll / 1000 * 1e6, digits = 1), &quot; μs (mean of 1000 runs)&quot;)
+
+# Benchmark MCMC (short run)
+t_mcmc = @elapsed sample(posterior, sampler, 1000;
+    initial = initial, n_chains = 1, n_burnin = 0)
+println(&quot;MCMC (1000 steps): &quot;, round(t_mcmc, digits = 3), &quot; s&quot;)
+println(&quot;  per step: &quot;, round(t_mcmc / 1000 * 1e3, digits = 2), &quot; ms&quot;)</code></pre><pre><code class="nohighlight hljs">Likelihood evaluation: 62.9 μs (mean of 1000 runs)
+MCMC (1000 steps): 0.062 s
+  per step: 0.06 ms</code></pre><h2 id="Summary"><a class="docs-heading-anchor" href="#Summary">Summary</a><a id="Summary-1"></a><a class="docs-heading-anchor-permalink" href="#Summary" title="Permalink"></a></h2><table><tr><th style="text-align: right">Feature</th><th style="text-align: right">Syntax</th></tr><tr><td style="text-align: right">Deterministic update</td><td style="text-align: right"><code>new_inf = S * p_SI</code> (not <code>Binomial</code>)</td></tr><tr><td style="text-align: right">Piecewise-constant β</td><td style="text-align: right"><code>interpolate(beta_times, beta_values, :constant)</code></td></tr><tr><td style="text-align: right">Incidence tracking</td><td style="text-align: right"><code>initial(incidence, zero_every = 1)</code></td></tr><tr><td style="text-align: right">Poisson observation</td><td style="text-align: right"><code>cases ~ Poisson(incidence + 1e-6)</code></td></tr><tr><td style="text-align: right">Exact likelihood</td><td style="text-align: right"><code>Likelihood(..., n_particles = 1)</code></td></tr><tr><td style="text-align: right">Array via packer</td><td style="text-align: right"><code>process = nt -&gt; (beta_values = [...],)</code></td></tr><tr><td style="text-align: right">Prior</td><td style="text-align: right"><code>@prior begin β ~ Gamma(...) end</code></td></tr><tr><td style="text-align: right">MCMC</td><td style="text-align: right"><code>random_walk(vcv)</code></td></tr></table><h3 id="Key-takeaways"><a class="docs-heading-anchor" href="#Key-takeaways">Key takeaways</a><a id="Key-takeaways-1"></a><a class="docs-heading-anchor-permalink" href="#Key-takeaways" title="Permalink"></a></h3><ol><li><strong>Piecewise-constant β</strong> via <code>interpolate(..., :constant)</code> is a  flexible way to represent time-varying transmission without  specifying a parametric form.</li><li><strong>Deterministic discrete-time models</strong> with <code>n_particles = 1</code> give  exact likelihoods — no particle filter noise.</li><li>The <strong>process function</strong> in <code>monty_packer</code> bridges between scalar  MCMC parameters and the array parameter expected by the model.</li><li>With informative data, MCMC recovers the true β block values and  captures the seasonal pattern.</li></ol></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../21_school_closure/">« SIS with School Closure</a><a class="docs-footer-nextpage" href="../23_orov/">OROV Vector-Borne »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="auto">Automatic (OS)</option><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option><option value="catppuccin-latte">catppuccin-latte</option><option value="catppuccin-frappe">catppuccin-frappe</option><option value="catppuccin-macchiato">catppuccin-macchiato</option><option value="catppuccin-mocha">catppuccin-mocha</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 1.17.0 on <span class="colophon-date" title="Friday 27 March 2026 16:28">Friday 27 March 2026</span>. Using Julia version 1.12.5.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>

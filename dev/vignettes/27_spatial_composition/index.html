@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width, initial-scale=1.0"/><title>Spatial Composition · Odin.jl</title><meta name="title" content="Spatial Composition · Odin.jl"/><meta property="og:title" content="Spatial Composition · Odin.jl"/><meta property="twitter:title" content="Spatial Composition · Odin.jl"/><meta name="description" content="Documentation for Odin.jl."/><meta property="og:description" content="Documentation for Odin.jl."/><meta property="twitter:description" content="Documentation for Odin.jl."/><script data-outdated-warner src="../../assets/warner.js"></script><link href="https://cdnjs.cloudflare.com/ajax/libs/lato-font/3.0.0/css/lato-font.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/juliamono/0.050/juliamono.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/fontawesome.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/solid.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/brands.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.8/katex.min.css" rel="stylesheet" type="text/css"/><script>documenterBaseURL="../.."</script><script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.6/require.min.js" data-main="../../assets/documenter.js"></script><script src="../../search_index.js"></script><script src="../../siteinfo.js"></script><script src="../../../versions.js"></script><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/catppuccin-mocha.css" data-theme-name="catppuccin-mocha"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/catppuccin-macchiato.css" data-theme-name="catppuccin-macchiato"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/catppuccin-frappe.css" data-theme-name="catppuccin-frappe"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/catppuccin-latte.css" data-theme-name="catppuccin-latte"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/documenter-dark.css" data-theme-name="documenter-dark" data-theme-primary-dark/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/documenter-light.css" data-theme-name="documenter-light" data-theme-primary/><script src="../../assets/themeswap.js"></script></head><body><div id="documenter"><nav class="docs-sidebar"><div class="docs-package-name"><span class="docs-autofit"><a href="../../">Odin.jl</a></span></div><button class="docs-search-query input is-rounded is-small is-clickable my-2 mx-auto py-1 px-2" id="documenter-search-query">Search docs (Ctrl + /)</button><ul class="docs-menu"><li><a class="tocitem" href="../../">Home</a></li><li><a class="tocitem" href="../../getting_started/">Getting Started</a></li><li><span class="tocitem">Guide</span><ul><li><a class="tocitem" href="../../dsl/">DSL Reference</a></li><li><a class="tocitem" href="../../simulation/">Simulation</a></li><li><a class="tocitem" href="../../filtering/">Filtering &amp; Likelihood</a></li><li><a class="tocitem" href="../../inference/">Inference</a></li><li><a class="tocitem" href="../../solvers/">ODE Solvers</a></li><li><a class="tocitem" href="../../gpu/">GPU Acceleration</a></li><li><a class="tocitem" href="../../categorical/">Categorical Models</a></li></ul></li><li><span class="tocitem">Vignettes</span><ul><li><input class="collapse-toggle" id="menuitem-4-1" type="checkbox"/><label class="tocitem" for="menuitem-4-1"><span class="docs-label">Basics</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../01_basic_ode/">Basic ODE Model: SIR</a></li><li><a class="tocitem" href="../02_stochastic/">Stochastic Discrete-Time SIR</a></li><li><a class="tocitem" href="../03_observations/">Incidence Tracking with zero_every</a></li><li><a class="tocitem" href="../04_arrays/">Age-Structured SIR with Arrays</a></li><li><a class="tocitem" href="../05_particle_filter/">Particle Filter and Likelihood</a></li><li><a class="tocitem" href="../06_inference/">Bayesian Inference with MCMC</a></li></ul></li><li><input class="collapse-toggle" id="menuitem-4-2" type="checkbox"/><label class="tocitem" for="menuitem-4-2"><span class="docs-label">Intermediate</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../07_categorical/">Compositional Model Building</a></li><li><a class="tocitem" href="../08_time_varying/">Time-Varying Parameters</a></li><li><a class="tocitem" href="../09_advanced/">SEIR with Vaccination and Waning</a></li><li><a class="tocitem" href="../10_projections/">Counterfactual Projections</a></li><li><a class="tocitem" href="../11_delay_model/">Delay Compartments</a></li><li><a class="tocitem" href="../12_reactive_policy/">Reactive Vaccination Policy</a></li><li><a class="tocitem" href="../13_dynamicppl/">DynamicPPL Integration</a></li><li><a class="tocitem" href="../14_delay_vaccination/">SEIR with Delay and Vaccination</a></li><li><a class="tocitem" href="../15_vector_borne/">Vector-Borne Disease Dynamics</a></li></ul></li><li><input class="collapse-toggle" id="menuitem-4-3" type="checkbox" checked/><label class="tocitem" for="menuitem-4-3"><span class="docs-label">Advanced Models</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../16_multi_stream/">Multi-Stream Outbreak</a></li><li><a class="tocitem" href="../17_mpox_seir/">Mpox SEIR: Age-Structured</a></li><li><a class="tocitem" href="../18_malaria_simple/">Malaria: Ross-Macdonald</a></li><li><a class="tocitem" href="../19_sarscov2_multiregion/">SARS-CoV-2 Multi-Region</a></li><li><a class="tocitem" href="../20_yellowfever/">Yellow Fever SEIRV</a></li><li><a class="tocitem" href="../21_school_closure/">SIS with School Closure</a></li><li><a class="tocitem" href="../22_beta_blocks/">Beta Blocks</a></li><li><a class="tocitem" href="../23_orov/">OROV Vector-Borne</a></li><li><a class="tocitem" href="../24_yf_delay/">Yellow Fever with Erlang Delay</a></li><li><a class="tocitem" href="../25_yf_vtrack/">Yellow Fever 2-Track Vaccination</a></li><li><a class="tocitem" href="../26_fitting_workflow/">Complete Fitting Workflow</a></li><li class="is-active"><a class="tocitem" href>Spatial Composition</a><ul class="internal"><li><a class="tocitem" href="#Introduction"><span>Introduction</span></a></li><li><a class="tocitem" href="#Setup"><span>Setup</span></a></li><li><a class="tocitem" href="#A-Single-Patch-SIR"><span>A Single-Patch SIR</span></a></li><li><a class="tocitem" href="#Strategy:-Stratify-for-Patches,-Compose-for-Migration"><span>Strategy: Stratify for Patches, Compose for Migration</span></a></li><li><a class="tocitem" href="#Simulating-the-Ring-Topology"><span>Simulating the Ring Topology</span></a></li><li><a class="tocitem" href="#Star-Topology"><span>Star Topology</span></a></li><li><a class="tocitem" href="#Comparing-Topologies"><span>Comparing Topologies</span></a></li><li><a class="tocitem" href="#Validation:-Manual-3-Patch-Model"><span>Validation: Manual 3-Patch Model</span></a></li><li><a class="tocitem" href="#Stochastic-Spatial-Model"><span>Stochastic Spatial Model</span></a></li><li><a class="tocitem" href="#Summary"><span>Summary</span></a></li></ul></li><li><a class="tocitem" href="../28_stratification/">Age Stratification</a></li><li><a class="tocitem" href="../29_multi_pathogen/">Multi-Pathogen Composition</a></li></ul></li><li><input class="collapse-toggle" id="menuitem-4-4" type="checkbox"/><label class="tocitem" for="menuitem-4-4"><span class="docs-label">Techniques</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../30_stiff_ode/">Stiff ODEs: SDIRK4 Solver</a></li><li><a class="tocitem" href="../31_gpu_filter/">GPU-Accelerated Filtering</a></li><li><a class="tocitem" href="../32_advanced_samplers/">Advanced MCMC Samplers</a></li><li><a class="tocitem" href="../33_sensitivity/">Sensitivity Analysis</a></li><li><a class="tocitem" href="../34_events/">Event Handling</a></li><li><a class="tocitem" href="../35_sde/">Stochastic Differential Equations</a></li><li><a class="tocitem" href="../36_model_selection/">Model Selection</a></li><li><a class="tocitem" href="../37_model_validation/">Model Validation</a></li></ul></li></ul></li><li><a class="tocitem" href="../../api/">API Reference</a></li></ul><div class="docs-version-selector field has-addons"><div class="control"><span class="docs-label button is-static is-size-7">Version</span></div><div class="docs-selector control is-expanded"><div class="select is-fullwidth is-size-7"><select id="documenter-version-selector"></select></div></div></div></nav><div class="docs-main"><header class="docs-navbar"><a class="docs-sidebar-button docs-navbar-link fa-solid fa-bars is-hidden-desktop" id="documenter-sidebar-button" href="#"></a><nav class="breadcrumb"><ul class="is-hidden-mobile"><li><a class="is-disabled">Vignettes</a></li><li><a class="is-disabled">Advanced Models</a></li><li class="is-active"><a href>Spatial Composition</a></li></ul><ul class="is-hidden-tablet"><li class="is-active"><a href>Spatial Composition</a></li></ul></nav><div class="docs-right"><a class="docs-navbar-link" href="https://github.com/epirecipes/Odin.jl" title="View the repository on GitHub"><span class="docs-icon fa-brands"></span><span class="docs-label is-hidden-touch">GitHub</span></a><a class="docs-settings-button docs-navbar-link fa-solid fa-gear" id="documenter-settings-button" href="#" title="Settings"></a><a class="docs-article-toggle-button fa-solid fa-chevron-up" id="documenter-article-toggle-button" href="javascript:;" title="Collapse all docstrings"></a></div></header><article class="content" id="documenter-page"><h1 id="Spatial-Composition"><a class="docs-heading-anchor" href="#Spatial-Composition">Spatial Composition</a><a id="Spatial-Composition-1"></a><a class="docs-heading-anchor-permalink" href="#Spatial-Composition" title="Permalink"></a></h1><h2 id="Introduction"><a class="docs-heading-anchor" href="#Introduction">Introduction</a><a id="Introduction-1"></a><a class="docs-heading-anchor-permalink" href="#Introduction" title="Permalink"></a></h2><p>This vignette demonstrates how to build <strong>spatial (metapopulation) models</strong> using Odin.jl’s categorical extension. Rather than writing a multi-patch model from scratch, we define a single-patch SIR as an <code>EpiNet</code>, replicate it across patches, and wire them together with migration transitions.</p><p>We compare two spatial topologies — <strong>ring</strong> (nearest-neighbour) and <strong>star</strong> (hub-and-spoke) — and validate against a manually-written ODE model.</p><h2 id="Setup"><a class="docs-heading-anchor" href="#Setup">Setup</a><a id="Setup-1"></a><a class="docs-heading-anchor-permalink" href="#Setup" title="Permalink"></a></h2><pre><code class="language-julia hljs">using Odin
+using Plots</code></pre><h2 id="A-Single-Patch-SIR"><a class="docs-heading-anchor" href="#A-Single-Patch-SIR">A Single-Patch SIR</a><a id="A-Single-Patch-SIR-1"></a><a class="docs-heading-anchor-permalink" href="#A-Single-Patch-SIR" title="Permalink"></a></h2><p>We start with the standard SIR Petri net. Each patch will be a copy of this:</p><pre><code class="language-julia hljs">sir_base = SIR(; S0=990.0, I0=10.0, R0=0.0)
+println(&quot;Species: &quot;, species_names(sir_base))
+println(&quot;Transitions: &quot;, transition_names(sir_base))
+println(&quot;Stoichiometry:&quot;)
+display(stoichiometry_matrix(sir_base))</code></pre><pre><code class="nohighlight hljs">Species: [:S, :I, :R]
+Transitions: [:inf, :rec]
+Stoichiometry:
+
+3×2 Matrix{Int64}:
+ -1   0
+  1  -1
+  0   1</code></pre><h2 id="Strategy:-Stratify-for-Patches,-Compose-for-Migration"><a class="docs-heading-anchor" href="#Strategy:-Stratify-for-Patches,-Compose-for-Migration">Strategy: Stratify for Patches, Compose for Migration</a><a id="Strategy:-Stratify-for-Patches,-Compose-for-Migration-1"></a><a class="docs-heading-anchor-permalink" href="#Strategy:-Stratify-for-Patches,-Compose-for-Migration" title="Permalink"></a></h2><p>The categorical approach to spatial modelling has two steps:</p><ol><li><strong>Stratify</strong> the base SIR by patch labels — this creates per-patch  compartments (<code>S_p1</code>, <code>I_p1</code>, etc.)</li><li><strong>Compose</strong> with a migration sub-model — this adds movement  transitions between patches</li></ol><h3 id="Step-1:-Create-a-3-Patch-Model"><a class="docs-heading-anchor" href="#Step-1:-Create-a-3-Patch-Model">Step 1: Create a 3-Patch Model</a><a id="Step-1:-Create-a-3-Patch-Model-1"></a><a class="docs-heading-anchor-permalink" href="#Step-1:-Create-a-3-Patch-Model" title="Permalink"></a></h3><p>We use <code>stratify()</code> with a contact matrix that represents spatial coupling of infection. The contact matrix controls how infectious individuals in one patch contribute to force of infection in another:</p><pre><code class="language-julia hljs">patches = [:p1, :p2, :p3]
+
+# Ring topology: each patch contacts its neighbours
+C_ring = [1.0  0.1  0.1;
+          0.1  1.0  0.1;
+          0.1  0.1  1.0]
+
+sir_ring = stratify(sir_base, patches; contact=C_ring)
+println(&quot;Ring model — $(nspecies(sir_ring)) species, $(ntransitions(sir_ring)) transitions&quot;)
+println(&quot;Species: &quot;, species_names(sir_ring))</code></pre><pre><code class="nohighlight hljs">Ring model — 9 species, 12 transitions
+Species: [:S_p1, :I_p1, :R_p1, :S_p2, :I_p2, :R_p2, :S_p3, :I_p3, :R_p3]</code></pre><h3 id="Step-2:-Add-Migration"><a class="docs-heading-anchor" href="#Step-2:-Add-Migration">Step 2: Add Migration</a><a id="Step-2:-Add-Migration-1"></a><a class="docs-heading-anchor-permalink" href="#Step-2:-Add-Migration" title="Permalink"></a></h3><p>Migration moves susceptibles between patches. We define migration sub-models and compose them with the stratified SIR:</p><pre><code class="language-julia hljs"># Migration sub-model: S moves between adjacent patches
+# In a ring: p1↔p2, p2↔p3, p3↔p1
+function make_migration_net(from::Symbol, to::Symbol, rate::Symbol)
+    s_from = Symbol(:S_, from)
+    s_to = Symbol(:S_, to)
+    t_name = Symbol(:mig_S_, from, :_, to)
+    EpiNet(
+        [s_from =&gt; 0.0, s_to =&gt; 0.0],
+        [t_name =&gt; ([s_from] =&gt; [s_to], rate)]
+    )
+end
+
+# Ring migration: bidirectional between neighbours
+mig_nets = [
+    make_migration_net(:p1, :p2, :mu),
+    make_migration_net(:p2, :p1, :mu),
+    make_migration_net(:p2, :p3, :mu),
+    make_migration_net(:p3, :p2, :mu),
+    make_migration_net(:p3, :p1, :mu),
+    make_migration_net(:p1, :p3, :mu),
+]
+
+# Compose: stratified SIR + all migration sub-models
+sir_spatial_ring = compose(sir_ring, mig_nets...)
+println(&quot;Spatial ring — $(nspecies(sir_spatial_ring)) species, $(ntransitions(sir_spatial_ring)) transitions&quot;)
+println(&quot;Transitions: &quot;, transition_names(sir_spatial_ring))</code></pre><pre><code class="nohighlight hljs">Spatial ring — 9 species, 18 transitions
+Transitions: [:inf_p1_p1, :inf_p1_p2, :inf_p1_p3, :inf_p2_p1, :inf_p2_p2, :inf_p2_p3, :inf_p3_p1, :inf_p3_p2, :inf_p3_p3, :rec_p1, :rec_p2, :rec_p3, :mig_S_p1_p2, :mig_S_p2_p1, :mig_S_p2_p3, :mig_S_p3_p2, :mig_S_p3_p1, :mig_S_p1_p3]</code></pre><h2 id="Simulating-the-Ring-Topology"><a class="docs-heading-anchor" href="#Simulating-the-Ring-Topology">Simulating the Ring Topology</a><a id="Simulating-the-Ring-Topology-1"></a><a class="docs-heading-anchor-permalink" href="#Simulating-the-Ring-Topology" title="Permalink"></a></h2><p>We seed the infection in patch 1 only:</p><pre><code class="language-julia hljs">sir_ring_gen = compile(sir_spatial_ring; mode=:ode, frequency_dependent=true, N=:N,
+                     params=Dict(:beta =&gt; 0.3, :gamma =&gt; 0.1, :mu =&gt; 0.01, :N =&gt; 1000.0))
+
+sys = System(sir_ring_gen, (beta=0.3, gamma=0.1, mu=0.01, N=1000.0))
+
+# Seed infection only in patch 1
+st = state(sys)
+sn = species_names(sir_spatial_ring)
+for (i, name) in enumerate(sn)
+    if name == :S_p1
+        st[i] = 320.0
+    elseif name == :I_p1
+        st[i] = 10.0
+    elseif name in (:S_p2, :S_p3)
+        st[i] = 330.0
+    elseif name in (:I_p2, :I_p3)
+        st[i] = 0.0
+    else
+        st[i] = 0.0
+    end
+end
+Odin.dust_system_set_state!(sys, st)
+
+times = collect(0.0:0.5:300.0)
+result = simulate(sys, times)
+
+p = plot(title=&quot;Ring Topology — Infected by Patch&quot;,
+         xlabel=&quot;Time (days)&quot;, ylabel=&quot;Infected&quot;, linewidth=2)
+colors = [:blue, :red, :green]
+for (i, patch) in enumerate(patches)
+    idx = findfirst(==(Symbol(:I_, patch)), sn)
+    plot!(p, times, result[idx, 1, :], label=string(patch), color=colors[i])
+end
+p</code></pre><p><img src="../27_spatial_composition_files/figure-commonmark/cell-6-output-1.svg" alt/></p><h2 id="Star-Topology"><a class="docs-heading-anchor" href="#Star-Topology">Star Topology</a><a id="Star-Topology-1"></a><a class="docs-heading-anchor-permalink" href="#Star-Topology" title="Permalink"></a></h2><p>Now consider a star topology where patch 1 is a hub connected to patches 2 and 3, which don’t directly connect to each other:</p><pre><code class="language-julia hljs"># Star contact matrix: p1 is hub
+C_star = [1.0  0.2  0.2;
+          0.2  1.0  0.0;
+          0.2  0.0  1.0]
+
+sir_star = stratify(sir_base, patches; contact=C_star)
+
+# Star migration: p1↔p2 and p1↔p3 only
+mig_star = [
+    make_migration_net(:p1, :p2, :mu),
+    make_migration_net(:p2, :p1, :mu),
+    make_migration_net(:p1, :p3, :mu),
+    make_migration_net(:p3, :p1, :mu),
+]
+
+sir_spatial_star = compose(sir_star, mig_star...)
+println(&quot;Spatial star — $(nspecies(sir_spatial_star)) species, $(ntransitions(sir_spatial_star)) transitions&quot;)</code></pre><pre><code class="nohighlight hljs">Spatial star — 9 species, 14 transitions</code></pre><pre><code class="language-julia hljs">sir_star_gen = compile(sir_spatial_star; mode=:ode, frequency_dependent=true, N=:N,
+                     params=Dict(:beta =&gt; 0.3, :gamma =&gt; 0.1, :mu =&gt; 0.01, :N =&gt; 1000.0))
+
+sys_star = System(sir_star_gen, (beta=0.3, gamma=0.1, mu=0.01, N=1000.0))
+
+st_star = state(sys_star)
+sn_star = species_names(sir_spatial_star)
+for (i, name) in enumerate(sn_star)
+    if name == :S_p1
+        st_star[i] = 320.0
+    elseif name == :I_p1
+        st_star[i] = 10.0
+    elseif name in (:S_p2, :S_p3)
+        st_star[i] = 330.0
+    elseif name in (:I_p2, :I_p3)
+        st_star[i] = 0.0
+    else
+        st_star[i] = 0.0
+    end
+end
+Odin.dust_system_set_state!(sys_star, st_star)
+
+result_star = simulate(sys_star, times)
+
+p = plot(title=&quot;Star Topology — Infected by Patch&quot;,
+         xlabel=&quot;Time (days)&quot;, ylabel=&quot;Infected&quot;, linewidth=2)
+for (i, patch) in enumerate(patches)
+    idx = findfirst(==(Symbol(:I_, patch)), sn_star)
+    plot!(p, times, result_star[idx, 1, :], label=string(patch), color=colors[i])
+end
+p</code></pre><p><img src="../27_spatial_composition_files/figure-commonmark/cell-8-output-1.svg" alt/></p><h2 id="Comparing-Topologies"><a class="docs-heading-anchor" href="#Comparing-Topologies">Comparing Topologies</a><a id="Comparing-Topologies-1"></a><a class="docs-heading-anchor-permalink" href="#Comparing-Topologies" title="Permalink"></a></h2><p>We can compare how the two topologies differ in epidemic timing and attack rates:</p><pre><code class="language-julia hljs">p = plot(layout=(1,2), size=(900, 400), title=[&quot;Ring&quot; &quot;Star&quot;])
+
+for (col, res, snames) in [(1, result, sn), (2, result_star, sn_star)]
+    for (i, patch) in enumerate(patches)
+        idx = findfirst(==(Symbol(:I_, patch)), snames)
+        plot!(p, times, res[idx, 1, :], subplot=col,
+              label=string(patch), color=colors[i], linewidth=2,
+              xlabel=&quot;Time&quot;, ylabel=&quot;Infected&quot;)
+    end
+end
+p</code></pre><p><img src="../27_spatial_composition_files/figure-commonmark/cell-9-output-1.svg" alt/></p><pre><code class="language-julia hljs">println(&quot;Peak infection times (days):&quot;)
+for (topo, res, snames) in [(&quot;Ring&quot;, result, sn), (&quot;Star&quot;, result_star, sn_star)]
+    print(&quot;  $topo: &quot;)
+    for patch in patches
+        idx = findfirst(==(Symbol(:I_, patch)), snames)
+        traj = res[idx, 1, :]
+        peak_t = times[argmax(traj)]
+        print(&quot;$(patch)=$(round(peak_t; digits=1))  &quot;)
+    end
+    println()
+end</code></pre><pre><code class="nohighlight hljs">Peak infection times (days):
+  Ring: p1=0.0  p2=90.0  p3=90.0  
+  Star: p1=69.5  p2=75.5  p3=75.5</code></pre><h2 id="Validation:-Manual-3-Patch-Model"><a class="docs-heading-anchor" href="#Validation:-Manual-3-Patch-Model">Validation: Manual 3-Patch Model</a><a id="Validation:-Manual-3-Patch-Model-1"></a><a class="docs-heading-anchor-permalink" href="#Validation:-Manual-3-Patch-Model" title="Permalink"></a></h2><p>We validate the composed model against a manually-written ODE:</p><pre><code class="language-julia hljs">manual_sir3 = @odin begin
+    beta = parameter(0.3)
+    gamma = parameter(0.1)
+    mu = parameter(0.01)
+    N = parameter(1000.0)
+
+    # Patch 1
+    flow_inf_p1 = beta * S_p1 * I_p1 / N
+    flow_rec_p1 = gamma * I_p1
+    deriv(S_p1) = -flow_inf_p1 - mu * S_p1 + mu * S_p2 + mu * S_p3
+    deriv(I_p1) = flow_inf_p1 - flow_rec_p1
+    deriv(R_p1) = flow_rec_p1
+
+    # Patch 2
+    flow_inf_p2 = beta * S_p2 * I_p2 / N
+    flow_rec_p2 = gamma * I_p2
+    deriv(S_p2) = -flow_inf_p2 + mu * S_p1 - mu * S_p2 + mu * S_p3
+    deriv(I_p2) = flow_inf_p2 - flow_rec_p2
+    deriv(R_p2) = flow_rec_p2
+
+    # Patch 3
+    flow_inf_p3 = beta * S_p3 * I_p3 / N
+    flow_rec_p3 = gamma * I_p3
+    deriv(S_p3) = -flow_inf_p3 + mu * S_p1 + mu * S_p2 - mu * S_p3
+    deriv(I_p3) = flow_inf_p3 - flow_rec_p3
+    deriv(R_p3) = flow_rec_p3
+
+    initial(S_p1) = 320.0
+    initial(I_p1) = 10.0
+    initial(R_p1) = 0.0
+    initial(S_p2) = 330.0
+    initial(I_p2) = 0.0
+    initial(R_p2) = 0.0
+    initial(S_p3) = 330.0
+    initial(I_p3) = 0.0
+    initial(R_p3) = 0.0
+end
+
+sys_manual = System(manual_sir3, (beta=0.3, gamma=0.1, mu=0.01, N=1000.0))
+reset!(sys_manual)
+result_manual = simulate(sys_manual, times)
+
+println(&quot;Population conservation check:&quot;)
+for label in [&quot;Composed&quot;, &quot;Manual&quot;]
+    r = label == &quot;Composed&quot; ? result : result_manual
+    total = sum(r[:, 1, end])
+    println(&quot;  $label final total: $(round(total; digits=2))&quot;)
+end</code></pre><pre><code class="nohighlight hljs">Population conservation check:
+  Composed final total: 990.0
+  Manual final total: 7532.05</code></pre><h2 id="Stochastic-Spatial-Model"><a class="docs-heading-anchor" href="#Stochastic-Spatial-Model">Stochastic Spatial Model</a><a id="Stochastic-Spatial-Model-1"></a><a class="docs-heading-anchor-permalink" href="#Stochastic-Spatial-Model" title="Permalink"></a></h2><p>The same network lowers to a stochastic model:</p><pre><code class="language-julia hljs">sir_ring_stoch = compile(sir_spatial_ring; mode=:discrete, frequency_dependent=true, N=:N,
+                       params=Dict(:beta =&gt; 0.3, :gamma =&gt; 0.1, :mu =&gt; 0.01, :N =&gt; 1000.0))
+
+sys_s = System(sir_ring_stoch,
+                           (beta=0.3, gamma=0.1, mu=0.01, N=1000.0);
+                           n_particles=20, dt=0.25, seed=42)
+
+st_s = state(sys_s)
+for (i, name) in enumerate(sn)
+    if name == :S_p1
+        st_s[i, :] .= 320.0
+    elseif name == :I_p1
+        st_s[i, :] .= 10.0
+    elseif name in (:S_p2, :S_p3)
+        st_s[i, :] .= 330.0
+    else
+        st_s[i, :] .= 0.0
+    end
+end
+Odin.dust_system_set_state!(sys_s, st_s)
+
+times_s = collect(0.0:1.0:300.0)
+result_s = simulate(sys_s, times_s)
+
+p = plot(title=&quot;Stochastic Ring — Infected by Patch&quot;,
+         xlabel=&quot;Time&quot;, ylabel=&quot;Infected&quot;)
+for (i, patch) in enumerate(patches)
+    idx = findfirst(==(Symbol(:I_, patch)), sn)
+    for pi in 1:20
+        plot!(p, times_s, result_s[idx, pi, :], alpha=0.15, color=colors[i], label=&quot;&quot;)
+    end
+    mean_traj = vec(sum(result_s[idx, :, :], dims=1) ./ 20)
+    plot!(p, times_s, mean_traj, color=colors[i], linewidth=3, label=string(patch))
+end
+p</code></pre><p><img src="../27_spatial_composition_files/figure-commonmark/cell-12-output-1.svg" alt/></p><h2 id="Summary"><a class="docs-heading-anchor" href="#Summary">Summary</a><a id="Summary-1"></a><a class="docs-heading-anchor-permalink" href="#Summary" title="Permalink"></a></h2><p>The categorical approach to spatial modelling:</p><ol><li><strong>Define once</strong> — a single-patch SIR as an <code>EpiNet</code></li><li><strong>Stratify</strong> — replicate across patch labels with a contact matrix</li><li><strong>Compose</strong> — add migration by composing with movement sub-models</li><li><strong>Lower</strong> — compile to ODE or stochastic model</li></ol><p>Changing topology is as simple as modifying the contact matrix and migration wiring — the base epidemiology is untouched.</p><table><tr><th style="text-align: right">Topology</th><th style="text-align: right">Description</th><th style="text-align: right">Contact pattern</th></tr><tr><td style="text-align: right">Ring</td><td style="text-align: right">All patches connected equally</td><td style="text-align: right">Symmetric off-diagonal</td></tr><tr><td style="text-align: right">Star</td><td style="text-align: right">Hub-and-spoke</td><td style="text-align: right">Hub row/col non-zero</td></tr><tr><td style="text-align: right">Chain</td><td style="text-align: right">Linear</td><td style="text-align: right">Tridiagonal</td></tr></table></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../26_fitting_workflow/">« Complete Fitting Workflow</a><a class="docs-footer-nextpage" href="../28_stratification/">Age Stratification »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="auto">Automatic (OS)</option><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option><option value="catppuccin-latte">catppuccin-latte</option><option value="catppuccin-frappe">catppuccin-frappe</option><option value="catppuccin-macchiato">catppuccin-macchiato</option><option value="catppuccin-mocha">catppuccin-mocha</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 1.17.0 on <span class="colophon-date" title="Friday 27 March 2026 16:28">Friday 27 March 2026</span>. Using Julia version 1.12.5.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>

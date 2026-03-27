@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width, initial-scale=1.0"/><title>Multi-Pathogen Composition · Odin.jl</title><meta name="title" content="Multi-Pathogen Composition · Odin.jl"/><meta property="og:title" content="Multi-Pathogen Composition · Odin.jl"/><meta property="twitter:title" content="Multi-Pathogen Composition · Odin.jl"/><meta name="description" content="Documentation for Odin.jl."/><meta property="og:description" content="Documentation for Odin.jl."/><meta property="twitter:description" content="Documentation for Odin.jl."/><script data-outdated-warner src="../../assets/warner.js"></script><link href="https://cdnjs.cloudflare.com/ajax/libs/lato-font/3.0.0/css/lato-font.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/juliamono/0.050/juliamono.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/fontawesome.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/solid.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/brands.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.8/katex.min.css" rel="stylesheet" type="text/css"/><script>documenterBaseURL="../.."</script><script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.6/require.min.js" data-main="../../assets/documenter.js"></script><script src="../../search_index.js"></script><script src="../../siteinfo.js"></script><script src="../../../versions.js"></script><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/catppuccin-mocha.css" data-theme-name="catppuccin-mocha"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/catppuccin-macchiato.css" data-theme-name="catppuccin-macchiato"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/catppuccin-frappe.css" data-theme-name="catppuccin-frappe"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/catppuccin-latte.css" data-theme-name="catppuccin-latte"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/documenter-dark.css" data-theme-name="documenter-dark" data-theme-primary-dark/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/documenter-light.css" data-theme-name="documenter-light" data-theme-primary/><script src="../../assets/themeswap.js"></script></head><body><div id="documenter"><nav class="docs-sidebar"><div class="docs-package-name"><span class="docs-autofit"><a href="../../">Odin.jl</a></span></div><button class="docs-search-query input is-rounded is-small is-clickable my-2 mx-auto py-1 px-2" id="documenter-search-query">Search docs (Ctrl + /)</button><ul class="docs-menu"><li><a class="tocitem" href="../../">Home</a></li><li><a class="tocitem" href="../../getting_started/">Getting Started</a></li><li><span class="tocitem">Guide</span><ul><li><a class="tocitem" href="../../dsl/">DSL Reference</a></li><li><a class="tocitem" href="../../simulation/">Simulation</a></li><li><a class="tocitem" href="../../filtering/">Filtering &amp; Likelihood</a></li><li><a class="tocitem" href="../../inference/">Inference</a></li><li><a class="tocitem" href="../../solvers/">ODE Solvers</a></li><li><a class="tocitem" href="../../gpu/">GPU Acceleration</a></li><li><a class="tocitem" href="../../categorical/">Categorical Models</a></li></ul></li><li><span class="tocitem">Vignettes</span><ul><li><input class="collapse-toggle" id="menuitem-4-1" type="checkbox"/><label class="tocitem" for="menuitem-4-1"><span class="docs-label">Basics</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../01_basic_ode/">Basic ODE Model: SIR</a></li><li><a class="tocitem" href="../02_stochastic/">Stochastic Discrete-Time SIR</a></li><li><a class="tocitem" href="../03_observations/">Incidence Tracking with zero_every</a></li><li><a class="tocitem" href="../04_arrays/">Age-Structured SIR with Arrays</a></li><li><a class="tocitem" href="../05_particle_filter/">Particle Filter and Likelihood</a></li><li><a class="tocitem" href="../06_inference/">Bayesian Inference with MCMC</a></li></ul></li><li><input class="collapse-toggle" id="menuitem-4-2" type="checkbox"/><label class="tocitem" for="menuitem-4-2"><span class="docs-label">Intermediate</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../07_categorical/">Compositional Model Building</a></li><li><a class="tocitem" href="../08_time_varying/">Time-Varying Parameters</a></li><li><a class="tocitem" href="../09_advanced/">SEIR with Vaccination and Waning</a></li><li><a class="tocitem" href="../10_projections/">Counterfactual Projections</a></li><li><a class="tocitem" href="../11_delay_model/">Delay Compartments</a></li><li><a class="tocitem" href="../12_reactive_policy/">Reactive Vaccination Policy</a></li><li><a class="tocitem" href="../13_dynamicppl/">DynamicPPL Integration</a></li><li><a class="tocitem" href="../14_delay_vaccination/">SEIR with Delay and Vaccination</a></li><li><a class="tocitem" href="../15_vector_borne/">Vector-Borne Disease Dynamics</a></li></ul></li><li><input class="collapse-toggle" id="menuitem-4-3" type="checkbox" checked/><label class="tocitem" for="menuitem-4-3"><span class="docs-label">Advanced Models</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../16_multi_stream/">Multi-Stream Outbreak</a></li><li><a class="tocitem" href="../17_mpox_seir/">Mpox SEIR: Age-Structured</a></li><li><a class="tocitem" href="../18_malaria_simple/">Malaria: Ross-Macdonald</a></li><li><a class="tocitem" href="../19_sarscov2_multiregion/">SARS-CoV-2 Multi-Region</a></li><li><a class="tocitem" href="../20_yellowfever/">Yellow Fever SEIRV</a></li><li><a class="tocitem" href="../21_school_closure/">SIS with School Closure</a></li><li><a class="tocitem" href="../22_beta_blocks/">Beta Blocks</a></li><li><a class="tocitem" href="../23_orov/">OROV Vector-Borne</a></li><li><a class="tocitem" href="../24_yf_delay/">Yellow Fever with Erlang Delay</a></li><li><a class="tocitem" href="../25_yf_vtrack/">Yellow Fever 2-Track Vaccination</a></li><li><a class="tocitem" href="../26_fitting_workflow/">Complete Fitting Workflow</a></li><li><a class="tocitem" href="../27_spatial_composition/">Spatial Composition</a></li><li><a class="tocitem" href="../28_stratification/">Age Stratification</a></li><li class="is-active"><a class="tocitem" href>Multi-Pathogen Composition</a><ul class="internal"><li><a class="tocitem" href="#Introduction"><span>Introduction</span></a></li><li><a class="tocitem" href="#Setup"><span>Setup</span></a></li><li><a class="tocitem" href="#Defining-Individual-Pathogen-Models"><span>Defining Individual Pathogen Models</span></a></li><li><a class="tocitem" href="#Independent-Circulation-(No-Coupling)"><span>Independent Circulation (No Coupling)</span></a></li><li><a class="tocitem" href="#Coupled-Two-Pathogen-Model"><span>Coupled Two-Pathogen Model</span></a></li><li><a class="tocitem" href="#Cross-Immunity-Model"><span>Cross-Immunity Model</span></a></li><li><a class="tocitem" href="#Compositional-Structure-Diagram"><span>Compositional Structure Diagram</span></a></li><li><a class="tocitem" href="#Stochastic-Co-Circulation"><span>Stochastic Co-Circulation</span></a></li><li><a class="tocitem" href="#Summary"><span>Summary</span></a></li></ul></li></ul></li><li><input class="collapse-toggle" id="menuitem-4-4" type="checkbox"/><label class="tocitem" for="menuitem-4-4"><span class="docs-label">Techniques</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../30_stiff_ode/">Stiff ODEs: SDIRK4 Solver</a></li><li><a class="tocitem" href="../31_gpu_filter/">GPU-Accelerated Filtering</a></li><li><a class="tocitem" href="../32_advanced_samplers/">Advanced MCMC Samplers</a></li><li><a class="tocitem" href="../33_sensitivity/">Sensitivity Analysis</a></li><li><a class="tocitem" href="../34_events/">Event Handling</a></li><li><a class="tocitem" href="../35_sde/">Stochastic Differential Equations</a></li><li><a class="tocitem" href="../36_model_selection/">Model Selection</a></li><li><a class="tocitem" href="../37_model_validation/">Model Validation</a></li></ul></li></ul></li><li><a class="tocitem" href="../../api/">API Reference</a></li></ul><div class="docs-version-selector field has-addons"><div class="control"><span class="docs-label button is-static is-size-7">Version</span></div><div class="docs-selector control is-expanded"><div class="select is-fullwidth is-size-7"><select id="documenter-version-selector"></select></div></div></div></nav><div class="docs-main"><header class="docs-navbar"><a class="docs-sidebar-button docs-navbar-link fa-solid fa-bars is-hidden-desktop" id="documenter-sidebar-button" href="#"></a><nav class="breadcrumb"><ul class="is-hidden-mobile"><li><a class="is-disabled">Vignettes</a></li><li><a class="is-disabled">Advanced Models</a></li><li class="is-active"><a href>Multi-Pathogen Composition</a></li></ul><ul class="is-hidden-tablet"><li class="is-active"><a href>Multi-Pathogen Composition</a></li></ul></nav><div class="docs-right"><a class="docs-navbar-link" href="https://github.com/epirecipes/Odin.jl" title="View the repository on GitHub"><span class="docs-icon fa-brands"></span><span class="docs-label is-hidden-touch">GitHub</span></a><a class="docs-settings-button docs-navbar-link fa-solid fa-gear" id="documenter-settings-button" href="#" title="Settings"></a><a class="docs-article-toggle-button fa-solid fa-chevron-up" id="documenter-article-toggle-button" href="javascript:;" title="Collapse all docstrings"></a></div></header><article class="content" id="documenter-page"><h1 id="Multi-Pathogen-Composition"><a class="docs-heading-anchor" href="#Multi-Pathogen-Composition">Multi-Pathogen Composition</a><a id="Multi-Pathogen-Composition-1"></a><a class="docs-heading-anchor-permalink" href="#Multi-Pathogen-Composition" title="Permalink"></a></h1><h2 id="Introduction"><a class="docs-heading-anchor" href="#Introduction">Introduction</a><a id="Introduction-1"></a><a class="docs-heading-anchor-permalink" href="#Introduction" title="Permalink"></a></h2><p>This vignette demonstrates how to compose <strong>two different disease models</strong> sharing a single host population using Odin.jl’s categorical extension. We model the co-circulation of:</p><ul><li><strong>Influenza</strong> (SIR dynamics — epidemic with lasting immunity)</li><li><strong>Chlamydia</strong> (SIS dynamics — endemic, no lasting immunity)</li></ul><p>The two pathogens share a susceptible pool: individuals susceptible to one pathogen may also be susceptible to the other. We then explore a cross-immunity coupling where recovery from one pathogen confers partial protection against the other.</p><h2 id="Setup"><a class="docs-heading-anchor" href="#Setup">Setup</a><a id="Setup-1"></a><a class="docs-heading-anchor-permalink" href="#Setup" title="Permalink"></a></h2><pre><code class="language-julia hljs">using Odin
+using Plots
+using Statistics</code></pre><h2 id="Defining-Individual-Pathogen-Models"><a class="docs-heading-anchor" href="#Defining-Individual-Pathogen-Models">Defining Individual Pathogen Models</a><a id="Defining-Individual-Pathogen-Models-1"></a><a class="docs-heading-anchor-permalink" href="#Defining-Individual-Pathogen-Models" title="Permalink"></a></h2><h3 id="Influenza-(SIR)"><a class="docs-heading-anchor" href="#Influenza-(SIR)">Influenza (SIR)</a><a id="Influenza-(SIR)-1"></a><a class="docs-heading-anchor-permalink" href="#Influenza-(SIR)" title="Permalink"></a></h3><pre><code class="language-julia hljs">flu = EpiNet(
+    [:S_flu =&gt; 900.0, :I_flu =&gt; 10.0, :R_flu =&gt; 0.0],
+    [:inf_flu =&gt; ([:S_flu, :I_flu] =&gt; [:I_flu, :I_flu], :beta_flu),
+     :rec_flu =&gt; ([:I_flu] =&gt; [:R_flu], :gamma_flu)]
+)
+println(&quot;Flu: &quot;, species_names(flu), &quot; — &quot;, transition_names(flu))</code></pre><pre><code class="nohighlight hljs">Flu: [:S_flu, :I_flu, :R_flu] — [:inf_flu, :rec_flu]</code></pre><h3 id="Chlamydia-(SIS)"><a class="docs-heading-anchor" href="#Chlamydia-(SIS)">Chlamydia (SIS)</a><a id="Chlamydia-(SIS)-1"></a><a class="docs-heading-anchor-permalink" href="#Chlamydia-(SIS)" title="Permalink"></a></h3><pre><code class="language-julia hljs">chl = EpiNet(
+    [:S_chl =&gt; 900.0, :I_chl =&gt; 10.0],
+    [:inf_chl =&gt; ([:S_chl, :I_chl] =&gt; [:I_chl, :I_chl], :beta_chl),
+     :rec_chl =&gt; ([:I_chl] =&gt; [:S_chl], :gamma_chl)]
+)
+println(&quot;Chlamydia: &quot;, species_names(chl), &quot; — &quot;, transition_names(chl))</code></pre><pre><code class="nohighlight hljs">Chlamydia: [:S_chl, :I_chl] — [:inf_chl, :rec_chl]</code></pre><h2 id="Independent-Circulation-(No-Coupling)"><a class="docs-heading-anchor" href="#Independent-Circulation-(No-Coupling)">Independent Circulation (No Coupling)</a><a id="Independent-Circulation-(No-Coupling)-1"></a><a class="docs-heading-anchor-permalink" href="#Independent-Circulation-(No-Coupling)" title="Permalink"></a></h2><p>First, simulate each pathogen independently:</p><pre><code class="language-julia hljs"># Flu alone
+flu_gen = compile(flu; mode=:ode, frequency_dependent=true, N=:N,
+                params=Dict(:beta_flu =&gt; 0.4, :gamma_flu =&gt; 0.15, :N =&gt; 1000.0))
+
+sys_flu = System(flu_gen, (beta_flu=0.4, gamma_flu=0.15, N=1000.0))
+reset!(sys_flu)
+times = collect(0.0:0.5:200.0)
+r_flu = simulate(sys_flu, times)
+
+# Chlamydia alone
+chl_gen = compile(chl; mode=:ode, frequency_dependent=true, N=:N,
+                params=Dict(:beta_chl =&gt; 0.3, :gamma_chl =&gt; 0.05, :N =&gt; 1000.0))
+
+sys_chl = System(chl_gen, (beta_chl=0.3, gamma_chl=0.05, N=1000.0))
+reset!(sys_chl)
+r_chl = simulate(sys_chl, times)
+
+p = plot(layout=(1,2), size=(900, 400))
+plot!(p, times, [r_flu[1,1,:] r_flu[2,1,:] r_flu[3,1,:]],
+      subplot=1, label=[&quot;S&quot; &quot;I&quot; &quot;R&quot;],
+      title=&quot;Flu (SIR)&quot;, xlabel=&quot;Time&quot;, ylabel=&quot;Population&quot;, linewidth=2)
+plot!(p, times, [r_chl[1,1,:] r_chl[2,1,:]],
+      subplot=2, label=[&quot;S&quot; &quot;I&quot;],
+      title=&quot;Chlamydia (SIS)&quot;, xlabel=&quot;Time&quot;, ylabel=&quot;Population&quot;, linewidth=2)
+p</code></pre><p><img src="../29_multi_pathogen_files/figure-commonmark/cell-5-output-1.svg" alt/></p><h2 id="Coupled-Two-Pathogen-Model"><a class="docs-heading-anchor" href="#Coupled-Two-Pathogen-Model">Coupled Two-Pathogen Model</a><a id="Coupled-Two-Pathogen-Model-1"></a><a class="docs-heading-anchor-permalink" href="#Coupled-Two-Pathogen-Model" title="Permalink"></a></h2><p>To model co-circulation in a shared population, we need to track the joint infection status. We build a full two-pathogen model manually with <code>@odin</code>, since composition of pathogens sharing the same host requires tracking individuals in all joint states (susceptible to both, infected with flu only, infected with chlamydia only, co-infected, etc.).</p><h3 id="State-Space"><a class="docs-heading-anchor" href="#State-Space">State Space</a><a id="State-Space-1"></a><a class="docs-heading-anchor-permalink" href="#State-Space" title="Permalink"></a></h3><p>The joint states for two pathogens are:</p><table><tr><th style="text-align: right">State</th><th style="text-align: right">Flu status</th><th style="text-align: right">Chlamydia status</th></tr><tr><td style="text-align: right"><code>SS</code></td><td style="text-align: right">Susceptible</td><td style="text-align: right">Susceptible</td></tr><tr><td style="text-align: right"><code>IS</code></td><td style="text-align: right">Infected</td><td style="text-align: right">Susceptible</td></tr><tr><td style="text-align: right"><code>SI</code></td><td style="text-align: right">Susceptible</td><td style="text-align: right">Infected</td></tr><tr><td style="text-align: right"><code>II</code></td><td style="text-align: right">Infected</td><td style="text-align: right">Infected</td></tr><tr><td style="text-align: right"><code>RS</code></td><td style="text-align: right">Recovered</td><td style="text-align: right">Susceptible</td></tr><tr><td style="text-align: right"><code>RI</code></td><td style="text-align: right">Recovered</td><td style="text-align: right">Infected</td></tr></table><p>(We track flu recovery but not chlamydia recovery since SIS returns to susceptible.)</p><pre><code class="language-julia hljs">two_pathogen = @odin begin
+    beta_flu = parameter(0.4)
+    gamma_flu = parameter(0.15)
+    beta_chl = parameter(0.3)
+    gamma_chl = parameter(0.05)
+    N = parameter(1000.0)
+
+    # Total infected with each pathogen (for force of infection)
+    total_I_flu = IS + II
+    total_I_chl = SI + II + RI
+
+    # Forces of infection
+    foi_flu = beta_flu * total_I_flu / N
+    foi_chl = beta_chl * total_I_chl / N
+
+    # SS: susceptible to both
+    deriv(SS) = -foi_flu * SS - foi_chl * SS + gamma_chl * SI
+    # IS: flu-infected, chl-susceptible
+    deriv(IS) = foi_flu * SS - gamma_flu * IS - foi_chl * IS + gamma_chl * II
+    # SI: flu-susceptible, chl-infected
+    deriv(SI) = foi_chl * SS - foi_flu * SI - gamma_chl * SI
+    # II: co-infected
+    deriv(II) = foi_flu * SI + foi_chl * IS - gamma_flu * II - gamma_chl * II
+    # RS: flu-recovered, chl-susceptible
+    deriv(RS) = gamma_flu * IS - foi_chl * RS + gamma_chl * RI
+    # RI: flu-recovered, chl-infected
+    deriv(RI) = gamma_flu * II + foi_chl * RS - gamma_chl * RI
+
+    initial(SS) = 880.0
+    initial(IS) = 5.0
+    initial(SI) = 5.0
+    initial(II) = 0.0
+    initial(RS) = 0.0
+    initial(RI) = 0.0
+end
+
+pars = (beta_flu=0.4, gamma_flu=0.15, beta_chl=0.3, gamma_chl=0.05, N=1000.0)
+sys = System(two_pathogen, pars)
+reset!(sys)
+times = collect(0.0:0.5:300.0)
+result = simulate(sys, times)
+
+sn = [:SS, :IS, :SI, :II, :RS, :RI]</code></pre><pre><code class="nohighlight hljs">6-element Vector{Symbol}:
+ :SS
+ :IS
+ :SI
+ :II
+ :RS
+ :RI</code></pre><h3 id="Marginal-Disease-Prevalence"><a class="docs-heading-anchor" href="#Marginal-Disease-Prevalence">Marginal Disease Prevalence</a><a id="Marginal-Disease-Prevalence-1"></a><a class="docs-heading-anchor-permalink" href="#Marginal-Disease-Prevalence" title="Permalink"></a></h3><pre><code class="language-julia hljs"># Marginal flu prevalence
+flu_infected = result[2, 1, :] .+ result[4, 1, :]   # IS + II
+chl_infected = result[3, 1, :] .+ result[4, 1, :] .+ result[6, 1, :]  # SI + II + RI
+
+p = plot(title=&quot;Co-Circulation: Marginal Prevalence&quot;,
+         xlabel=&quot;Time (days)&quot;, ylabel=&quot;Infected&quot;, linewidth=2)
+plot!(p, times, flu_infected, label=&quot;Flu (SIR)&quot;, color=:red)
+plot!(p, times, chl_infected, label=&quot;Chlamydia (SIS)&quot;, color=:blue)
+p</code></pre><p><img src="../29_multi_pathogen_files/figure-commonmark/cell-7-output-1.svg" alt/></p><h3 id="All-Compartments"><a class="docs-heading-anchor" href="#All-Compartments">All Compartments</a><a id="All-Compartments-1"></a><a class="docs-heading-anchor-permalink" href="#All-Compartments" title="Permalink"></a></h3><pre><code class="language-julia hljs">p = plot(title=&quot;Two-Pathogen Model — All Compartments&quot;,
+         xlabel=&quot;Time (days)&quot;, ylabel=&quot;Population&quot;, linewidth=2)
+for (i, name) in enumerate(sn)
+    plot!(p, times, result[i, 1, :], label=string(name))
+end
+p</code></pre><p><img src="../29_multi_pathogen_files/figure-commonmark/cell-8-output-1.svg" alt/></p><h3 id="Population-Conservation"><a class="docs-heading-anchor" href="#Population-Conservation">Population Conservation</a><a id="Population-Conservation-1"></a><a class="docs-heading-anchor-permalink" href="#Population-Conservation" title="Permalink"></a></h3><pre><code class="language-julia hljs">total = sum(result[:, 1, end])
+println(&quot;Total population at t=300: $(round(total; digits=2)) (expected: 890.0)&quot;)</code></pre><pre><code class="nohighlight hljs">Total population at t=300: 890.0 (expected: 890.0)</code></pre><h2 id="Cross-Immunity-Model"><a class="docs-heading-anchor" href="#Cross-Immunity-Model">Cross-Immunity Model</a><a id="Cross-Immunity-Model-1"></a><a class="docs-heading-anchor-permalink" href="#Cross-Immunity-Model" title="Permalink"></a></h2><p>Now we add cross-immunity: recovery from flu gives partial protection (reduced susceptibility) against chlamydia:</p><pre><code class="language-julia hljs">two_pathogen_xi = @odin begin
+    beta_flu = parameter(0.4)
+    gamma_flu = parameter(0.15)
+    beta_chl = parameter(0.3)
+    gamma_chl = parameter(0.05)
+    sigma = parameter(0.5)   # cross-immunity: 0=full, 1=none
+    N = parameter(1000.0)
+
+    total_I_flu = IS + II
+    total_I_chl = SI + II + RI
+
+    foi_flu = beta_flu * total_I_flu / N
+    foi_chl = beta_chl * total_I_chl / N
+
+    deriv(SS) = -foi_flu * SS - foi_chl * SS + gamma_chl * SI
+    deriv(IS) = foi_flu * SS - gamma_flu * IS - foi_chl * IS + gamma_chl * II
+    deriv(SI) = foi_chl * SS - foi_flu * SI - gamma_chl * SI
+    deriv(II) = foi_flu * SI + foi_chl * IS - gamma_flu * II - gamma_chl * II
+    # Cross-immunity: flu-recovered have reduced chlamydia susceptibility
+    deriv(RS) = gamma_flu * IS - sigma * foi_chl * RS + gamma_chl * RI
+    deriv(RI) = gamma_flu * II + sigma * foi_chl * RS - gamma_chl * RI
+
+    initial(SS) = 880.0
+    initial(IS) = 5.0
+    initial(SI) = 5.0
+    initial(II) = 0.0
+    initial(RS) = 0.0
+    initial(RI) = 0.0
+end</code></pre><pre><code class="nohighlight hljs">Odin.DustSystemGenerator{var&quot;##OdinModel#284&quot;}(var&quot;##OdinModel#284&quot;(6, [:SS, :IS, :SI, :II, :RS, :RI], [:beta_flu, :gamma_flu, :beta_chl, :gamma_chl, :sigma, :N], true, false, false, false, false, Dict{Symbol, Array}()))</code></pre><h3 id="Comparing-Cross-Immunity-Levels"><a class="docs-heading-anchor" href="#Comparing-Cross-Immunity-Levels">Comparing Cross-Immunity Levels</a><a id="Comparing-Cross-Immunity-Levels-1"></a><a class="docs-heading-anchor-permalink" href="#Comparing-Cross-Immunity-Levels" title="Permalink"></a></h3><pre><code class="language-julia hljs">times = collect(0.0:0.5:300.0)
+sigma_values = [1.0, 0.5, 0.1]
+labels = [&quot;σ=1 (no cross-immunity)&quot;, &quot;σ=0.5 (partial)&quot;, &quot;σ=0.1 (strong)&quot;]
+colors_xi = [:red, :orange, :green]
+
+p = plot(title=&quot;Chlamydia Prevalence under Cross-Immunity&quot;,
+         xlabel=&quot;Time (days)&quot;, ylabel=&quot;Chlamydia infected&quot;, linewidth=2)
+
+for (k, sigma) in enumerate(sigma_values)
+    pars_xi = (beta_flu=0.4, gamma_flu=0.15, beta_chl=0.3,
+               gamma_chl=0.05, sigma=sigma, N=1000.0)
+    sys_xi = System(two_pathogen_xi, pars_xi)
+    reset!(sys_xi)
+    r_xi = simulate(sys_xi, times)
+    # Chlamydia infected: SI + II + RI
+    chl = r_xi[3, 1, :] .+ r_xi[4, 1, :] .+ r_xi[6, 1, :]
+    plot!(p, times, chl, label=labels[k], color=colors_xi[k])
+end
+p</code></pre><p><img src="../29_multi_pathogen_files/figure-commonmark/cell-11-output-1.svg" alt/></p><p>Cross-immunity from flu recovery significantly reduces the endemic level of chlamydia, demonstrating an indirect interaction between two otherwise independent pathogens.</p><h2 id="Compositional-Structure-Diagram"><a class="docs-heading-anchor" href="#Compositional-Structure-Diagram">Compositional Structure Diagram</a><a id="Compositional-Structure-Diagram-1"></a><a class="docs-heading-anchor-permalink" href="#Compositional-Structure-Diagram" title="Permalink"></a></h2><p>The two-pathogen model can be understood as the composition of three conceptual sub-models:</p><pre><code class="nohighlight hljs">┌─────────────┐     ┌──────────────┐     ┌──────────────────┐
+│  Flu (SIR)  │     │ Chl (SIS)    │     │ Cross-immunity   │
+│  S→I→R      │ ──▶ │ S→I→S        │ ──▶ │ R_flu reduces    │
+│             │     │              │     │ Chl infection    │
+└─────────────┘     └──────────────┘     └──────────────────┘
+         │                  │                      │
+         └──── Shared population N ────────────────┘</code></pre><p>While the full joint-state model requires manual construction (the product state space is not simply the union of compartments), the categorical <code>compose()</code> function handles the simpler case where pathogens affect disjoint compartment sets:</p><pre><code class="language-julia hljs"># Demonstrate: composing disjoint pathogen models
+flu_disjoint = EpiNet(
+    [:S_flu =&gt; 495.0, :I_flu =&gt; 5.0, :R_flu =&gt; 0.0],
+    [:inf_flu =&gt; ([:S_flu, :I_flu] =&gt; [:I_flu, :I_flu], :beta_flu),
+     :rec_flu =&gt; ([:I_flu] =&gt; [:R_flu], :gamma_flu)]
+)
+
+chl_disjoint = EpiNet(
+    [:S_chl =&gt; 495.0, :I_chl =&gt; 5.0],
+    [:inf_chl =&gt; ([:S_chl, :I_chl] =&gt; [:I_chl, :I_chl], :beta_chl),
+     :rec_chl =&gt; ([:I_chl] =&gt; [:S_chl], :gamma_chl)]
+)
+
+# No shared species → acts as two independent epidemics
+two_independent = compose(flu_disjoint, chl_disjoint)
+println(&quot;Independent composition:&quot;)
+println(&quot;  Species: &quot;, species_names(two_independent))
+println(&quot;  Transitions: &quot;, transition_names(two_independent))
+
+gen_ind = compile(two_independent; mode=:ode, frequency_dependent=true, N=:N,
+                params=Dict(:beta_flu =&gt; 0.4, :gamma_flu =&gt; 0.15,
+                            :beta_chl =&gt; 0.3, :gamma_chl =&gt; 0.05, :N =&gt; 500.0))
+sys_ind = System(gen_ind, (beta_flu=0.4, gamma_flu=0.15,
+                                        beta_chl=0.3, gamma_chl=0.05, N=500.0))
+reset!(sys_ind)
+r_ind = simulate(sys_ind, times)
+
+sn_ind = species_names(two_independent)
+p = plot(title=&quot;Two Independent Pathogens (Composed)&quot;,
+         xlabel=&quot;Time&quot;, ylabel=&quot;Population&quot;, linewidth=2)
+for (i, name) in enumerate(sn_ind)
+    plot!(p, times, r_ind[i, 1, :], label=string(name))
+end
+p</code></pre><pre><code class="nohighlight hljs">Independent composition:
+  Species: [:S_flu, :I_flu, :R_flu, :S_chl, :I_chl]
+  Transitions: [:inf_flu, :rec_flu, :inf_chl, :rec_chl]</code></pre><p><img src="../29_multi_pathogen_files/figure-commonmark/cell-12-output-2.svg" alt/></p><h2 id="Stochastic-Co-Circulation"><a class="docs-heading-anchor" href="#Stochastic-Co-Circulation">Stochastic Co-Circulation</a><a id="Stochastic-Co-Circulation-1"></a><a class="docs-heading-anchor-permalink" href="#Stochastic-Co-Circulation" title="Permalink"></a></h2><pre><code class="language-julia hljs">sys_stoch = System(two_pathogen, pars; n_particles=30, dt=0.25, seed=42)
+reset!(sys_stoch)
+times_s = collect(0.0:1.0:300.0)
+r_stoch = simulate(sys_stoch, times_s)
+
+p = plot(layout=(1,2), size=(900, 400),
+         title=[&quot;Flu Prevalence&quot; &quot;Chlamydia Prevalence&quot;])
+
+for pi in 1:30
+    flu_i = r_stoch[2, pi, :] .+ r_stoch[4, pi, :]
+    chl_i = r_stoch[3, pi, :] .+ r_stoch[4, pi, :] .+ r_stoch[6, pi, :]
+    plot!(p, times_s, flu_i, subplot=1, alpha=0.1, color=:red, label=&quot;&quot;)
+    plot!(p, times_s, chl_i, subplot=2, alpha=0.1, color=:blue, label=&quot;&quot;)
+end
+
+# Mean trajectories
+flu_mean = vec(mean(r_stoch[2, :, :] .+ r_stoch[4, :, :], dims=1))
+chl_mean = vec(mean(r_stoch[3, :, :] .+ r_stoch[4, :, :] .+ r_stoch[6, :, :], dims=1))
+plot!(p, times_s, flu_mean, subplot=1, color=:darkred, linewidth=3,
+      label=&quot;Mean&quot;, xlabel=&quot;Time&quot;, ylabel=&quot;Infected&quot;)
+plot!(p, times_s, chl_mean, subplot=2, color=:darkblue, linewidth=3,
+      label=&quot;Mean&quot;, xlabel=&quot;Time&quot;, ylabel=&quot;Infected&quot;)
+p</code></pre><p><img src="../29_multi_pathogen_files/figure-commonmark/cell-13-output-1.svg" alt/></p><h2 id="Summary"><a class="docs-heading-anchor" href="#Summary">Summary</a><a id="Summary-1"></a><a class="docs-heading-anchor-permalink" href="#Summary" title="Permalink"></a></h2><table><tr><th style="text-align: right">Approach</th><th style="text-align: right">When to use</th><th style="text-align: right"><code>compose()</code> applicable?</th></tr><tr><td style="text-align: right"><strong>Disjoint pathogens</strong></td><td style="text-align: right">Different host species or compartments</td><td style="text-align: right">✅ Yes — no shared species</td></tr><tr><td style="text-align: right"><strong>Shared population</strong></td><td style="text-align: right">Same host, independent dynamics</td><td style="text-align: right">⚠️ Requires joint state space</td></tr><tr><td style="text-align: right"><strong>Cross-immunity</strong></td><td style="text-align: right">Recovery from one affects susceptibility to other</td><td style="text-align: right">⚠️ Requires explicit coupling</td></tr></table><p>The categorical <code>compose()</code> excels at combining disjoint sub-models. For pathogens sharing a host population, the joint state space model must be constructed manually, but the Petri net framework still helps reason about the structure.</p></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../28_stratification/">« Age Stratification</a><a class="docs-footer-nextpage" href="../30_stiff_ode/">Stiff ODEs: SDIRK4 Solver »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="auto">Automatic (OS)</option><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option><option value="catppuccin-latte">catppuccin-latte</option><option value="catppuccin-frappe">catppuccin-frappe</option><option value="catppuccin-macchiato">catppuccin-macchiato</option><option value="catppuccin-mocha">catppuccin-mocha</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 1.17.0 on <span class="colophon-date" title="Friday 27 March 2026 16:28">Friday 27 March 2026</span>. Using Julia version 1.12.5.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>

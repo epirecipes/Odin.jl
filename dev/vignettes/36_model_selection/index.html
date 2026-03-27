@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width, initial-scale=1.0"/><title>Model Selection · Odin.jl</title><meta name="title" content="Model Selection · Odin.jl"/><meta property="og:title" content="Model Selection · Odin.jl"/><meta property="twitter:title" content="Model Selection · Odin.jl"/><meta name="description" content="Documentation for Odin.jl."/><meta property="og:description" content="Documentation for Odin.jl."/><meta property="twitter:description" content="Documentation for Odin.jl."/><script data-outdated-warner src="../../assets/warner.js"></script><link href="https://cdnjs.cloudflare.com/ajax/libs/lato-font/3.0.0/css/lato-font.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/juliamono/0.050/juliamono.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/fontawesome.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/solid.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/brands.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.8/katex.min.css" rel="stylesheet" type="text/css"/><script>documenterBaseURL="../.."</script><script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.6/require.min.js" data-main="../../assets/documenter.js"></script><script src="../../search_index.js"></script><script src="../../siteinfo.js"></script><script src="../../../versions.js"></script><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/catppuccin-mocha.css" data-theme-name="catppuccin-mocha"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/catppuccin-macchiato.css" data-theme-name="catppuccin-macchiato"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/catppuccin-frappe.css" data-theme-name="catppuccin-frappe"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/catppuccin-latte.css" data-theme-name="catppuccin-latte"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/documenter-dark.css" data-theme-name="documenter-dark" data-theme-primary-dark/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/documenter-light.css" data-theme-name="documenter-light" data-theme-primary/><script src="../../assets/themeswap.js"></script></head><body><div id="documenter"><nav class="docs-sidebar"><div class="docs-package-name"><span class="docs-autofit"><a href="../../">Odin.jl</a></span></div><button class="docs-search-query input is-rounded is-small is-clickable my-2 mx-auto py-1 px-2" id="documenter-search-query">Search docs (Ctrl + /)</button><ul class="docs-menu"><li><a class="tocitem" href="../../">Home</a></li><li><a class="tocitem" href="../../getting_started/">Getting Started</a></li><li><span class="tocitem">Guide</span><ul><li><a class="tocitem" href="../../dsl/">DSL Reference</a></li><li><a class="tocitem" href="../../simulation/">Simulation</a></li><li><a class="tocitem" href="../../filtering/">Filtering &amp; Likelihood</a></li><li><a class="tocitem" href="../../inference/">Inference</a></li><li><a class="tocitem" href="../../solvers/">ODE Solvers</a></li><li><a class="tocitem" href="../../gpu/">GPU Acceleration</a></li><li><a class="tocitem" href="../../categorical/">Categorical Models</a></li></ul></li><li><span class="tocitem">Vignettes</span><ul><li><input class="collapse-toggle" id="menuitem-4-1" type="checkbox"/><label class="tocitem" for="menuitem-4-1"><span class="docs-label">Basics</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../01_basic_ode/">Basic ODE Model: SIR</a></li><li><a class="tocitem" href="../02_stochastic/">Stochastic Discrete-Time SIR</a></li><li><a class="tocitem" href="../03_observations/">Incidence Tracking with zero_every</a></li><li><a class="tocitem" href="../04_arrays/">Age-Structured SIR with Arrays</a></li><li><a class="tocitem" href="../05_particle_filter/">Particle Filter and Likelihood</a></li><li><a class="tocitem" href="../06_inference/">Bayesian Inference with MCMC</a></li></ul></li><li><input class="collapse-toggle" id="menuitem-4-2" type="checkbox"/><label class="tocitem" for="menuitem-4-2"><span class="docs-label">Intermediate</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../07_categorical/">Compositional Model Building</a></li><li><a class="tocitem" href="../08_time_varying/">Time-Varying Parameters</a></li><li><a class="tocitem" href="../09_advanced/">SEIR with Vaccination and Waning</a></li><li><a class="tocitem" href="../10_projections/">Counterfactual Projections</a></li><li><a class="tocitem" href="../11_delay_model/">Delay Compartments</a></li><li><a class="tocitem" href="../12_reactive_policy/">Reactive Vaccination Policy</a></li><li><a class="tocitem" href="../13_dynamicppl/">DynamicPPL Integration</a></li><li><a class="tocitem" href="../14_delay_vaccination/">SEIR with Delay and Vaccination</a></li><li><a class="tocitem" href="../15_vector_borne/">Vector-Borne Disease Dynamics</a></li></ul></li><li><input class="collapse-toggle" id="menuitem-4-3" type="checkbox"/><label class="tocitem" for="menuitem-4-3"><span class="docs-label">Advanced Models</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../16_multi_stream/">Multi-Stream Outbreak</a></li><li><a class="tocitem" href="../17_mpox_seir/">Mpox SEIR: Age-Structured</a></li><li><a class="tocitem" href="../18_malaria_simple/">Malaria: Ross-Macdonald</a></li><li><a class="tocitem" href="../19_sarscov2_multiregion/">SARS-CoV-2 Multi-Region</a></li><li><a class="tocitem" href="../20_yellowfever/">Yellow Fever SEIRV</a></li><li><a class="tocitem" href="../21_school_closure/">SIS with School Closure</a></li><li><a class="tocitem" href="../22_beta_blocks/">Beta Blocks</a></li><li><a class="tocitem" href="../23_orov/">OROV Vector-Borne</a></li><li><a class="tocitem" href="../24_yf_delay/">Yellow Fever with Erlang Delay</a></li><li><a class="tocitem" href="../25_yf_vtrack/">Yellow Fever 2-Track Vaccination</a></li><li><a class="tocitem" href="../26_fitting_workflow/">Complete Fitting Workflow</a></li><li><a class="tocitem" href="../27_spatial_composition/">Spatial Composition</a></li><li><a class="tocitem" href="../28_stratification/">Age Stratification</a></li><li><a class="tocitem" href="../29_multi_pathogen/">Multi-Pathogen Composition</a></li></ul></li><li><input class="collapse-toggle" id="menuitem-4-4" type="checkbox" checked/><label class="tocitem" for="menuitem-4-4"><span class="docs-label">Techniques</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../30_stiff_ode/">Stiff ODEs: SDIRK4 Solver</a></li><li><a class="tocitem" href="../31_gpu_filter/">GPU-Accelerated Filtering</a></li><li><a class="tocitem" href="../32_advanced_samplers/">Advanced MCMC Samplers</a></li><li><a class="tocitem" href="../33_sensitivity/">Sensitivity Analysis</a></li><li><a class="tocitem" href="../34_events/">Event Handling</a></li><li><a class="tocitem" href="../35_sde/">Stochastic Differential Equations</a></li><li class="is-active"><a class="tocitem" href>Model Selection</a><ul class="internal"><li><a class="tocitem" href="#Introduction"><span>Introduction</span></a></li><li><a class="tocitem" href="#Define-Competing-Models"><span>Define Competing Models</span></a></li><li><a class="tocitem" href="#Generate-Synthetic-Data"><span>Generate Synthetic Data</span></a></li><li><a class="tocitem" href="#Compute-Log-Likelihoods"><span>Compute Log-Likelihoods</span></a></li><li><a class="tocitem" href="#AIC-and-BIC"><span>AIC and BIC</span></a></li><li><a class="tocitem" href="#Akaike-Weights"><span>Akaike Weights</span></a></li><li><a class="tocitem" href="#WAIC-via-Pointwise-Log-Likelihoods"><span>WAIC via Pointwise Log-Likelihoods</span></a></li><li><a class="tocitem" href="#LOO-CV"><span>LOO-CV</span></a></li><li><a class="tocitem" href="#Model-Comparison-Table"><span>Model Comparison Table</span></a></li><li><a class="tocitem" href="#Guidance-on-Criterion-Choice"><span>Guidance on Criterion Choice</span></a></li><li><a class="tocitem" href="#R-Companion"><span>R Companion</span></a></li></ul></li><li><a class="tocitem" href="../37_model_validation/">Model Validation</a></li></ul></li></ul></li><li><a class="tocitem" href="../../api/">API Reference</a></li></ul><div class="docs-version-selector field has-addons"><div class="control"><span class="docs-label button is-static is-size-7">Version</span></div><div class="docs-selector control is-expanded"><div class="select is-fullwidth is-size-7"><select id="documenter-version-selector"></select></div></div></div></nav><div class="docs-main"><header class="docs-navbar"><a class="docs-sidebar-button docs-navbar-link fa-solid fa-bars is-hidden-desktop" id="documenter-sidebar-button" href="#"></a><nav class="breadcrumb"><ul class="is-hidden-mobile"><li><a class="is-disabled">Vignettes</a></li><li><a class="is-disabled">Techniques</a></li><li class="is-active"><a href>Model Selection</a></li></ul><ul class="is-hidden-tablet"><li class="is-active"><a href>Model Selection</a></li></ul></nav><div class="docs-right"><a class="docs-navbar-link" href="https://github.com/epirecipes/Odin.jl" title="View the repository on GitHub"><span class="docs-icon fa-brands"></span><span class="docs-label is-hidden-touch">GitHub</span></a><a class="docs-settings-button docs-navbar-link fa-solid fa-gear" id="documenter-settings-button" href="#" title="Settings"></a><a class="docs-article-toggle-button fa-solid fa-chevron-up" id="documenter-article-toggle-button" href="javascript:;" title="Collapse all docstrings"></a></div></header><article class="content" id="documenter-page"><h1 id="Model-Selection-and-Comparison"><a class="docs-heading-anchor" href="#Model-Selection-and-Comparison">Model Selection and Comparison</a><a id="Model-Selection-and-Comparison-1"></a><a class="docs-heading-anchor-permalink" href="#Model-Selection-and-Comparison" title="Permalink"></a></h1><h2 id="Introduction"><a class="docs-heading-anchor" href="#Introduction">Introduction</a><a id="Introduction-1"></a><a class="docs-heading-anchor-permalink" href="#Introduction" title="Permalink"></a></h2><p>When fitting multiple candidate models to the same data, we need principled tools to select the best model. This vignette demonstrates how to use Odin.jl’s model selection utilities to compare competing epidemic models using information criteria (AIC, BIC, DIC, WAIC) and leave-one-out cross-validation (LOO-CV).</p><h3 id="When-to-use-each-criterion"><a class="docs-heading-anchor" href="#When-to-use-each-criterion">When to use each criterion</a><a id="When-to-use-each-criterion-1"></a><a class="docs-heading-anchor-permalink" href="#When-to-use-each-criterion" title="Permalink"></a></h3><table><tr><th style="text-align: right">Criterion</th><th style="text-align: right">Best for</th><th style="text-align: right">Requires</th></tr><tr><td style="text-align: right"><strong>AIC/AICc</strong></td><td style="text-align: right">Prediction, small samples</td><td style="text-align: right">Maximum likelihood estimate</td></tr><tr><td style="text-align: right"><strong>BIC</strong></td><td style="text-align: right">Identifying true model</td><td style="text-align: right">Maximum likelihood estimate</td></tr><tr><td style="text-align: right"><strong>DIC</strong></td><td style="text-align: right">Bayesian models (posterior samples)</td><td style="text-align: right">MCMC output</td></tr><tr><td style="text-align: right"><strong>WAIC</strong></td><td style="text-align: right">Bayesian models (fully pointwise)</td><td style="text-align: right">Pointwise log-likelihoods</td></tr><tr><td style="text-align: right"><strong>LOO-CV</strong></td><td style="text-align: right">Robust Bayesian comparison</td><td style="text-align: right">Pointwise log-likelihoods</td></tr></table><h2 id="Define-Competing-Models"><a class="docs-heading-anchor" href="#Define-Competing-Models">Define Competing Models</a><a id="Define-Competing-Models-1"></a><a class="docs-heading-anchor-permalink" href="#Define-Competing-Models" title="Permalink"></a></h2><p>We compare an SIR and an SEIR model fitted to the same outbreak data.</p><h3 id="SIR-Model"><a class="docs-heading-anchor" href="#SIR-Model">SIR Model</a><a id="SIR-Model-1"></a><a class="docs-heading-anchor-permalink" href="#SIR-Model" title="Permalink"></a></h3><pre><code class="language-julia hljs">using Odin
+using Random
+
+sir = @odin begin
+    deriv(S) = -beta * S * I / N
+    deriv(I) = beta * S * I / N - gamma * I
+    deriv(R) = gamma * I
+    initial(S) = N - I0
+    initial(I) = I0
+    initial(R) = 0
+
+    cases = data()
+    cases ~ Poisson(I + 1e-6)
+
+    beta = parameter(0.5)
+    gamma = parameter(0.1)
+    I0 = parameter(10)
+    N = parameter(1000)
+end</code></pre><pre><code class="nohighlight hljs">Odin.DustSystemGenerator{var&quot;##OdinModel#277&quot;}(var&quot;##OdinModel#277&quot;(3, [:S, :I, :R], [:beta, :gamma, :I0, :N], true, false, true, false, false, Dict{Symbol, Array}()))</code></pre><h3 id="SEIR-Model"><a class="docs-heading-anchor" href="#SEIR-Model">SEIR Model</a><a id="SEIR-Model-1"></a><a class="docs-heading-anchor-permalink" href="#SEIR-Model" title="Permalink"></a></h3><pre><code class="language-julia hljs">seir = @odin begin
+    deriv(S) = -beta * S * I / N
+    deriv(E) = beta * S * I / N - sigma * E
+    deriv(I) = sigma * E - gamma * I
+    deriv(R) = gamma * I
+    initial(S) = N - I0
+    initial(E) = 0
+    initial(I) = I0
+    initial(R) = 0
+
+    cases = data()
+    cases ~ Poisson(I + 1e-6)
+
+    beta = parameter(0.8)
+    gamma = parameter(0.1)
+    sigma = parameter(0.2)
+    I0 = parameter(10)
+    N = parameter(1000)
+end</code></pre><pre><code class="nohighlight hljs">Odin.DustSystemGenerator{var&quot;##OdinModel#278&quot;}(var&quot;##OdinModel#278&quot;(4, [:S, :E, :I, :R], [:beta, :gamma, :sigma, :I0, :N], true, false, true, false, false, Dict{Symbol, Array}()))</code></pre><h2 id="Generate-Synthetic-Data"><a class="docs-heading-anchor" href="#Generate-Synthetic-Data">Generate Synthetic Data</a><a id="Generate-Synthetic-Data-1"></a><a class="docs-heading-anchor-permalink" href="#Generate-Synthetic-Data" title="Permalink"></a></h2><p>We generate data from the SIR model so we know the “true” model.</p><pre><code class="language-julia hljs">true_pars = (beta=0.5, gamma=0.1, I0=10.0, N=1000.0)
+times = collect(1.0:1.0:40.0)
+
+sim = simulate(sir, true_pars; times=[0.0; times], dt=0.25)
+observed = [max(1.0, round(sim[2, 1, i+1])) for i in 1:length(times)]
+
+data = ObservedData(
+    [(time=times[i], cases=Float64(observed[i])) for i in 1:length(times)]
+)
+
+println(&quot;Generated $(length(observed)) observations&quot;)
+println(&quot;Peak cases: $(maximum(observed))&quot;)</code></pre><pre><code class="nohighlight hljs">Generated 40 observations
+Peak cases: 479.0</code></pre><h2 id="Compute-Log-Likelihoods"><a class="docs-heading-anchor" href="#Compute-Log-Likelihoods">Compute Log-Likelihoods</a><a id="Compute-Log-Likelihoods-1"></a><a class="docs-heading-anchor-permalink" href="#Compute-Log-Likelihoods" title="Permalink"></a></h2><pre><code class="language-julia hljs"># SIR unfilter
+uf_sir = Likelihood(sir, data; time_start=0.0)
+pars_sir = (beta=0.5, gamma=0.1, I0=10.0, N=1000.0)
+ll_sir = loglik(uf_sir, pars_sir)
+
+# SEIR unfilter
+uf_seir = Likelihood(seir, data; time_start=0.0)
+pars_seir = (beta=0.8, gamma=0.1, sigma=0.2, I0=10.0, N=1000.0)
+ll_seir = loglik(uf_seir, pars_seir)
+
+println(&quot;SIR log-likelihood:  $ll_sir&quot;)
+println(&quot;SEIR log-likelihood: $ll_seir&quot;)</code></pre><pre><code class="nohighlight hljs">SIR log-likelihood:  -139.78791957087182
+SEIR log-likelihood: -3088.9637972232467</code></pre><h2 id="AIC-and-BIC"><a class="docs-heading-anchor" href="#AIC-and-BIC">AIC and BIC</a><a id="AIC-and-BIC-1"></a><a class="docs-heading-anchor-permalink" href="#AIC-and-BIC" title="Permalink"></a></h2><p>AIC and BIC use the maximum log-likelihood and the number of free parameters.</p><pre><code class="language-julia hljs">k_sir = 3   # beta, gamma, I0
+k_seir = 4  # beta, gamma, sigma, I0
+n_obs = length(times)
+
+aic_sir = aic(ll_sir, k_sir)
+aic_seir = aic(ll_seir, k_seir)
+
+bic_sir = bic(ll_sir, k_sir, n_obs)
+bic_seir = bic(ll_seir, k_seir, n_obs)
+
+println(&quot;AIC — SIR: $(round(aic_sir; digits=1)),  SEIR: $(round(aic_seir; digits=1))&quot;)
+println(&quot;BIC — SIR: $(round(bic_sir; digits=1)),  SEIR: $(round(bic_seir; digits=1))&quot;)</code></pre><pre><code class="nohighlight hljs">AIC — SIR: 285.6,  SEIR: 6185.9
+BIC — SIR: 290.6,  SEIR: 6192.7</code></pre><p>For small samples, use the corrected AICc:</p><pre><code class="language-julia hljs">aicc_sir = aicc(ll_sir, k_sir, n_obs)
+aicc_seir = aicc(ll_seir, k_seir, n_obs)
+println(&quot;AICc — SIR: $(round(aicc_sir; digits=1)),  SEIR: $(round(aicc_seir; digits=1))&quot;)</code></pre><pre><code class="nohighlight hljs">AICc — SIR: 286.2,  SEIR: 6187.1</code></pre><h2 id="Akaike-Weights"><a class="docs-heading-anchor" href="#Akaike-Weights">Akaike Weights</a><a id="Akaike-Weights-1"></a><a class="docs-heading-anchor-permalink" href="#Akaike-Weights" title="Permalink"></a></h2><p>Akaike weights convert AIC differences into model probabilities:</p><pre><code class="language-julia hljs">w = akaike_weights([aic_sir, aic_seir])
+println(&quot;Akaike weights — SIR: $(round(w[1]; digits=3)),  SEIR: $(round(w[2]; digits=3))&quot;)</code></pre><pre><code class="nohighlight hljs">Akaike weights — SIR: 1.0,  SEIR: 0.0</code></pre><h2 id="WAIC-via-Pointwise-Log-Likelihoods"><a class="docs-heading-anchor" href="#WAIC-via-Pointwise-Log-Likelihoods">WAIC via Pointwise Log-Likelihoods</a><a id="WAIC-via-Pointwise-Log-Likelihoods-1"></a><a class="docs-heading-anchor-permalink" href="#WAIC-via-Pointwise-Log-Likelihoods" title="Permalink"></a></h2><p>WAIC requires per-observation log-likelihoods across posterior samples. We demonstrate with the unfilter pointwise function:</p><pre><code class="language-julia hljs"># Get pointwise log-likelihoods for different parameter draws
+n_posterior = 200
+rng = Random.MersenneTwister(42)
+
+# Simulate a simple posterior by perturbing around MLEs
+pw_sir = zeros(Float64, n_obs, n_posterior)
+for s in 1:n_posterior
+    p = (beta=0.5 + 0.02*randn(rng), gamma=0.1 + 0.005*randn(rng),
+         I0=10.0 + randn(rng), N=1000.0)
+    pw_sir[:, s] = loglik_pointwise(uf_sir, p)
+end
+
+pw_seir = zeros(Float64, n_obs, n_posterior)
+for s in 1:n_posterior
+    p = (beta=0.8 + 0.02*randn(rng), gamma=0.1 + 0.005*randn(rng),
+         sigma=0.2 + 0.01*randn(rng), I0=10.0 + randn(rng), N=1000.0)
+    pw_seir[:, s] = loglik_pointwise(uf_seir, p)
+end
+
+waic_sir = waic(pw_sir)
+waic_seir = waic(pw_seir)
+println(&quot;WAIC — SIR: $(round(waic_sir.waic; digits=1)),  SEIR: $(round(waic_seir.waic; digits=1))&quot;)
+println(&quot;p_WAIC — SIR: $(round(waic_sir.p_waic; digits=2)),  SEIR: $(round(waic_seir.p_waic; digits=2))&quot;)</code></pre><pre><code class="nohighlight hljs">WAIC — SIR: 504.1,  SEIR: 28418.0
+p_WAIC — SIR: 92.76,  SEIR: 12161.85</code></pre><h2 id="LOO-CV"><a class="docs-heading-anchor" href="#LOO-CV">LOO-CV</a><a id="LOO-CV-1"></a><a class="docs-heading-anchor-permalink" href="#LOO-CV" title="Permalink"></a></h2><p>Pareto-smoothed importance sampling LOO provides a robust alternative:</p><pre><code class="language-julia hljs">loo_sir = loo(pw_sir)
+loo_seir = loo(pw_seir)
+println(&quot;LOO — SIR: $(round(loo_sir.loo; digits=1)),  SEIR: $(round(loo_seir.loo; digits=1))&quot;)
+println(&quot;Max Pareto k — SIR: $(round(maximum(loo_sir.k_diagnostics); digits=2)),  SEIR: $(round(maximum(loo_seir.k_diagnostics); digits=2))&quot;)</code></pre><pre><code class="nohighlight hljs">LOO — SIR: 483.6,  SEIR: 7439.8
+Max Pareto k — SIR: 0.48,  SEIR: 0.49</code></pre><p>A Pareto k \&gt; 0.7 indicates unreliable LOO estimates for that observation.</p><h2 id="Model-Comparison-Table"><a class="docs-heading-anchor" href="#Model-Comparison-Table">Model Comparison Table</a><a id="Model-Comparison-Table-1"></a><a class="docs-heading-anchor-permalink" href="#Model-Comparison-Table" title="Permalink"></a></h2><p>Bring everything together with <code>compare_models</code>:</p><pre><code class="language-julia hljs">mc = compare(;
+    n_observations=n_obs,
+    SIR=(ll=ll_sir, k=k_sir, waic=waic_sir.waic),
+    SEIR=(ll=ll_seir, k=k_seir, waic=waic_seir.waic),
+)
+mc</code></pre><pre><code class="nohighlight hljs">Model Comparison (n_obs = 40)
+──────────────────────────────────────────────────────────────────────────────────────────
+Model              LL    k      AIC     AICc      BIC      DIC     WAIC   w_AIC   w_BIC
+──────────────────────────────────────────────────────────────────────────────────────────
+SIR            -139.8    3    285.6    286.2    290.6        —    504.1     1.0     1.0
+SEIR          -3089.0    4   6185.9   6187.1   6192.7        —  28418.0     0.0     0.0
+──────────────────────────────────────────────────────────────────────────────────────────</code></pre><p>The table is sorted by AIC (best model first) and shows Akaike/BIC weights.</p><h2 id="Guidance-on-Criterion-Choice"><a class="docs-heading-anchor" href="#Guidance-on-Criterion-Choice">Guidance on Criterion Choice</a><a id="Guidance-on-Criterion-Choice-1"></a><a class="docs-heading-anchor-permalink" href="#Guidance-on-Criterion-Choice" title="Permalink"></a></h2><ul><li><strong>AIC/AICc</strong>: Best for predictive accuracy. Use AICc when n/k \&lt; 40.</li><li><strong>BIC</strong>: Consistent — selects the true model as n → ∞. Penalises complexity more heavily than AIC.</li><li><strong>DIC</strong>: Convenient when only MCMC samples are available (no pointwise likelihoods). Can be unreliable for non-Gaussian posteriors.</li><li><strong>WAIC</strong>: Fully Bayesian, uses the entire posterior. More stable than DIC.</li><li><strong>LOO-CV (PSIS-LOO)</strong>: Gold standard for Bayesian model comparison. Pareto k diagnostics flag unreliable estimates.</li></ul><p>In practice, start with AIC/BIC for quick comparison, then use WAIC or LOO-CV for rigorous Bayesian analysis.</p><h2 id="R-Companion"><a class="docs-heading-anchor" href="#R-Companion">R Companion</a><a id="R-Companion-1"></a><a class="docs-heading-anchor-permalink" href="#R-Companion" title="Permalink"></a></h2><p>The equivalent analysis in R uses the <code>loo</code> package for WAIC and LOO-CV, and base R for AIC/BIC:</p><pre><code class="language-r hljs"># AIC / BIC
+AIC_sir &lt;- -2 * ll_sir + 2 * k_sir
+BIC_sir &lt;- -2 * ll_sir + k_sir * log(n_obs)
+
+# WAIC and LOO via the loo package
+library(loo)
+waic_sir &lt;- loo::waic(pointwise_ll_sir)  # n_obs × n_samples matrix
+loo_sir  &lt;- loo::loo(pointwise_ll_sir)
+
+# Compare
+loo::loo_compare(list(sir = loo_sir, seir = loo_seir))</code></pre><p>The <code>loo</code> package (Vehtari, Gabry, Magnusson, Yao, Bürkner, Paananen, Gelman, 2024) provides the most comprehensive R implementation of PSIS-LOO and WAIC.</p></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../35_sde/">« Stochastic Differential Equations</a><a class="docs-footer-nextpage" href="../37_model_validation/">Model Validation »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="auto">Automatic (OS)</option><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option><option value="catppuccin-latte">catppuccin-latte</option><option value="catppuccin-frappe">catppuccin-frappe</option><option value="catppuccin-macchiato">catppuccin-macchiato</option><option value="catppuccin-mocha">catppuccin-mocha</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 1.17.0 on <span class="colophon-date" title="Friday 27 March 2026 16:28">Friday 27 March 2026</span>. Using Julia version 1.12.5.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>

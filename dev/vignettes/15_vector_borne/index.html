@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width, initial-scale=1.0"/><title>Vector-Borne Disease Dynamics · Odin.jl</title><meta name="title" content="Vector-Borne Disease Dynamics · Odin.jl"/><meta property="og:title" content="Vector-Borne Disease Dynamics · Odin.jl"/><meta property="twitter:title" content="Vector-Borne Disease Dynamics · Odin.jl"/><meta name="description" content="Documentation for Odin.jl."/><meta property="og:description" content="Documentation for Odin.jl."/><meta property="twitter:description" content="Documentation for Odin.jl."/><script data-outdated-warner src="../../assets/warner.js"></script><link href="https://cdnjs.cloudflare.com/ajax/libs/lato-font/3.0.0/css/lato-font.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/juliamono/0.050/juliamono.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/fontawesome.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/solid.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/brands.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.8/katex.min.css" rel="stylesheet" type="text/css"/><script>documenterBaseURL="../.."</script><script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.6/require.min.js" data-main="../../assets/documenter.js"></script><script src="../../search_index.js"></script><script src="../../siteinfo.js"></script><script src="../../../versions.js"></script><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/catppuccin-mocha.css" data-theme-name="catppuccin-mocha"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/catppuccin-macchiato.css" data-theme-name="catppuccin-macchiato"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/catppuccin-frappe.css" data-theme-name="catppuccin-frappe"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/catppuccin-latte.css" data-theme-name="catppuccin-latte"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/documenter-dark.css" data-theme-name="documenter-dark" data-theme-primary-dark/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/documenter-light.css" data-theme-name="documenter-light" data-theme-primary/><script src="../../assets/themeswap.js"></script></head><body><div id="documenter"><nav class="docs-sidebar"><div class="docs-package-name"><span class="docs-autofit"><a href="../../">Odin.jl</a></span></div><button class="docs-search-query input is-rounded is-small is-clickable my-2 mx-auto py-1 px-2" id="documenter-search-query">Search docs (Ctrl + /)</button><ul class="docs-menu"><li><a class="tocitem" href="../../">Home</a></li><li><a class="tocitem" href="../../getting_started/">Getting Started</a></li><li><span class="tocitem">Guide</span><ul><li><a class="tocitem" href="../../dsl/">DSL Reference</a></li><li><a class="tocitem" href="../../simulation/">Simulation</a></li><li><a class="tocitem" href="../../filtering/">Filtering &amp; Likelihood</a></li><li><a class="tocitem" href="../../inference/">Inference</a></li><li><a class="tocitem" href="../../solvers/">ODE Solvers</a></li><li><a class="tocitem" href="../../gpu/">GPU Acceleration</a></li><li><a class="tocitem" href="../../categorical/">Categorical Models</a></li></ul></li><li><span class="tocitem">Vignettes</span><ul><li><input class="collapse-toggle" id="menuitem-4-1" type="checkbox"/><label class="tocitem" for="menuitem-4-1"><span class="docs-label">Basics</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../01_basic_ode/">Basic ODE Model: SIR</a></li><li><a class="tocitem" href="../02_stochastic/">Stochastic Discrete-Time SIR</a></li><li><a class="tocitem" href="../03_observations/">Incidence Tracking with zero_every</a></li><li><a class="tocitem" href="../04_arrays/">Age-Structured SIR with Arrays</a></li><li><a class="tocitem" href="../05_particle_filter/">Particle Filter and Likelihood</a></li><li><a class="tocitem" href="../06_inference/">Bayesian Inference with MCMC</a></li></ul></li><li><input class="collapse-toggle" id="menuitem-4-2" type="checkbox" checked/><label class="tocitem" for="menuitem-4-2"><span class="docs-label">Intermediate</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../07_categorical/">Compositional Model Building</a></li><li><a class="tocitem" href="../08_time_varying/">Time-Varying Parameters</a></li><li><a class="tocitem" href="../09_advanced/">SEIR with Vaccination and Waning</a></li><li><a class="tocitem" href="../10_projections/">Counterfactual Projections</a></li><li><a class="tocitem" href="../11_delay_model/">Delay Compartments</a></li><li><a class="tocitem" href="../12_reactive_policy/">Reactive Vaccination Policy</a></li><li><a class="tocitem" href="../13_dynamicppl/">DynamicPPL Integration</a></li><li><a class="tocitem" href="../14_delay_vaccination/">SEIR with Delay and Vaccination</a></li><li class="is-active"><a class="tocitem" href>Vector-Borne Disease Dynamics</a><ul class="internal"><li><a class="tocitem" href="#Introduction"><span>Introduction</span></a></li><li><a class="tocitem" href="#Model-Description"><span>Model Description</span></a></li><li><a class="tocitem" href="#Model-Definition"><span>Model Definition</span></a></li><li><a class="tocitem" href="#Seasonal-Rainfall"><span>Seasonal Rainfall</span></a></li><li><a class="tocitem" href="#Simulation"><span>Simulation</span></a></li><li><a class="tocitem" href="#Derived-Outputs"><span>Derived Outputs</span></a></li><li><a class="tocitem" href="#Scenario-Comparison:-Rainfall-Intensity"><span>Scenario Comparison: Rainfall Intensity</span></a></li><li><a class="tocitem" href="#Intervention:-Bed-Nets"><span>Intervention: Bed Nets</span></a></li><li><a class="tocitem" href="#Summary"><span>Summary</span></a></li></ul></li></ul></li><li><input class="collapse-toggle" id="menuitem-4-3" type="checkbox"/><label class="tocitem" for="menuitem-4-3"><span class="docs-label">Advanced Models</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../16_multi_stream/">Multi-Stream Outbreak</a></li><li><a class="tocitem" href="../17_mpox_seir/">Mpox SEIR: Age-Structured</a></li><li><a class="tocitem" href="../18_malaria_simple/">Malaria: Ross-Macdonald</a></li><li><a class="tocitem" href="../19_sarscov2_multiregion/">SARS-CoV-2 Multi-Region</a></li><li><a class="tocitem" href="../20_yellowfever/">Yellow Fever SEIRV</a></li><li><a class="tocitem" href="../21_school_closure/">SIS with School Closure</a></li><li><a class="tocitem" href="../22_beta_blocks/">Beta Blocks</a></li><li><a class="tocitem" href="../23_orov/">OROV Vector-Borne</a></li><li><a class="tocitem" href="../24_yf_delay/">Yellow Fever with Erlang Delay</a></li><li><a class="tocitem" href="../25_yf_vtrack/">Yellow Fever 2-Track Vaccination</a></li><li><a class="tocitem" href="../26_fitting_workflow/">Complete Fitting Workflow</a></li><li><a class="tocitem" href="../27_spatial_composition/">Spatial Composition</a></li><li><a class="tocitem" href="../28_stratification/">Age Stratification</a></li><li><a class="tocitem" href="../29_multi_pathogen/">Multi-Pathogen Composition</a></li></ul></li><li><input class="collapse-toggle" id="menuitem-4-4" type="checkbox"/><label class="tocitem" for="menuitem-4-4"><span class="docs-label">Techniques</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../30_stiff_ode/">Stiff ODEs: SDIRK4 Solver</a></li><li><a class="tocitem" href="../31_gpu_filter/">GPU-Accelerated Filtering</a></li><li><a class="tocitem" href="../32_advanced_samplers/">Advanced MCMC Samplers</a></li><li><a class="tocitem" href="../33_sensitivity/">Sensitivity Analysis</a></li><li><a class="tocitem" href="../34_events/">Event Handling</a></li><li><a class="tocitem" href="../35_sde/">Stochastic Differential Equations</a></li><li><a class="tocitem" href="../36_model_selection/">Model Selection</a></li><li><a class="tocitem" href="../37_model_validation/">Model Validation</a></li></ul></li></ul></li><li><a class="tocitem" href="../../api/">API Reference</a></li></ul><div class="docs-version-selector field has-addons"><div class="control"><span class="docs-label button is-static is-size-7">Version</span></div><div class="docs-selector control is-expanded"><div class="select is-fullwidth is-size-7"><select id="documenter-version-selector"></select></div></div></div></nav><div class="docs-main"><header class="docs-navbar"><a class="docs-sidebar-button docs-navbar-link fa-solid fa-bars is-hidden-desktop" id="documenter-sidebar-button" href="#"></a><nav class="breadcrumb"><ul class="is-hidden-mobile"><li><a class="is-disabled">Vignettes</a></li><li><a class="is-disabled">Intermediate</a></li><li class="is-active"><a href>Vector-Borne Disease Dynamics</a></li></ul><ul class="is-hidden-tablet"><li class="is-active"><a href>Vector-Borne Disease Dynamics</a></li></ul></nav><div class="docs-right"><a class="docs-navbar-link" href="https://github.com/epirecipes/Odin.jl" title="View the repository on GitHub"><span class="docs-icon fa-brands"></span><span class="docs-label is-hidden-touch">GitHub</span></a><a class="docs-settings-button docs-navbar-link fa-solid fa-gear" id="documenter-settings-button" href="#" title="Settings"></a><a class="docs-article-toggle-button fa-solid fa-chevron-up" id="documenter-article-toggle-button" href="javascript:;" title="Collapse all docstrings"></a></div></header><article class="content" id="documenter-page"><h1 id="Vector-Borne-Disease-Dynamics"><a class="docs-heading-anchor" href="#Vector-Borne-Disease-Dynamics">Vector-Borne Disease Dynamics</a><a id="Vector-Borne-Disease-Dynamics-1"></a><a class="docs-heading-anchor-permalink" href="#Vector-Borne-Disease-Dynamics" title="Permalink"></a></h1><h2 id="Introduction"><a class="docs-heading-anchor" href="#Introduction">Introduction</a><a id="Introduction-1"></a><a class="docs-heading-anchor-permalink" href="#Introduction" title="Permalink"></a></h2><p>Vector-borne diseases such as malaria, dengue, and Zika are transmitted between humans and insect vectors — typically mosquitoes. Modelling these systems requires coupling the dynamics of at least two species, often with environmental forcing that drives vector population size.</p><p>This vignette builds a simplified <strong>Ross-Macdonald</strong> model for malaria transmission, inspired by the <code>malariasimple</code> package. It demonstrates:</p><ul><li>Coupled human SEIR and mosquito SEI compartments</li><li>Seasonal rainfall driving mosquito carrying capacity via interpolation</li><li>Derived output quantities: prevalence, EIR (entomological inoculation rate), and mosquito-to-human ratio</li><li>Parameter sensitivity: comparing rainfall scenarios and bed net interventions</li></ul><pre><code class="language-julia hljs">using Odin
+using Plots</code></pre><h2 id="Model-Description"><a class="docs-heading-anchor" href="#Model-Description">Model Description</a><a id="Model-Description-1"></a><a class="docs-heading-anchor-permalink" href="#Model-Description" title="Permalink"></a></h2><p><strong>Human compartments</strong> follow an SEIR structure with waning immunity, so that recovered individuals gradually return to the susceptible pool — a key feature of malaria epidemiology:</p><p class="math-container">\[\begin{aligned}
+\frac{dS_h}{dt} &amp;= \mu_h N_h + \omega_h R_h - \lambda_h S_h - \mu_h S_h \\
+\frac{dE_h}{dt} &amp;= \lambda_h S_h - \sigma_h E_h - \mu_h E_h \\
+\frac{dI_h}{dt} &amp;= \sigma_h E_h - \gamma_h I_h - \mu_h I_h \\
+\frac{dR_h}{dt} &amp;= \gamma_h I_h - \omega_h R_h - \mu_h R_h
+\end{aligned}\]</p><p><strong>Mosquito compartments</strong> follow an SEI structure — mosquitoes do not recover from infection and have rapid demographic turnover (~10-day lifespan):</p><p class="math-container">\[\begin{aligned}
+\frac{dS_m}{dt} &amp;= \mu_m K_m(t) - \lambda_m S_m - \mu_m S_m \\
+\frac{dE_m}{dt} &amp;= \lambda_m S_m - \sigma_m E_m - \mu_m E_m \\
+\frac{dI_m}{dt} &amp;= \sigma_m E_m - \mu_m I_m
+\end{aligned}\]</p><p>The two populations are coupled by <strong>bidirectional forces of infection</strong>:</p><ul><li><p class="math-container">\[\lambda_h = a \cdot b \cdot I_m / N_h\]</p>— mosquito-to-human transmission</li><li><p class="math-container">\[\lambda_m = a \cdot c \cdot I_h / N_h\]</p>— human-to-mosquito transmission</li></ul><p>where <span>$a$</span> is the mosquito biting rate, <span>$b$</span> the probability a bite from an infectious mosquito infects a human, and <span>$c$</span> the probability a bite on an infectious human infects the mosquito.</p><p>Mosquito carrying capacity tracks seasonal rainfall: <span>$K_m(t) = K_{m,\text{base}} \times \text{rainfall}(t)$</span>.</p><h2 id="Model-Definition"><a class="docs-heading-anchor" href="#Model-Definition">Model Definition</a><a id="Model-Definition-1"></a><a class="docs-heading-anchor-permalink" href="#Model-Definition" title="Permalink"></a></h2><pre><code class="language-julia hljs">gen = @odin begin
+    # Human SEIR dynamics (with waning immunity)
+    deriv(S_h) = mu_h * N_h + omega_h * R_h - lambda_h * S_h - mu_h * S_h
+    deriv(E_h) = lambda_h * S_h - sigma_h * E_h - mu_h * E_h
+    deriv(I_h) = sigma_h * E_h - gamma_h * I_h - mu_h * I_h
+    deriv(R_h) = gamma_h * I_h - omega_h * R_h - mu_h * R_h
+
+    # Mosquito SEI dynamics (no recovery)
+    deriv(S_m) = birth_m - lambda_m * S_m - mu_m * S_m
+    deriv(E_m) = lambda_m * S_m - sigma_m * E_m - mu_m * E_m
+    deriv(I_m) = sigma_m * E_m - mu_m * I_m
+
+    # Bidirectional forces of infection
+    lambda_h = a * b * I_m / N_h
+    lambda_m = a * c * I_h / N_h
+
+    # Mosquito population regulation via rainfall
+    K_m = K_m_base * rain
+    birth_m = mu_m * K_m
+    rain = interpolate(rain_t, rain_v, :linear)
+
+    # Derived outputs
+    output(prevalence) = I_h / N_h
+    output(EIR) = a * I_m / N_h * 365
+    output(mosquito_ratio) = (S_m + E_m + I_m) / N_h
+
+    # Initial conditions
+    initial(S_h) = N_h - E_h0 - I_h0 - R_h0
+    initial(E_h) = E_h0
+    initial(I_h) = I_h0
+    initial(R_h) = R_h0
+    initial(S_m) = S_m0
+    initial(E_m) = E_m0
+    initial(I_m) = I_m0
+
+    # Human parameters
+    N_h = parameter(10000)
+    mu_h = parameter(3.91e-5)     # ~1/(70*365): human mortality rate
+    sigma_h = parameter(0.0833)   # 1/12: latent period (days)
+    gamma_h = parameter(0.005)    # 1/200: recovery rate
+    omega_h = parameter(0.00556)  # 1/180: immunity waning rate
+
+    # Transmission parameters
+    a = parameter(0.3)            # biting rate (bites/mosquito/day)
+    b = parameter(0.5)            # transmission prob: mosquito → human
+    c = parameter(0.3)            # transmission prob: human → mosquito
+
+    # Mosquito parameters
+    mu_m = parameter(0.1)         # 1/10: mosquito mortality (10-day lifespan)
+    sigma_m = parameter(0.1)      # 1/10: mosquito latent period
+    K_m_base = parameter(50000)   # base carrying capacity
+
+    # Initial condition parameters
+    E_h0 = parameter(500)
+    I_h0 = parameter(1000)
+    R_h0 = parameter(500)
+    S_m0 = parameter(8000)
+    E_m0 = parameter(1000)
+    I_m0 = parameter(1000)
+
+    # Rainfall interpolation arrays
+    rain_t = parameter(rank = 1)
+    rain_v = parameter(rank = 1)
+end</code></pre><pre><code class="nohighlight hljs">Odin.DustSystemGenerator{var&quot;##OdinModel#277&quot;}(var&quot;##OdinModel#277&quot;(7, [:S_h, :E_h, :I_h, :R_h, :S_m, :E_m, :I_m], [:N_h, :mu_h, :sigma_h, :gamma_h, :omega_h, :a, :b, :c, :mu_m, :sigma_m, :K_m_base, :E_h0, :I_h0, :R_h0, :S_m0, :E_m0, :I_m0, :rain_t, :rain_v], true, false, false, true, true, Dict{Symbol, Array}()))</code></pre><h2 id="Seasonal-Rainfall"><a class="docs-heading-anchor" href="#Seasonal-Rainfall">Seasonal Rainfall</a><a id="Seasonal-Rainfall-1"></a><a class="docs-heading-anchor-permalink" href="#Seasonal-Rainfall" title="Permalink"></a></h2><p>Rainfall follows a sinusoidal annual cycle peaking mid-year (the wet season), with values ranging from 0.2 (dry) to 1.0 (peak wet). This drives mosquito carrying capacity and therefore transmission intensity.</p><pre><code class="language-julia hljs">rain_times = collect(0.0:30.0:750.0)
+rain_values = [0.6 + 0.4 * cos(2π * (t - 180) / 365) for t in rain_times]
+
+plot(rain_times, rain_values, lw=2, color=:steelblue,
+     fill=(0, 0.15, :steelblue),
+     xlabel=&quot;Day&quot;, ylabel=&quot;Rainfall index&quot;,
+     title=&quot;Seasonal Rainfall Pattern (2 years)&quot;, label=&quot;Rainfall&quot;,
+     xlims=(0, 730), ylims=(0, 1.1))
+vline!([180, 545], ls=:dash, color=:gray, label=&quot;Wet season peak&quot;)</code></pre><p><img src="../15_vector_borne_files/figure-commonmark/cell-4-output-1.svg" alt/></p><h2 id="Simulation"><a class="docs-heading-anchor" href="#Simulation">Simulation</a><a id="Simulation-1"></a><a class="docs-heading-anchor-permalink" href="#Simulation" title="Permalink"></a></h2><p>We run a 2-year simulation starting from the dry season. The initial conditions place most humans as susceptible with ~10% prevalence, and the mosquito population at the dry-season carrying capacity (<span>$K_m(0) \approx 10{,}000$</span>).</p><pre><code class="language-julia hljs">pars = (
+    N_h = 10000.0,
+    mu_h = 1.0 / (70 * 365),
+    sigma_h = 1.0 / 12,
+    gamma_h = 1.0 / 200,
+    omega_h = 1.0 / 180,
+    a = 0.3,
+    b = 0.5,
+    c = 0.3,
+    mu_m = 0.1,
+    sigma_m = 0.1,
+    K_m_base = 50000.0,
+    E_h0 = 500.0,
+    I_h0 = 1000.0,
+    R_h0 = 500.0,
+    S_m0 = 8000.0,
+    E_m0 = 1000.0,
+    I_m0 = 1000.0,
+    rain_t = rain_times,
+    rain_v = rain_values,
+)
+
+sys = System(gen, pars; dt = 0.5)
+reset!(sys)
+times = collect(0.0:1.0:730.0)
+result = simulate(sys, times)</code></pre><pre><code class="nohighlight hljs">10×1×731 Array{Float64, 3}:
+[:, :, 1] =
+ 8000.0
+  500.0
+ 1000.0
+  500.0
+ 8000.0
+ 1000.0
+ 1000.0
+    0.1
+   10.95
+    1.0
+
+[:, :, 2] =
+ 7883.971179793829
+  574.0601353131215
+ 1039.675659445136
+  502.29302544791256
+ 8126.539240753577
+  885.8448128965779
+  994.2649993778784
+    0.1039675659445136
+   10.88720174318777
+    1.0006649053028034
+
+[:, :, 3] =
+ 7770.915061598834
+  639.3543044193484
+ 1084.9452776383473
+  504.7853563434709
+ 8246.587573035058
+  796.2549137753462
+  979.4363951411751
+    0.10849452776383472
+   10.724828526795868
+    1.002227888195158
+
+;;; … 
+
+[:, :, 729] =
+  661.1236293797857
+  223.92374491490096
+ 4714.641883314689
+ 4400.3107423906185
+ 7424.770688827967
+ 1628.6601792885735
+ 1831.9940811532617
+    0.4714641883314689
+   20.060335188628212
+    1.0885424949269802
+
+[:, :, 730] =
+  667.773170901993
+  223.43433411771412
+ 4709.536751975321
+ 4399.2557430049665
+ 7421.609560331898
+ 1618.736032628335
+ 1812.1523215044797
+    0.47095367519753206
+   19.843067920474052
+    1.0852497914464714
+
+[:, :, 731] =
+  674.4293539307051
+  222.97181754873492
+ 4704.417689108224
+ 4398.181139412329
+ 7423.2720381805275
+ 1610.2778192720432
+ 1793.3259212210824
+    0.47044176891082246
+   19.636918837370853
+    1.0826875778673652</code></pre><h3 id="Human-Dynamics"><a class="docs-heading-anchor" href="#Human-Dynamics">Human Dynamics</a><a id="Human-Dynamics-1"></a><a class="docs-heading-anchor-permalink" href="#Human-Dynamics" title="Permalink"></a></h3><pre><code class="language-julia hljs">plot(times, result[1, 1, :], label=&quot;Susceptible&quot;, lw=2, color=:blue)
+plot!(times, result[2, 1, :], label=&quot;Exposed&quot;, lw=2, color=:orange)
+plot!(times, result[3, 1, :], label=&quot;Infectious&quot;, lw=2, color=:red)
+plot!(times, result[4, 1, :], label=&quot;Recovered&quot;, lw=2, color=:green)
+xlabel!(&quot;Day&quot;)
+ylabel!(&quot;Population&quot;)
+title!(&quot;Human SEIR Dynamics (2 years)&quot;)</code></pre><p><img src="../15_vector_borne_files/figure-commonmark/cell-6-output-1.svg" alt/></p><h3 id="Mosquito-Dynamics"><a class="docs-heading-anchor" href="#Mosquito-Dynamics">Mosquito Dynamics</a><a id="Mosquito-Dynamics-1"></a><a class="docs-heading-anchor-permalink" href="#Mosquito-Dynamics" title="Permalink"></a></h3><p>The mosquito population tracks the seasonal carrying capacity with a short lag (~10 days, set by <span>$1/\mu_m$</span>):</p><pre><code class="language-julia hljs">total_m = result[5, 1, :] .+ result[6, 1, :] .+ result[7, 1, :]
+
+plot(times, total_m, label=&quot;Total mosquitoes&quot;, lw=2, color=:gray, ls=:dash)
+plot!(times, result[5, 1, :], label=&quot;Susceptible&quot;, lw=2, color=:blue)
+plot!(times, result[6, 1, :], label=&quot;Exposed&quot;, lw=2, color=:orange)
+plot!(times, result[7, 1, :], label=&quot;Infectious&quot;, lw=2, color=:red)
+xlabel!(&quot;Day&quot;)
+ylabel!(&quot;Population&quot;)
+title!(&quot;Mosquito SEI Dynamics (2 years)&quot;)</code></pre><p><img src="../15_vector_borne_files/figure-commonmark/cell-7-output-1.svg" alt/></p><h2 id="Derived-Outputs"><a class="docs-heading-anchor" href="#Derived-Outputs">Derived Outputs</a><a id="Derived-Outputs-1"></a><a class="docs-heading-anchor-permalink" href="#Derived-Outputs" title="Permalink"></a></h2><p>The model computes three key epidemiological indicators as output variables, stored in rows 8–10 of the result array (after the 7 state variables):</p><ul><li><strong>Prevalence</strong> — fraction of humans currently infectious</li><li><strong>EIR</strong> — entomological inoculation rate (infectious bites per person per year)</li><li><strong>Mosquito ratio</strong> — total mosquitoes per human</li></ul><pre><code class="language-julia hljs">l = @layout [a; b; c]
+
+p1 = plot(times, result[8, 1, :] .* 100, lw=2, color=:darkred,
+          ylabel=&quot;Prevalence (%)&quot;, label=nothing,
+          title=&quot;Malaria Prevalence&quot;)
+
+p2 = plot(times, result[9, 1, :], lw=2, color=:purple,
+          ylabel=&quot;Annual EIR&quot;, label=nothing,
+          title=&quot;Entomological Inoculation Rate&quot;)
+
+p3 = plot(times, result[10, 1, :], lw=2, color=:teal,
+          xlabel=&quot;Day&quot;, ylabel=&quot;Ratio&quot;, label=nothing,
+          title=&quot;Mosquitoes per Person&quot;)
+
+plot(p1, p2, p3, layout=l, size=(700, 600))</code></pre><p><img src="../15_vector_borne_files/figure-commonmark/cell-8-output-1.svg" alt/></p><p>Prevalence peaks lag behind the mosquito density peak due to the latent periods in both humans (12 days) and mosquitoes (10 days).</p><h2 id="Scenario-Comparison:-Rainfall-Intensity"><a class="docs-heading-anchor" href="#Scenario-Comparison:-Rainfall-Intensity">Scenario Comparison: Rainfall Intensity</a><a id="Scenario-Comparison:-Rainfall-Intensity-1"></a><a class="docs-heading-anchor-permalink" href="#Scenario-Comparison:-Rainfall-Intensity" title="Permalink"></a></h2><p>We compare three rainfall regimes to illustrate how vector ecology shapes transmission:</p><ul><li><strong>Baseline</strong>: seasonal range 0.2–1.0, <span>$K_{m,\text{base}} = 50{,}000$</span></li><li><strong>High rainfall</strong>: range 0.4–1.0, <span>$K_{m,\text{base}} = 80{,}000$</span> (wetter tropics)</li><li><strong>Low rainfall</strong>: range 0.15–0.45, <span>$K_{m,\text{base}} = 20{,}000$</span> (semi-arid)</li></ul><pre><code class="language-julia hljs">rain_high = [0.7 + 0.3 * cos(2π * (t - 180) / 365) for t in rain_times]
+rain_low  = [0.3 + 0.15 * cos(2π * (t - 180) / 365) for t in rain_times]
+
+pars_high = merge(pars, (K_m_base = 80000.0, rain_v = rain_high))
+sys_h = System(gen, pars_high; dt = 0.5)
+reset!(sys_h)
+res_high = simulate(sys_h, times)
+
+pars_low = merge(pars, (K_m_base = 20000.0, rain_v = rain_low))
+sys_l = System(gen, pars_low; dt = 0.5)
+reset!(sys_l)
+res_low = simulate(sys_l, times)
+
+plot(times, result[8, 1, :] .* 100, label=&quot;Baseline&quot;, lw=2, color=:steelblue)
+plot!(times, res_high[8, 1, :] .* 100, label=&quot;High rainfall&quot;, lw=2,
+      color=:darkred, ls=:dash)
+plot!(times, res_low[8, 1, :] .* 100, label=&quot;Low rainfall&quot;, lw=2,
+      color=:goldenrod, ls=:dot)
+xlabel!(&quot;Day&quot;)
+ylabel!(&quot;Prevalence (%)&quot;)
+title!(&quot;Impact of Rainfall Regime on Malaria Prevalence&quot;)</code></pre><p><img src="../15_vector_borne_files/figure-commonmark/cell-9-output-1.svg" alt/></p><p>Higher rainfall sustains larger mosquito populations, driving substantially higher transmission intensity. The non-linear relationship between mosquito density and prevalence is characteristic of Ross-Macdonald dynamics.</p><h2 id="Intervention:-Bed-Nets"><a class="docs-heading-anchor" href="#Intervention:-Bed-Nets">Intervention: Bed Nets</a><a id="Intervention:-Bed-Nets-1"></a><a class="docs-heading-anchor-permalink" href="#Intervention:-Bed-Nets" title="Permalink"></a></h2><p>Insecticide-treated bed nets (ITNs) reduce the effective mosquito biting rate <span>$a$</span>. Since biting rate appears in <em>both</em> directions of transmission, even a moderate reduction has a large effect. We compare:</p><ul><li>No intervention (<span>$a = 0.30$</span>)</li><li>50% biting reduction (<span>$a = 0.15$</span>)</li><li>80% biting reduction (<span>$a = 0.06$</span>)</li></ul><pre><code class="language-julia hljs">pars_net50 = merge(pars, (a = 0.15,))
+sys_n50 = System(gen, pars_net50; dt = 0.5)
+reset!(sys_n50)
+res_net50 = simulate(sys_n50, times)
+
+pars_net80 = merge(pars, (a = 0.06,))
+sys_n80 = System(gen, pars_net80; dt = 0.5)
+reset!(sys_n80)
+res_net80 = simulate(sys_n80, times)
+
+p1 = plot(times, result[8, 1, :] .* 100,
+          label=&quot;No nets (a = 0.30)&quot;, lw=2, color=:red)
+plot!(p1, times, res_net50[8, 1, :] .* 100,
+      label=&quot;50% reduction (a = 0.15)&quot;, lw=2, color=:orange)
+plot!(p1, times, res_net80[8, 1, :] .* 100,
+      label=&quot;80% reduction (a = 0.06)&quot;, lw=2, color=:green)
+ylabel!(p1, &quot;Prevalence (%)&quot;)
+title!(p1, &quot;Impact of Bed Nets on Prevalence&quot;)
+
+p2 = plot(times, result[9, 1, :], label=&quot;No nets&quot;, lw=2, color=:red)
+plot!(p2, times, res_net50[9, 1, :], label=&quot;50% reduction&quot;, lw=2, color=:orange)
+plot!(p2, times, res_net80[9, 1, :], label=&quot;80% reduction&quot;, lw=2, color=:green)
+xlabel!(p2, &quot;Day&quot;)
+ylabel!(p2, &quot;Annual EIR&quot;)
+title!(p2, &quot;Impact of Bed Nets on EIR&quot;)
+
+plot(p1, p2, layout=(2, 1), size=(700, 500))</code></pre><p><img src="../15_vector_borne_files/figure-commonmark/cell-10-output-1.svg" alt/></p><p>The biting rate enters the force of infection quadratically (once for mosquito→human, once for human→mosquito), so interventions that reduce biting are particularly effective — an 80% reduction in biting rate can nearly eliminate transmission.</p><h2 id="Summary"><a class="docs-heading-anchor" href="#Summary">Summary</a><a id="Summary-1"></a><a class="docs-heading-anchor-permalink" href="#Summary" title="Permalink"></a></h2><table><tr><th style="text-align: right">Feature</th><th style="text-align: right">Syntax</th></tr><tr><td style="text-align: right">Coupled ODE system</td><td style="text-align: right"><code>deriv(S_h) = ...</code>, <code>deriv(S_m) = ...</code></td></tr><tr><td style="text-align: right">Interpolated forcing</td><td style="text-align: right"><code>rain = interpolate(rain_t, rain_v, :linear)</code></td></tr><tr><td style="text-align: right">Derived outputs</td><td style="text-align: right"><code>output(prevalence) = I_h / N_h</code></td></tr><tr><td style="text-align: right">Parameter arrays</td><td style="text-align: right"><code>rain_t = parameter(rank = 1)</code></td></tr></table><p>This vignette demonstrated how Odin.jl handles multi-species ODE systems with environmental forcing via interpolation. The Ross-Macdonald framework extends naturally to other vector-borne diseases (dengue, Zika, leishmaniasis) by adjusting the compartment structure and transmission parameters.</p></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../14_delay_vaccination/">« SEIR with Delay and Vaccination</a><a class="docs-footer-nextpage" href="../16_multi_stream/">Multi-Stream Outbreak »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="auto">Automatic (OS)</option><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option><option value="catppuccin-latte">catppuccin-latte</option><option value="catppuccin-frappe">catppuccin-frappe</option><option value="catppuccin-macchiato">catppuccin-macchiato</option><option value="catppuccin-mocha">catppuccin-mocha</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 1.17.0 on <span class="colophon-date" title="Friday 27 March 2026 16:28">Friday 27 March 2026</span>. Using Julia version 1.12.5.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>

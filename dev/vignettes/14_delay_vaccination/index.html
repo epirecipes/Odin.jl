@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width, initial-scale=1.0"/><title>SEIR with Delay and Vaccination · Odin.jl</title><meta name="title" content="SEIR with Delay and Vaccination · Odin.jl"/><meta property="og:title" content="SEIR with Delay and Vaccination · Odin.jl"/><meta property="twitter:title" content="SEIR with Delay and Vaccination · Odin.jl"/><meta name="description" content="Documentation for Odin.jl."/><meta property="og:description" content="Documentation for Odin.jl."/><meta property="twitter:description" content="Documentation for Odin.jl."/><script data-outdated-warner src="../../assets/warner.js"></script><link href="https://cdnjs.cloudflare.com/ajax/libs/lato-font/3.0.0/css/lato-font.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/juliamono/0.050/juliamono.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/fontawesome.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/solid.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/brands.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.8/katex.min.css" rel="stylesheet" type="text/css"/><script>documenterBaseURL="../.."</script><script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.6/require.min.js" data-main="../../assets/documenter.js"></script><script src="../../search_index.js"></script><script src="../../siteinfo.js"></script><script src="../../../versions.js"></script><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/catppuccin-mocha.css" data-theme-name="catppuccin-mocha"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/catppuccin-macchiato.css" data-theme-name="catppuccin-macchiato"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/catppuccin-frappe.css" data-theme-name="catppuccin-frappe"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/catppuccin-latte.css" data-theme-name="catppuccin-latte"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/documenter-dark.css" data-theme-name="documenter-dark" data-theme-primary-dark/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/documenter-light.css" data-theme-name="documenter-light" data-theme-primary/><script src="../../assets/themeswap.js"></script></head><body><div id="documenter"><nav class="docs-sidebar"><div class="docs-package-name"><span class="docs-autofit"><a href="../../">Odin.jl</a></span></div><button class="docs-search-query input is-rounded is-small is-clickable my-2 mx-auto py-1 px-2" id="documenter-search-query">Search docs (Ctrl + /)</button><ul class="docs-menu"><li><a class="tocitem" href="../../">Home</a></li><li><a class="tocitem" href="../../getting_started/">Getting Started</a></li><li><span class="tocitem">Guide</span><ul><li><a class="tocitem" href="../../dsl/">DSL Reference</a></li><li><a class="tocitem" href="../../simulation/">Simulation</a></li><li><a class="tocitem" href="../../filtering/">Filtering &amp; Likelihood</a></li><li><a class="tocitem" href="../../inference/">Inference</a></li><li><a class="tocitem" href="../../solvers/">ODE Solvers</a></li><li><a class="tocitem" href="../../gpu/">GPU Acceleration</a></li><li><a class="tocitem" href="../../categorical/">Categorical Models</a></li></ul></li><li><span class="tocitem">Vignettes</span><ul><li><input class="collapse-toggle" id="menuitem-4-1" type="checkbox"/><label class="tocitem" for="menuitem-4-1"><span class="docs-label">Basics</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../01_basic_ode/">Basic ODE Model: SIR</a></li><li><a class="tocitem" href="../02_stochastic/">Stochastic Discrete-Time SIR</a></li><li><a class="tocitem" href="../03_observations/">Incidence Tracking with zero_every</a></li><li><a class="tocitem" href="../04_arrays/">Age-Structured SIR with Arrays</a></li><li><a class="tocitem" href="../05_particle_filter/">Particle Filter and Likelihood</a></li><li><a class="tocitem" href="../06_inference/">Bayesian Inference with MCMC</a></li></ul></li><li><input class="collapse-toggle" id="menuitem-4-2" type="checkbox" checked/><label class="tocitem" for="menuitem-4-2"><span class="docs-label">Intermediate</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../07_categorical/">Compositional Model Building</a></li><li><a class="tocitem" href="../08_time_varying/">Time-Varying Parameters</a></li><li><a class="tocitem" href="../09_advanced/">SEIR with Vaccination and Waning</a></li><li><a class="tocitem" href="../10_projections/">Counterfactual Projections</a></li><li><a class="tocitem" href="../11_delay_model/">Delay Compartments</a></li><li><a class="tocitem" href="../12_reactive_policy/">Reactive Vaccination Policy</a></li><li><a class="tocitem" href="../13_dynamicppl/">DynamicPPL Integration</a></li><li class="is-active"><a class="tocitem" href>SEIR with Delay and Vaccination</a><ul class="internal"><li><a class="tocitem" href="#Introduction"><span>Introduction</span></a></li><li><a class="tocitem" href="#Model-Description"><span>Model Description</span></a></li><li><a class="tocitem" href="#Model-Definition"><span>Model Definition</span></a></li><li><a class="tocitem" href="#Parameter-Setup"><span>Parameter Setup</span></a></li><li><a class="tocitem" href="#Simulation"><span>Simulation</span></a></li><li><a class="tocitem" href="#Visualization"><span>Visualization</span></a></li><li><a class="tocitem" href="#Comparison:-With-vs-Without-Vaccination"><span>Comparison: With vs Without Vaccination</span></a></li><li><a class="tocitem" href="#Summary"><span>Summary</span></a></li></ul></li><li><a class="tocitem" href="../15_vector_borne/">Vector-Borne Disease Dynamics</a></li></ul></li><li><input class="collapse-toggle" id="menuitem-4-3" type="checkbox"/><label class="tocitem" for="menuitem-4-3"><span class="docs-label">Advanced Models</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../16_multi_stream/">Multi-Stream Outbreak</a></li><li><a class="tocitem" href="../17_mpox_seir/">Mpox SEIR: Age-Structured</a></li><li><a class="tocitem" href="../18_malaria_simple/">Malaria: Ross-Macdonald</a></li><li><a class="tocitem" href="../19_sarscov2_multiregion/">SARS-CoV-2 Multi-Region</a></li><li><a class="tocitem" href="../20_yellowfever/">Yellow Fever SEIRV</a></li><li><a class="tocitem" href="../21_school_closure/">SIS with School Closure</a></li><li><a class="tocitem" href="../22_beta_blocks/">Beta Blocks</a></li><li><a class="tocitem" href="../23_orov/">OROV Vector-Borne</a></li><li><a class="tocitem" href="../24_yf_delay/">Yellow Fever with Erlang Delay</a></li><li><a class="tocitem" href="../25_yf_vtrack/">Yellow Fever 2-Track Vaccination</a></li><li><a class="tocitem" href="../26_fitting_workflow/">Complete Fitting Workflow</a></li><li><a class="tocitem" href="../27_spatial_composition/">Spatial Composition</a></li><li><a class="tocitem" href="../28_stratification/">Age Stratification</a></li><li><a class="tocitem" href="../29_multi_pathogen/">Multi-Pathogen Composition</a></li></ul></li><li><input class="collapse-toggle" id="menuitem-4-4" type="checkbox"/><label class="tocitem" for="menuitem-4-4"><span class="docs-label">Techniques</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../30_stiff_ode/">Stiff ODEs: SDIRK4 Solver</a></li><li><a class="tocitem" href="../31_gpu_filter/">GPU-Accelerated Filtering</a></li><li><a class="tocitem" href="../32_advanced_samplers/">Advanced MCMC Samplers</a></li><li><a class="tocitem" href="../33_sensitivity/">Sensitivity Analysis</a></li><li><a class="tocitem" href="../34_events/">Event Handling</a></li><li><a class="tocitem" href="../35_sde/">Stochastic Differential Equations</a></li><li><a class="tocitem" href="../36_model_selection/">Model Selection</a></li><li><a class="tocitem" href="../37_model_validation/">Model Validation</a></li></ul></li></ul></li><li><a class="tocitem" href="../../api/">API Reference</a></li></ul><div class="docs-version-selector field has-addons"><div class="control"><span class="docs-label button is-static is-size-7">Version</span></div><div class="docs-selector control is-expanded"><div class="select is-fullwidth is-size-7"><select id="documenter-version-selector"></select></div></div></div></nav><div class="docs-main"><header class="docs-navbar"><a class="docs-sidebar-button docs-navbar-link fa-solid fa-bars is-hidden-desktop" id="documenter-sidebar-button" href="#"></a><nav class="breadcrumb"><ul class="is-hidden-mobile"><li><a class="is-disabled">Vignettes</a></li><li><a class="is-disabled">Intermediate</a></li><li class="is-active"><a href>SEIR with Delay and Vaccination</a></li></ul><ul class="is-hidden-tablet"><li class="is-active"><a href>SEIR with Delay and Vaccination</a></li></ul></nav><div class="docs-right"><a class="docs-navbar-link" href="https://github.com/epirecipes/Odin.jl" title="View the repository on GitHub"><span class="docs-icon fa-brands"></span><span class="docs-label is-hidden-touch">GitHub</span></a><a class="docs-settings-button docs-navbar-link fa-solid fa-gear" id="documenter-settings-button" href="#" title="Settings"></a><a class="docs-article-toggle-button fa-solid fa-chevron-up" id="documenter-article-toggle-button" href="javascript:;" title="Collapse all docstrings"></a></div></header><article class="content" id="documenter-page"><h1 id="SEIR-with-Delay-and-Vaccination"><a class="docs-heading-anchor" href="#SEIR-with-Delay-and-Vaccination">SEIR with Delay and Vaccination</a><a id="SEIR-with-Delay-and-Vaccination-1"></a><a class="docs-heading-anchor-permalink" href="#SEIR-with-Delay-and-Vaccination" title="Permalink"></a></h1><h2 id="Introduction"><a class="docs-heading-anchor" href="#Introduction">Introduction</a><a id="Introduction-1"></a><a class="docs-heading-anchor-permalink" href="#Introduction" title="Permalink"></a></h2><p>Many vector-borne and zoonotic diseases — yellow fever, Rift Valley fever, Japanese encephalitis — feature a <strong>fixed incubation period</strong> during which exposed individuals are not yet infectious, combined with <strong>vaccination campaigns</strong> that reduce the susceptible pool over time. Spillover from an animal reservoir introduces a <strong>time-varying exogenous force of infection</strong> that can trigger outbreaks even in partially vaccinated populations.</p><p>This vignette demonstrates how to combine several modelling techniques in a single stochastic SEIR model:</p><table><tr><th style="text-align: right">Feature</th><th style="text-align: right">Odin construct</th></tr><tr><td style="text-align: right">Age-structured compartments</td><td style="text-align: right"><code>dim()</code>, array indexing <code>[i]</code></td></tr><tr><td style="text-align: right">Fixed incubation delay</td><td style="text-align: right">Shift-register array with <code>update(E_delay[...])</code></td></tr><tr><td style="text-align: right">Time-varying spillover FOI</td><td style="text-align: right"><code>interpolate()</code> with <code>:linear</code> mode</td></tr><tr><td style="text-align: right">Vaccination</td><td style="text-align: right">Binomial draw from remaining susceptibles</td></tr><tr><td style="text-align: right">Weekly case counter</td><td style="text-align: right"><code>zero_every = 7</code></td></tr></table><p>The model is inspired by the <a href="https://github.com/mrc-ide/YellowFeverDynamics">YellowFeverDynamics</a> package, which uses interleaved shift registers for age-structured delay compartments.</p><h2 id="Model-Description"><a class="docs-heading-anchor" href="#Model-Description">Model Description</a><a id="Model-Description-1"></a><a class="docs-heading-anchor-permalink" href="#Model-Description" title="Permalink"></a></h2><h3 id="Compartments"><a class="docs-heading-anchor" href="#Compartments">Compartments</a><a id="Compartments-1"></a><a class="docs-heading-anchor-permalink" href="#Compartments" title="Permalink"></a></h3><p>For each of <span>$a = 1, \ldots, N_\text{age}$</span> age groups:</p><ul><li><p class="math-container">\[S_a\]</p>— Susceptible</li><li><p class="math-container">\[E_a\]</p>— Exposed (tracked via shift register)</li><li><p class="math-container">\[I_a\]</p>— Infectious</li><li><p class="math-container">\[R_a\]</p>— Recovered</li><li><p class="math-container">\[V_a\]</p>— Vaccinated (effectively immune)</li></ul><h3 id="Shift-Register-Delay"><a class="docs-heading-anchor" href="#Shift-Register-Delay">Shift-Register Delay</a><a id="Shift-Register-Delay-1"></a><a class="docs-heading-anchor-permalink" href="#Shift-Register-Delay" title="Permalink"></a></h3><p>Rather than using an exponential or Erlang-distributed latent period, we implement a <strong>fixed delay</strong> of <code>delay_days</code> time steps using a shift register.</p><p>The register <code>E_delay</code> is a 1-D array of length <span>$N_\text{delay} = N_\text{age} \times \text{delay\_days}$</span>. Age groups are <strong>interleaved</strong>: positions <span>$1 \ldots N_\text{age}$</span> hold the newest exposed cohort, positions <span>$N_\text{age}+1 \ldots 2 N_\text{age}$</span> hold the cohort from one step ago, and so on. Each step:</p><ol><li>New exposed individuals enter at positions <span>$1:N_\text{age}$</span>.</li><li>All other entries shift forward by <span>$N_\text{age}$</span>:  <code>E_delay[(N_age+1):N_delay] ← E_delay[i − N_age]</code>.</li><li>The oldest cohort (positions <span>$N_\text{delay} - N_\text{age} + 1$</span> to  <span>$N_\text{delay}$</span>) exits and becomes infectious.</li></ol><p>This produces an <strong>exact</strong> delay of <code>delay_days</code> time steps for every individual, regardless of age group.</p><h3 id="Force-of-Infection"><a class="docs-heading-anchor" href="#Force-of-Infection">Force of Infection</a><a id="Force-of-Infection-1"></a><a class="docs-heading-anchor-permalink" href="#Force-of-Infection" title="Permalink"></a></h3><p class="math-container">\[\lambda(t) = \beta \frac{\sum_a I_a}{N_\text{total}} + \text{FOI}_\text{spillover}(t)\]</p><p>where <span>$\text{FOI}_\text{spillover}(t)$</span> is linearly interpolated from a user-supplied schedule, representing zoonotic transmission that peaks mid-simulation.</p><h2 id="Model-Definition"><a class="docs-heading-anchor" href="#Model-Definition">Model Definition</a><a id="Model-Definition-1"></a><a class="docs-heading-anchor-permalink" href="#Model-Definition" title="Permalink"></a></h2><pre><code class="language-julia hljs">using Odin
+using Plots
+using Statistics</code></pre><pre><code class="language-julia hljs">seir_vacc = @odin begin
+    # === Configuration ===
+    N_age = parameter(3)
+    N_delay = parameter(15)       # N_age × delay_days (3 × 5)
+    di_exit = N_delay - N_age     # offset to oldest cohort in register
+
+    # === Array dimensions ===
+    dim(S) = N_age
+    dim(E_delay) = N_delay
+    dim(E_count) = N_age          # track total exposed per age group
+    dim(I) = N_age
+    dim(R) = N_age
+    dim(V) = N_age
+    dim(N_pop) = N_age
+    dim(I0) = N_age
+    dim(vacc_rate) = N_age
+    dim(E_new) = N_age
+    dim(I_new) = N_age
+    dim(R_new) = N_age
+    dim(n_vacc) = N_age
+
+    # === Force of infection ===
+    I_total = sum(I)
+    N_total = sum(N_pop)
+    FOI_sp = interpolate(sp_time, sp_value, :linear)
+    foi = beta * I_total / N_total + FOI_sp
+    p_inf = 1 - exp(-foi * dt)
+    p_rec = 1 - exp(-gamma * dt)
+
+    # === Stochastic transitions ===
+    E_new[i] = Binomial(S[i], p_inf)
+    I_new[i] = E_delay[i + di_exit]       # exit from oldest register slot
+    R_new[i] = Binomial(I[i], p_rec)
+    n_vacc[i] = Binomial(S[i] - E_new[i],
+                          1 - exp(-vacc_rate[i] * vaccine_efficacy * dt))
+
+    # === State updates ===
+    update(S[i]) = S[i] - E_new[i] - n_vacc[i]
+
+    # Shift register: new entries at front, shift by N_age each step
+    update(E_delay[1:N_age]) = E_new[i]
+    update(E_delay[(N_age + 1):N_delay]) = E_delay[i - N_age]
+
+    update(E_count[i]) = E_count[i] + E_new[i] - I_new[i]
+    update(I[i]) = I[i] + I_new[i] - R_new[i]
+    update(R[i]) = R[i] + R_new[i]
+    update(V[i]) = V[i] + n_vacc[i]
+
+    # Weekly new infectious cases (resets every 7 days)
+    initial(new_cases, zero_every = 7) = 0
+    update(new_cases) = new_cases + sum(I_new)
+
+    # === Initial conditions ===
+    initial(S[i]) = N_pop[i] - I0[i]
+    initial(E_delay[i]) = 0
+    initial(E_count[i]) = 0
+    initial(I[i]) = I0[i]
+    initial(R[i]) = 0
+    initial(V[i]) = 0
+
+    # === Parameters ===
+    beta = parameter(0.4286)          # R0 × gamma ≈ 3 × (1/7)
+    gamma = parameter(0.1429)         # 1 / infectious period (7 days)
+    vaccine_efficacy = parameter(0.9)
+    N_pop = parameter()
+    vacc_rate = parameter()
+    I0 = parameter()
+    sp_time = parameter(rank = 1)
+    sp_value = parameter(rank = 1)
+end</code></pre><pre><code class="nohighlight hljs">Odin.DustSystemGenerator{var&quot;##OdinModel#277&quot;}(var&quot;##OdinModel#277&quot;(0, [:new_cases, :S, :E_delay, :E_count, :I, :R, :V], [:N_age, :N_delay, :beta, :gamma, :vaccine_efficacy, :N_pop, :vacc_rate, :I0, :sp_time, :sp_value], false, false, false, false, true, Dict{Symbol, Array}()))</code></pre><p><strong>Key patterns in this model:</strong></p><ul><li><code>dim(E_delay) = N_delay</code> allocates the shift register (15 positions for 3 age groups × 5 delay steps).</li><li><code>update(E_delay[1:N_age]) = E_new[i]</code> inserts newly exposed at the front.</li><li><code>update(E_delay[(N_age+1):N_delay]) = E_delay[i - N_age]</code> shifts everything forward by one age-block per time step.</li><li><code>I_new[i] = E_delay[i + di_exit]</code> reads the oldest cohort exiting the register.</li></ul><h2 id="Parameter-Setup"><a class="docs-heading-anchor" href="#Parameter-Setup">Parameter Setup</a><a id="Parameter-Setup-1"></a><a class="docs-heading-anchor-permalink" href="#Parameter-Setup" title="Permalink"></a></h2><pre><code class="language-julia hljs">pars = (
+    N_age = 3.0,
+    N_delay = 15.0,                        # 3 ages × 5 delay days
+    beta = 3.0 / 7.0,                      # R0 = 3, infectious period = 7 days
+    gamma = 1.0 / 7.0,
+    vaccine_efficacy = 0.9,
+    N_pop = [10000.0, 10000.0, 10000.0],   # children, adults, elderly
+    vacc_rate = [0.005, 0.01, 0.002],      # age-dependent daily rates
+    I0 = [5.0, 3.0, 2.0],                  # initial infections by age
+    sp_time  = [0.0, 100.0, 150.0, 200.0, 250.0, 365.0],
+    sp_value = [1e-4, 1e-4,  1e-3,  1e-3,  1e-4,  1e-4],
+)</code></pre><pre><code class="nohighlight hljs">(N_age = 3.0, N_delay = 15.0, beta = 0.42857142857142855, gamma = 0.14285714285714285, vaccine_efficacy = 0.9, N_pop = [10000.0, 10000.0, 10000.0], vacc_rate = [0.005, 0.01, 0.002], I0 = [5.0, 3.0, 2.0], sp_time = [0.0, 100.0, 150.0, 200.0, 250.0, 365.0], sp_value = [0.0001, 0.0001, 0.001, 0.001, 0.0001, 0.0001])</code></pre><p>The spillover FOI ramps up between days 100–150, stays elevated until day 200, then drops back — mimicking a seasonal peak in zoonotic transmission.</p><h2 id="Simulation"><a class="docs-heading-anchor" href="#Simulation">Simulation</a><a id="Simulation-1"></a><a class="docs-heading-anchor-permalink" href="#Simulation" title="Permalink"></a></h2><p>We run 100 stochastic realisations over one year:</p><pre><code class="language-julia hljs">n_particles = 100
+times = collect(0.0:1.0:365.0)
+
+result = simulate(seir_vacc, pars;
+    times = times, dt = 1.0, seed = 42, n_particles = n_particles)
+println(&quot;Result shape: &quot;, size(result), &quot;  (states × particles × times)&quot;)</code></pre><pre><code class="nohighlight hljs">Result shape: (31, 100, 366)  (states × particles × times)
+
+Expected 31 states</code></pre><p>Define index helpers for readability:</p><pre><code class="language-julia hljs">idx_S  = 1:3
+idx_Ec = (3 + 15 + 1):(3 + 15 + 3)   # E_count
+idx_I  = (3 + 15 + 3 + 1):(3 + 15 + 3 + 3)
+idx_R  = (3 + 15 + 6 + 1):(3 + 15 + 6 + 3)
+idx_V  = (3 + 15 + 9 + 1):(3 + 15 + 9 + 3)
+idx_nc = 3 + 15 + 3 * 4 + 1           # new_cases
+
+age_labels = [&quot;Children (0–14)&quot;, &quot;Adults (15–64)&quot;, &quot;Elderly (65+)&quot;]
+age_colors = [:blue, :red, :green]</code></pre><pre><code class="nohighlight hljs">3-element Vector{Symbol}:
+ :blue
+ :red
+ :green</code></pre><h2 id="Visualization"><a class="docs-heading-anchor" href="#Visualization">Visualization</a><a id="Visualization-1"></a><a class="docs-heading-anchor-permalink" href="#Visualization" title="Permalink"></a></h2><h3 id="Infected-by-Age-Group"><a class="docs-heading-anchor" href="#Infected-by-Age-Group">Infected by Age Group</a><a id="Infected-by-Age-Group-1"></a><a class="docs-heading-anchor-permalink" href="#Infected-by-Age-Group" title="Permalink"></a></h3><pre><code class="language-julia hljs">p = plot(xlabel = &quot;Day&quot;, ylabel = &quot;Mean Infected&quot;,
+         title = &quot;SEIR with Delay: Infected by Age Group&quot;,
+         legend = :topright)
+
+for g in 1:3
+    I_mean = vec(mean(result[idx_I[g], :, :], dims = 1))
+    plot!(p, times, I_mean, label = age_labels[g],
+          color = age_colors[g], lw = 2)
+end
+p</code></pre><p><img src="../14_delay_vaccination_files/figure-commonmark/cell-8-output-1.svg" alt/></p><h3 id="All-Compartments-for-Adults"><a class="docs-heading-anchor" href="#All-Compartments-for-Adults">All Compartments for Adults</a><a id="All-Compartments-for-Adults-1"></a><a class="docs-heading-anchor-permalink" href="#All-Compartments-for-Adults" title="Permalink"></a></h3><pre><code class="language-julia hljs">p = plot(xlabel = &quot;Day&quot;, ylabel = &quot;Mean Population&quot;,
+         title = &quot;Compartment Dynamics: Adults (15–64)&quot;,
+         legend = :right)
+plot!(p, times, vec(mean(result[idx_S[2], :, :], dims = 1)),
+      label = &quot;S&quot;, color = :blue, lw = 2)
+plot!(p, times, vec(mean(result[idx_Ec[2], :, :], dims = 1)),
+      label = &quot;E&quot;, color = :orange, lw = 2)
+plot!(p, times, vec(mean(result[idx_I[2], :, :], dims = 1)),
+      label = &quot;I&quot;, color = :red, lw = 2)
+plot!(p, times, vec(mean(result[idx_R[2], :, :], dims = 1)),
+      label = &quot;R&quot;, color = :green, lw = 2)
+plot!(p, times, vec(mean(result[idx_V[2], :, :], dims = 1)),
+      label = &quot;V&quot;, color = :purple, lw = 2)
+p</code></pre><p><img src="../14_delay_vaccination_files/figure-commonmark/cell-9-output-1.svg" alt/></p><h3 id="Stochastic-Variability-(20-realisations)"><a class="docs-heading-anchor" href="#Stochastic-Variability-(20-realisations)">Stochastic Variability (20 realisations)</a><a id="Stochastic-Variability-(20-realisations)-1"></a><a class="docs-heading-anchor-permalink" href="#Stochastic-Variability-(20-realisations)" title="Permalink"></a></h3><pre><code class="language-julia hljs">p = plot(xlabel = &quot;Day&quot;, ylabel = &quot;Total Infected&quot;,
+         title = &quot;Stochastic Variability (20 realisations)&quot;, legend = false)
+for i in 1:min(20, n_particles)
+    I_tot = result[idx_I[1], i, :] + result[idx_I[2], i, :] + result[idx_I[3], i, :]
+    plot!(p, times, I_tot, color = :red, alpha = 0.3, lw = 0.8)
+end
+I_tot_mean = vec(mean(sum(result[idx_I, :, :], dims = 1), dims = 2))
+plot!(p, times, I_tot_mean, color = :black, lw = 3)
+p</code></pre><p><img src="../14_delay_vaccination_files/figure-commonmark/cell-10-output-1.svg" alt/></p><h3 id="Weekly-New-Cases"><a class="docs-heading-anchor" href="#Weekly-New-Cases">Weekly New Cases</a><a id="Weekly-New-Cases-1"></a><a class="docs-heading-anchor-permalink" href="#Weekly-New-Cases" title="Permalink"></a></h3><pre><code class="language-julia hljs">nc_mean = vec(mean(result[idx_nc, :, :], dims = 1))
+bar(times, nc_mean, xlabel = &quot;Day&quot;, ylabel = &quot;Mean Weekly New Cases&quot;,
+    title = &quot;Weekly Incidence (resets every 7 days)&quot;,
+    label = &quot;&quot;, color = :steelblue, alpha = 0.7, linewidth = 0)</code></pre><p><img src="../14_delay_vaccination_files/figure-commonmark/cell-11-output-1.svg" alt/></p><h3 id="Vaccination-Coverage-Over-Time"><a class="docs-heading-anchor" href="#Vaccination-Coverage-Over-Time">Vaccination Coverage Over Time</a><a id="Vaccination-Coverage-Over-Time-1"></a><a class="docs-heading-anchor-permalink" href="#Vaccination-Coverage-Over-Time" title="Permalink"></a></h3><pre><code class="language-julia hljs">p = plot(xlabel = &quot;Day&quot;, ylabel = &quot;Mean Vaccinated&quot;,
+         title = &quot;Cumulative Vaccination by Age Group&quot;,
+         legend = :topleft)
+for g in 1:3
+    V_mean = vec(mean(result[idx_V[g], :, :], dims = 1))
+    plot!(p, times, V_mean, label = age_labels[g],
+          color = age_colors[g], lw = 2, ls = :dash)
+end
+p</code></pre><p><img src="../14_delay_vaccination_files/figure-commonmark/cell-12-output-1.svg" alt/></p><h2 id="Comparison:-With-vs-Without-Vaccination"><a class="docs-heading-anchor" href="#Comparison:-With-vs-Without-Vaccination">Comparison: With vs Without Vaccination</a><a id="Comparison:-With-vs-Without-Vaccination-1"></a><a class="docs-heading-anchor-permalink" href="#Comparison:-With-vs-Without-Vaccination" title="Permalink"></a></h2><pre><code class="language-julia hljs">pars_novacc = merge(pars, (vacc_rate = [0.0, 0.0, 0.0],))
+
+result_novacc = simulate(seir_vacc, pars_novacc;
+    times = times, dt = 1.0, seed = 42, n_particles = n_particles)
+
+I_vacc   = vec(mean(sum(result[idx_I, :, :], dims = 1), dims = 2))
+I_novacc = vec(mean(sum(result_novacc[idx_I, :, :], dims = 1), dims = 2))
+
+plot(times, I_novacc, label = &quot;No vaccination&quot;, color = :red, lw = 2,
+     xlabel = &quot;Day&quot;, ylabel = &quot;Mean Total Infected&quot;,
+     title = &quot;Impact of Vaccination on Epidemic Curve&quot;)
+plot!(times, I_vacc, label = &quot;With vaccination&quot;, color = :blue, lw = 2)</code></pre><p><img src="../14_delay_vaccination_files/figure-commonmark/cell-13-output-1.svg" alt/></p><h3 id="Final-Size-Comparison"><a class="docs-heading-anchor" href="#Final-Size-Comparison">Final Size Comparison</a><a id="Final-Size-Comparison-1"></a><a class="docs-heading-anchor-permalink" href="#Final-Size-Comparison" title="Permalink"></a></h3><pre><code class="language-julia hljs">println(&quot;Final attack rates (% of age-group population):&quot;)
+println(&quot;=&quot; ^ 55)
+for g in 1:3
+    R_vacc   = mean(result[idx_R[g], :, end])
+    R_novacc = mean(result_novacc[idx_R[g], :, end])
+    ar_vacc   = 100 * R_vacc / pars.N_pop[g]
+    ar_novacc = 100 * R_novacc / pars.N_pop[g]
+    reduction = ar_novacc &gt; 0 ? 100 * (1 - ar_vacc / ar_novacc) : 0.0
+    println(&quot;  $(age_labels[g]):&quot;)
+    println(&quot;    No vaccination: $(round(ar_novacc, digits=1))%&quot;)
+    println(&quot;    With vaccination: $(round(ar_vacc, digits=1))%&quot;)
+    println(&quot;    Reduction: $(round(reduction, digits=1))%&quot;)
+end</code></pre><pre><code class="nohighlight hljs">Final attack rates (% of age-group population):
+=======================================================
+  Children (0–14):
+    No vaccination: 0.0%
+    With vaccination: 0.0%
+    Reduction: -122.2%
+  Adults (15–64):
+    No vaccination: 96.0%
+    With vaccination: 67.2%
+    Reduction: 29.9%
+  Elderly (65+):
+    No vaccination: 96.0%
+    With vaccination: 51.0%
+    Reduction: 46.8%</code></pre><h2 id="Summary"><a class="docs-heading-anchor" href="#Summary">Summary</a><a id="Summary-1"></a><a class="docs-heading-anchor-permalink" href="#Summary" title="Permalink"></a></h2><p>This vignette demonstrated several key modelling patterns:</p><table><tr><th style="text-align: right">Technique</th><th style="text-align: right">Implementation</th></tr><tr><td style="text-align: right"><strong>Age structure</strong></td><td style="text-align: right"><code>dim(X) = N_age</code> with <code>X[i]</code> indexing</td></tr><tr><td style="text-align: right"><strong>Fixed delay</strong></td><td style="text-align: right">Shift register: <code>E_delay[1:N_age]</code> = new, <code>E_delay[(N_age+1):N_delay]</code> = shifted</td></tr><tr><td style="text-align: right"><strong>Spillover FOI</strong></td><td style="text-align: right"><code>interpolate(sp_time, sp_value, :linear)</code> for time-varying zoonotic input</td></tr><tr><td style="text-align: right"><strong>Vaccination</strong></td><td style="text-align: right">Sequential Binomial draws from remaining susceptibles</td></tr><tr><td style="text-align: right"><strong>Incidence tracking</strong></td><td style="text-align: right"><code>initial(new_cases, zero_every = 7) = 0</code> for weekly resets</td></tr><tr><td style="text-align: right"><strong>Scenario comparison</strong></td><td style="text-align: right">Re-run with <code>vacc_rate = [0, 0, 0]</code> to quantify vaccine impact</td></tr></table><p>The <strong>shift-register delay</strong> pattern is particularly useful when the biological incubation period is well characterised (e.g. 3–6 days for yellow fever) and you want individuals to progress through the latent compartment in a fixed number of time steps rather than with exponential or Erlang-distributed timing.</p></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../13_dynamicppl/">« DynamicPPL Integration</a><a class="docs-footer-nextpage" href="../15_vector_borne/">Vector-Borne Disease Dynamics »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="auto">Automatic (OS)</option><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option><option value="catppuccin-latte">catppuccin-latte</option><option value="catppuccin-frappe">catppuccin-frappe</option><option value="catppuccin-macchiato">catppuccin-macchiato</option><option value="catppuccin-mocha">catppuccin-mocha</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 1.17.0 on <span class="colophon-date" title="Friday 27 March 2026 16:28">Friday 27 March 2026</span>. Using Julia version 1.12.5.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>

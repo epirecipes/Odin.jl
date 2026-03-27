@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width, initial-scale=1.0"/><title>Compositional Model Building · Odin.jl</title><meta name="title" content="Compositional Model Building · Odin.jl"/><meta property="og:title" content="Compositional Model Building · Odin.jl"/><meta property="twitter:title" content="Compositional Model Building · Odin.jl"/><meta name="description" content="Documentation for Odin.jl."/><meta property="og:description" content="Documentation for Odin.jl."/><meta property="twitter:description" content="Documentation for Odin.jl."/><script data-outdated-warner src="../../assets/warner.js"></script><link href="https://cdnjs.cloudflare.com/ajax/libs/lato-font/3.0.0/css/lato-font.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/juliamono/0.050/juliamono.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/fontawesome.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/solid.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/brands.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.8/katex.min.css" rel="stylesheet" type="text/css"/><script>documenterBaseURL="../.."</script><script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.6/require.min.js" data-main="../../assets/documenter.js"></script><script src="../../search_index.js"></script><script src="../../siteinfo.js"></script><script src="../../../versions.js"></script><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/catppuccin-mocha.css" data-theme-name="catppuccin-mocha"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/catppuccin-macchiato.css" data-theme-name="catppuccin-macchiato"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/catppuccin-frappe.css" data-theme-name="catppuccin-frappe"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/catppuccin-latte.css" data-theme-name="catppuccin-latte"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/documenter-dark.css" data-theme-name="documenter-dark" data-theme-primary-dark/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/documenter-light.css" data-theme-name="documenter-light" data-theme-primary/><script src="../../assets/themeswap.js"></script></head><body><div id="documenter"><nav class="docs-sidebar"><div class="docs-package-name"><span class="docs-autofit"><a href="../../">Odin.jl</a></span></div><button class="docs-search-query input is-rounded is-small is-clickable my-2 mx-auto py-1 px-2" id="documenter-search-query">Search docs (Ctrl + /)</button><ul class="docs-menu"><li><a class="tocitem" href="../../">Home</a></li><li><a class="tocitem" href="../../getting_started/">Getting Started</a></li><li><span class="tocitem">Guide</span><ul><li><a class="tocitem" href="../../dsl/">DSL Reference</a></li><li><a class="tocitem" href="../../simulation/">Simulation</a></li><li><a class="tocitem" href="../../filtering/">Filtering &amp; Likelihood</a></li><li><a class="tocitem" href="../../inference/">Inference</a></li><li><a class="tocitem" href="../../solvers/">ODE Solvers</a></li><li><a class="tocitem" href="../../gpu/">GPU Acceleration</a></li><li><a class="tocitem" href="../../categorical/">Categorical Models</a></li></ul></li><li><span class="tocitem">Vignettes</span><ul><li><input class="collapse-toggle" id="menuitem-4-1" type="checkbox"/><label class="tocitem" for="menuitem-4-1"><span class="docs-label">Basics</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../01_basic_ode/">Basic ODE Model: SIR</a></li><li><a class="tocitem" href="../02_stochastic/">Stochastic Discrete-Time SIR</a></li><li><a class="tocitem" href="../03_observations/">Incidence Tracking with zero_every</a></li><li><a class="tocitem" href="../04_arrays/">Age-Structured SIR with Arrays</a></li><li><a class="tocitem" href="../05_particle_filter/">Particle Filter and Likelihood</a></li><li><a class="tocitem" href="../06_inference/">Bayesian Inference with MCMC</a></li></ul></li><li><input class="collapse-toggle" id="menuitem-4-2" type="checkbox" checked/><label class="tocitem" for="menuitem-4-2"><span class="docs-label">Intermediate</span><i class="docs-chevron"></i></label><ul class="collapsed"><li class="is-active"><a class="tocitem" href>Compositional Model Building</a><ul class="internal"><li><a class="tocitem" href="#Introduction"><span>Introduction</span></a></li><li><a class="tocitem" href="#Defining-Models-as-Petri-Nets"><span>Defining Models as Petri Nets</span></a></li><li><a class="tocitem" href="#Lowering-to-a-Simulatable-Model"><span>Lowering to a Simulatable Model</span></a></li><li><a class="tocitem" href="#Composition:-Building-Models-from-Parts"><span>Composition: Building Models from Parts</span></a></li><li><a class="tocitem" href="#Composing-an-SEIR-from-Three-Parts"><span>Composing an SEIR from Three Parts</span></a></li><li><a class="tocitem" href="#Stratification:-Adding-Age-Structure"><span>Stratification: Adding Age Structure</span></a></li><li><a class="tocitem" href="#Stochastic-Stratified-Model"><span>Stochastic Stratified Model</span></a></li><li><a class="tocitem" href="#SIR-Vaccination-via-Composition"><span>SIR + Vaccination via Composition</span></a></li><li><a class="tocitem" href="#Inspecting-Generated-Code"><span>Inspecting Generated Code</span></a></li><li><a class="tocitem" href="#Summary"><span>Summary</span></a></li></ul></li><li><a class="tocitem" href="../08_time_varying/">Time-Varying Parameters</a></li><li><a class="tocitem" href="../09_advanced/">SEIR with Vaccination and Waning</a></li><li><a class="tocitem" href="../10_projections/">Counterfactual Projections</a></li><li><a class="tocitem" href="../11_delay_model/">Delay Compartments</a></li><li><a class="tocitem" href="../12_reactive_policy/">Reactive Vaccination Policy</a></li><li><a class="tocitem" href="../13_dynamicppl/">DynamicPPL Integration</a></li><li><a class="tocitem" href="../14_delay_vaccination/">SEIR with Delay and Vaccination</a></li><li><a class="tocitem" href="../15_vector_borne/">Vector-Borne Disease Dynamics</a></li></ul></li><li><input class="collapse-toggle" id="menuitem-4-3" type="checkbox"/><label class="tocitem" for="menuitem-4-3"><span class="docs-label">Advanced Models</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../16_multi_stream/">Multi-Stream Outbreak</a></li><li><a class="tocitem" href="../17_mpox_seir/">Mpox SEIR: Age-Structured</a></li><li><a class="tocitem" href="../18_malaria_simple/">Malaria: Ross-Macdonald</a></li><li><a class="tocitem" href="../19_sarscov2_multiregion/">SARS-CoV-2 Multi-Region</a></li><li><a class="tocitem" href="../20_yellowfever/">Yellow Fever SEIRV</a></li><li><a class="tocitem" href="../21_school_closure/">SIS with School Closure</a></li><li><a class="tocitem" href="../22_beta_blocks/">Beta Blocks</a></li><li><a class="tocitem" href="../23_orov/">OROV Vector-Borne</a></li><li><a class="tocitem" href="../24_yf_delay/">Yellow Fever with Erlang Delay</a></li><li><a class="tocitem" href="../25_yf_vtrack/">Yellow Fever 2-Track Vaccination</a></li><li><a class="tocitem" href="../26_fitting_workflow/">Complete Fitting Workflow</a></li><li><a class="tocitem" href="../27_spatial_composition/">Spatial Composition</a></li><li><a class="tocitem" href="../28_stratification/">Age Stratification</a></li><li><a class="tocitem" href="../29_multi_pathogen/">Multi-Pathogen Composition</a></li></ul></li><li><input class="collapse-toggle" id="menuitem-4-4" type="checkbox"/><label class="tocitem" for="menuitem-4-4"><span class="docs-label">Techniques</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../30_stiff_ode/">Stiff ODEs: SDIRK4 Solver</a></li><li><a class="tocitem" href="../31_gpu_filter/">GPU-Accelerated Filtering</a></li><li><a class="tocitem" href="../32_advanced_samplers/">Advanced MCMC Samplers</a></li><li><a class="tocitem" href="../33_sensitivity/">Sensitivity Analysis</a></li><li><a class="tocitem" href="../34_events/">Event Handling</a></li><li><a class="tocitem" href="../35_sde/">Stochastic Differential Equations</a></li><li><a class="tocitem" href="../36_model_selection/">Model Selection</a></li><li><a class="tocitem" href="../37_model_validation/">Model Validation</a></li></ul></li></ul></li><li><a class="tocitem" href="../../api/">API Reference</a></li></ul><div class="docs-version-selector field has-addons"><div class="control"><span class="docs-label button is-static is-size-7">Version</span></div><div class="docs-selector control is-expanded"><div class="select is-fullwidth is-size-7"><select id="documenter-version-selector"></select></div></div></div></nav><div class="docs-main"><header class="docs-navbar"><a class="docs-sidebar-button docs-navbar-link fa-solid fa-bars is-hidden-desktop" id="documenter-sidebar-button" href="#"></a><nav class="breadcrumb"><ul class="is-hidden-mobile"><li><a class="is-disabled">Vignettes</a></li><li><a class="is-disabled">Intermediate</a></li><li class="is-active"><a href>Compositional Model Building</a></li></ul><ul class="is-hidden-tablet"><li class="is-active"><a href>Compositional Model Building</a></li></ul></nav><div class="docs-right"><a class="docs-navbar-link" href="https://github.com/epirecipes/Odin.jl" title="View the repository on GitHub"><span class="docs-icon fa-brands"></span><span class="docs-label is-hidden-touch">GitHub</span></a><a class="docs-settings-button docs-navbar-link fa-solid fa-gear" id="documenter-settings-button" href="#" title="Settings"></a><a class="docs-article-toggle-button fa-solid fa-chevron-up" id="documenter-article-toggle-button" href="javascript:;" title="Collapse all docstrings"></a></div></header><article class="content" id="documenter-page"><h1 id="Compositional-Model-Building"><a class="docs-heading-anchor" href="#Compositional-Model-Building">Compositional Model Building</a><a id="Compositional-Model-Building-1"></a><a class="docs-heading-anchor-permalink" href="#Compositional-Model-Building" title="Permalink"></a></h1><h2 id="Introduction"><a class="docs-heading-anchor" href="#Introduction">Introduction</a><a id="Introduction-1"></a><a class="docs-heading-anchor-permalink" href="#Introduction" title="Permalink"></a></h2><p>This vignette demonstrates Odin.jl’s <strong>categorical extension</strong> for building epidemiological models compositionally. Instead of writing model equations by hand, you define models as <strong>Petri nets</strong> — specifying compartments and transitions — then <strong>compose</strong> sub-models, <strong>stratify</strong> across groups, and <strong>lower</strong> the result to a simulatable ODE or stochastic model.</p><p>This approach is inspired by <a href="https://github.com/AlgebraicJulia/AlgebraicPetri.jl">AlgebraicPetri.jl</a> and the broader <a href="https://www.algebraicjulia.org/">AlgebraicJulia</a> ecosystem.</p><h2 id="Defining-Models-as-Petri-Nets"><a class="docs-heading-anchor" href="#Defining-Models-as-Petri-Nets">Defining Models as Petri Nets</a><a id="Defining-Models-as-Petri-Nets-1"></a><a class="docs-heading-anchor-permalink" href="#Defining-Models-as-Petri-Nets" title="Permalink"></a></h2><p>An <code>EpiNet</code> is a labelled Petri net where:</p><ul><li><strong>Species</strong> are compartments (S, I, R, etc.)</li><li><strong>Transitions</strong> are epidemiological processes (infection, recovery, etc.)</li><li>Each transition has <strong>input arcs</strong> (species consumed) and <strong>output arcs</strong> (species produced)</li><li>Each transition has a <strong>rate parameter</strong></li></ul><pre><code class="language-julia hljs">using Odin
+using Plots
+
+# Define an SIR model as a Petri net
+sir = EpiNet(
+    [:S =&gt; 990.0, :I =&gt; 10.0, :R =&gt; 0.0],
+    [:inf =&gt; ([:S, :I] =&gt; [:I, :I], :beta),   # infection: S + I → 2I
+     :rec =&gt; ([:I] =&gt; [:R], :gamma)]            # recovery: I → R
+)
+
+println(&quot;Species: &quot;, species_names(sir))
+println(&quot;Transitions: &quot;, transition_names(sir))
+println(&quot;Stoichiometry matrix:&quot;)
+display(stoichiometry_matrix(sir))</code></pre><pre><code class="nohighlight hljs">Species: [:S, :I, :R]
+Transitions: [:inf, :rec]
+Stoichiometry matrix:
+
+3×2 Matrix{Int64}:
+ -1   0
+  1  -1
+  0   1</code></pre><p>Pre-built models are available for common structures:</p><pre><code class="language-julia hljs"># All of these return EpiNet objects
+sir   = SIR(; S0=990.0, I0=10.0)
+seir  = SEIR(; S0=990.0, I0=10.0)
+sirs  = SIRS(; S0=990.0, I0=10.0)
+seirs = SEIRS(; S0=990.0, I0=10.0)
+
+for (name, net) in [(&quot;SIR&quot;, sir), (&quot;SEIR&quot;, seir), (&quot;SIRS&quot;, sirs), (&quot;SEIRS&quot;, seirs)]
+    println(&quot;$name: $(nspecies(net)) species, $(ntransitions(net)) transitions&quot;)
+end</code></pre><pre><code class="nohighlight hljs">SIR: 3 species, 2 transitions
+SEIR: 4 species, 3 transitions
+SIRS: 3 species, 3 transitions
+SEIRS: 4 species, 4 transitions</code></pre><h2 id="Lowering-to-a-Simulatable-Model"><a class="docs-heading-anchor" href="#Lowering-to-a-Simulatable-Model">Lowering to a Simulatable Model</a><a id="Lowering-to-a-Simulatable-Model-1"></a><a class="docs-heading-anchor-permalink" href="#Lowering-to-a-Simulatable-Model" title="Permalink"></a></h2><p>The <code>compile()</code> function compiles a Petri net into an <code>@odin</code> model:</p><pre><code class="language-julia hljs"># Lower SIR to ODE with frequency-dependent transmission
+sir_gen = compile(sir; mode=:ode, frequency_dependent=true, N=:N,
+                params=Dict(:beta =&gt; 0.3, :gamma =&gt; 0.1, :N =&gt; 1000.0))
+
+# Simulate
+sys = System(sir_gen, (beta=0.3, gamma=0.1, N=1000.0))
+reset!(sys)
+times = collect(0.0:0.5:200.0)
+result = simulate(sys, times)
+
+plot(times, [result[1,1,:] result[2,1,:] result[3,1,:]],
+     label=[&quot;S&quot; &quot;I&quot; &quot;R&quot;],
+     xlabel=&quot;Time&quot;, ylabel=&quot;Population&quot;,
+     title=&quot;SIR from Petri Net (ODE)&quot;,
+     linewidth=2, legend=:right)</code></pre><p><img src="../07_categorical_files/figure-commonmark/cell-4-output-1.svg" alt/></p><h2 id="Composition:-Building-Models-from-Parts"><a class="docs-heading-anchor" href="#Composition:-Building-Models-from-Parts">Composition: Building Models from Parts</a><a id="Composition:-Building-Models-from-Parts-1"></a><a class="docs-heading-anchor-permalink" href="#Composition:-Building-Models-from-Parts" title="Permalink"></a></h2><p>The key advantage of the categorical approach is <strong>composition</strong>. Define sub-models independently and merge them:</p><pre><code class="language-julia hljs"># Sub-model 1: infection process
+infection = EpiNet(
+    [:S =&gt; 990.0, :I =&gt; 10.0],
+    [:inf =&gt; ([:S, :I] =&gt; [:I, :I], :beta)]
+)
+
+# Sub-model 2: recovery process
+recovery = EpiNet(
+    [:I =&gt; 10.0, :R =&gt; 0.0],
+    [:rec =&gt; ([:I] =&gt; [:R], :gamma)]
+)
+
+# Sub-model 3: waning immunity
+waning = EpiNet(
+    [:R =&gt; 0.0, :S =&gt; 990.0],
+    [:wane =&gt; ([:R] =&gt; [:S], :delta)]
+)
+
+# Compose: shared species (I, S, R) are automatically merged
+sirs_composed = compose(infection, recovery, waning)
+println(&quot;SIRS species: &quot;, species_names(sirs_composed))
+println(&quot;SIRS transitions: &quot;, transition_names(sirs_composed))</code></pre><pre><code class="nohighlight hljs">SIRS species: [:S, :I, :R]
+SIRS transitions: [:inf, :rec, :wane]</code></pre><pre><code class="language-julia hljs"># Simulate the composed SIRS model — shows endemic equilibrium
+sirs_gen = compile(sirs_composed; mode=:ode, frequency_dependent=true, N=:N,
+                 params=Dict(:beta =&gt; 0.3, :gamma =&gt; 0.1, :delta =&gt; 0.01, :N =&gt; 1000.0))
+
+sys = System(sirs_gen, (beta=0.3, gamma=0.1, delta=0.01, N=1000.0))
+reset!(sys)
+times = collect(0.0:1.0:1000.0)
+result = simulate(sys, times)
+
+plot(times, [result[1,1,:] result[2,1,:] result[3,1,:]],
+     label=[&quot;S&quot; &quot;I&quot; &quot;R&quot;],
+     xlabel=&quot;Time&quot;, ylabel=&quot;Population&quot;,
+     title=&quot;SIRS (Composed) — Endemic Equilibrium&quot;,
+     linewidth=2, legend=:right)</code></pre><p><img src="../07_categorical_files/figure-commonmark/cell-6-output-1.svg" alt/></p><h2 id="Composing-an-SEIR-from-Three-Parts"><a class="docs-heading-anchor" href="#Composing-an-SEIR-from-Three-Parts">Composing an SEIR from Three Parts</a><a id="Composing-an-SEIR-from-Three-Parts-1"></a><a class="docs-heading-anchor-permalink" href="#Composing-an-SEIR-from-Three-Parts" title="Permalink"></a></h2><pre><code class="language-julia hljs"># Infection: S exposed by I
+exposure = EpiNet(
+    [:S =&gt; 990.0, :E =&gt; 0.0, :I =&gt; 10.0],
+    [:inf =&gt; ([:S, :I] =&gt; [:E, :I], :beta)]
+)
+
+# Progression: E becomes I
+progression = EpiNet(
+    [:E =&gt; 0.0, :I =&gt; 10.0],
+    [:prog =&gt; ([:E] =&gt; [:I], :sigma)]
+)
+
+# Recovery: I recovers to R
+recovery_seir = EpiNet(
+    [:I =&gt; 10.0, :R =&gt; 0.0],
+    [:rec =&gt; ([:I] =&gt; [:R], :gamma)]
+)
+
+seir_composed = compose(exposure, progression, recovery_seir)
+println(&quot;SEIR: &quot;, species_names(seir_composed), &quot; — &quot;, transition_names(seir_composed))
+
+seir_gen = compile(seir_composed; mode=:ode, frequency_dependent=true, N=:N,
+                 params=Dict(:beta =&gt; 0.5, :sigma =&gt; 0.2, :gamma =&gt; 0.1, :N =&gt; 1000.0))
+sys = System(seir_gen, (beta=0.5, sigma=0.2, gamma=0.1, N=1000.0))
+reset!(sys)
+times = collect(0.0:0.5:200.0)
+result = simulate(sys, times)
+
+plot(times, [result[1,1,:] result[2,1,:] result[3,1,:] result[4,1,:]],
+     label=[&quot;S&quot; &quot;E&quot; &quot;I&quot; &quot;R&quot;],
+     xlabel=&quot;Time&quot;, ylabel=&quot;Population&quot;,
+     title=&quot;SEIR (Composed from 3 Parts)&quot;,
+     linewidth=2, legend=:right)</code></pre><pre><code class="nohighlight hljs">SEIR: [:S, :E, :I, :R] — [:inf, :prog, :rec]</code></pre><p><img src="../07_categorical_files/figure-commonmark/cell-7-output-2.svg" alt/></p><h2 id="Stratification:-Adding-Age-Structure"><a class="docs-heading-anchor" href="#Stratification:-Adding-Age-Structure">Stratification: Adding Age Structure</a><a id="Stratification:-Adding-Age-Structure-1"></a><a class="docs-heading-anchor-permalink" href="#Stratification:-Adding-Age-Structure" title="Permalink"></a></h2><p>Given a base model, <code>stratify()</code> replicates it across groups (e.g., age classes) and adds inter-group mixing via a contact matrix:</p><pre><code class="language-julia hljs"># Start with a simple SIR
+sir_base = SIR(; S0=990.0, I0=10.0)
+
+# Define contact matrix (3 age groups)
+# Higher within-group contact for children, lower for elderly
+C = [3.0 1.0 0.5;
+     1.0 2.0 0.5;
+     0.5 0.5 1.0]
+
+sir_age = stratify(sir_base, [:child, :adult, :elder]; contact=C)
+println(&quot;Stratified species: &quot;, species_names(sir_age))
+println(&quot;Number of transitions: &quot;, ntransitions(sir_age))</code></pre><pre><code class="nohighlight hljs">Stratified species: [:S_child, :I_child, :R_child, :S_adult, :I_adult, :R_adult, :S_elder, :I_elder, :R_elder]
+Number of transitions: 12</code></pre><pre><code class="language-julia hljs"># Simulate the age-stratified model
+sir_age_gen = compile(sir_age; mode=:ode, frequency_dependent=true, N=:N,
+                    params=Dict(:beta =&gt; 0.15, :gamma =&gt; 0.1, :N =&gt; 1000.0))
+sys = System(sir_age_gen, (beta=0.15, gamma=0.1, N=1000.0))
+reset!(sys)
+times = collect(0.0:0.5:200.0)
+result = simulate(sys, times)
+
+sn = species_names(sir_age)
+groups = [:child, :adult, :elder]
+colors = [:blue, :red, :green]
+
+# Plot infected by age group
+p = plot(title=&quot;Infected by Age Group&quot;, xlabel=&quot;Time&quot;, ylabel=&quot;Infected&quot;, linewidth=2)
+for (i, g) in enumerate(groups)
+    idx = findfirst(==(Symbol(:I_, g)), sn)
+    plot!(p, times, result[idx, 1, :], label=string(g), color=colors[i])
+end
+p</code></pre><p><img src="../07_categorical_files/figure-commonmark/cell-9-output-1.svg" alt/></p><pre><code class="language-julia hljs"># Compare attack rates
+println(&quot;Final attack rates:&quot;)
+for (i, g) in enumerate(groups)
+    R_idx = findfirst(==(Symbol(:R_, g)), sn)
+    S_idx = findfirst(==(Symbol(:S_, g)), sn)
+    R_final = result[R_idx, 1, end]
+    pop = result[S_idx, 1, 1] + result[findfirst(==(Symbol(:I_, g)), sn), 1, 1]
+    ar = 100 * R_final / pop
+    println(&quot;  $g: $(round(ar; digits=1))%&quot;)
+end</code></pre><pre><code class="nohighlight hljs">Final attack rates:
+  child: 81.9%
+  adult: 71.3%
+  elder: 46.5%</code></pre><h2 id="Stochastic-Stratified-Model"><a class="docs-heading-anchor" href="#Stochastic-Stratified-Model">Stochastic Stratified Model</a><a id="Stochastic-Stratified-Model-1"></a><a class="docs-heading-anchor-permalink" href="#Stochastic-Stratified-Model" title="Permalink"></a></h2><p>The same Petri net can be lowered to a stochastic discrete-time model:</p><pre><code class="language-julia hljs"># Lower to stochastic
+sir_age_stoch = compile(sir_age; mode=:discrete, frequency_dependent=true, N=:N,
+                      params=Dict(:beta =&gt; 0.15, :gamma =&gt; 0.1, :N =&gt; 1000.0))
+
+sys = System(sir_age_stoch, (beta=0.15, gamma=0.1, N=1000.0);
+                         n_particles=20, dt=0.25, seed=42)
+reset!(sys)
+times = collect(0.0:1.0:200.0)
+result = simulate(sys, times)
+
+# Plot with stochastic uncertainty
+p = plot(title=&quot;Stochastic Age-Stratified SIR&quot;, xlabel=&quot;Time&quot;, ylabel=&quot;Infected&quot;)
+for (i, g) in enumerate(groups)
+    idx = findfirst(==(Symbol(:I_, g)), sn)
+    for p_idx in 1:20
+        plot!(p, times, result[idx, p_idx, :], alpha=0.15, color=colors[i], label=&quot;&quot;)
+    end
+    # Mean trajectory
+    mean_traj = vec(sum(result[idx, :, :], dims=1) ./ 20)
+    plot!(p, times, mean_traj, color=colors[i], linewidth=3, label=string(g))
+end
+p</code></pre><p><img src="../07_categorical_files/figure-commonmark/cell-11-output-1.svg" alt/></p><h2 id="SIR-Vaccination-via-Composition"><a class="docs-heading-anchor" href="#SIR-Vaccination-via-Composition">SIR + Vaccination via Composition</a><a id="SIR-Vaccination-via-Composition-1"></a><a class="docs-heading-anchor-permalink" href="#SIR-Vaccination-via-Composition" title="Permalink"></a></h2><p>Composition naturally supports adding new interventions to existing models:</p><pre><code class="language-julia hljs"># Start with basic SIR
+sir_base = SIR(; S0=990.0, I0=10.0)
+
+# Add vaccination: S → V (vaccinated immune class)
+vaccination = EpiNet(
+    [:S =&gt; 990.0, :V =&gt; 0.0],
+    [:vax =&gt; ([:S] =&gt; [:V], :nu)]
+)
+
+# Compose: S is shared, V is new
+sir_vax = compose(sir_base, vaccination)
+println(&quot;SIR+Vax species: &quot;, species_names(sir_vax))
+println(&quot;SIR+Vax transitions: &quot;, transition_names(sir_vax))
+
+# Compare with and without vaccination
+times = collect(0.0:0.5:200.0)
+pars_novax = (beta=0.3, gamma=0.1, nu=0.0, N=1000.0)
+pars_vax = (beta=0.3, gamma=0.1, nu=0.005, N=1000.0)
+
+gen = compile(sir_vax; mode=:ode, frequency_dependent=true, N=:N,
+            params=Dict(:beta =&gt; 0.3, :gamma =&gt; 0.1, :nu =&gt; 0.0, :N =&gt; 1000.0))
+
+sys1 = System(gen, pars_novax)
+reset!(sys1)
+r1 = simulate(sys1, times)
+
+sys2 = System(gen, pars_vax)
+reset!(sys2)
+r2 = simulate(sys2, times)
+
+plot(times, [r1[2,1,:] r2[2,1,:]],
+     label=[&quot;No vaccination&quot; &quot;ν = 0.005/day&quot;],
+     xlabel=&quot;Time&quot;, ylabel=&quot;Infected&quot;,
+     title=&quot;Effect of Vaccination&quot;,
+     linewidth=2, legend=:topright)</code></pre><pre><code class="nohighlight hljs">SIR+Vax species: [:S, :I, :R, :V]
+SIR+Vax transitions: [:inf, :rec, :vax]</code></pre><p><img src="../07_categorical_files/figure-commonmark/cell-12-output-2.svg" alt/></p><h2 id="Inspecting-Generated-Code"><a class="docs-heading-anchor" href="#Inspecting-Generated-Code">Inspecting Generated Code</a><a id="Inspecting-Generated-Code-1"></a><a class="docs-heading-anchor-permalink" href="#Inspecting-Generated-Code" title="Permalink"></a></h2><p>You can inspect the odin DSL expressions that <code>compile()</code> generates:</p><pre><code class="language-julia hljs">sir_simple = SIR()
+exprs = lower_expr(sir_simple; mode=:ode, frequency_dependent=true, N=:N,
+                   params=Dict(:beta =&gt; 0.3, :gamma =&gt; 0.1, :N =&gt; 1000.0))
+println(&quot;Generated @odin expressions:&quot;)
+for e in exprs
+    println(&quot;  &quot;, e)
+end</code></pre><pre><code class="nohighlight hljs">Generated @odin expressions:
+  N = parameter(1000.0)
+  beta = parameter(0.3)
+  gamma = parameter(0.1)
+  initial(S) = begin
+        #= /Users/sdwfrost/Projects/odin/Odin.jl/src/categorical/lowering.jl:88 =#
+        990.0
+    end
+  initial(I) = begin
+        #= /Users/sdwfrost/Projects/odin/Odin.jl/src/categorical/lowering.jl:88 =#
+        10.0
+    end
+  initial(R) = begin
+        #= /Users/sdwfrost/Projects/odin/Odin.jl/src/categorical/lowering.jl:88 =#
+        0.0
+    end
+  flow_inf = ((beta * S) * I) / N
+  flow_rec = gamma * I
+  deriv(S) = begin
+        #= /Users/sdwfrost/Projects/odin/Odin.jl/src/categorical/lowering.jl:150 =#
+        -flow_inf
+    end
+  deriv(I) = begin
+        #= /Users/sdwfrost/Projects/odin/Odin.jl/src/categorical/lowering.jl:150 =#
+        flow_inf - flow_rec
+    end
+  deriv(R) = begin
+        #= /Users/sdwfrost/Projects/odin/Odin.jl/src/categorical/lowering.jl:150 =#
+        flow_rec
+    end</code></pre><h2 id="Summary"><a class="docs-heading-anchor" href="#Summary">Summary</a><a id="Summary-1"></a><a class="docs-heading-anchor-permalink" href="#Summary" title="Permalink"></a></h2><p>The categorical extension provides:</p><table><tr><th style="text-align: right">Operation</th><th style="text-align: right">Function</th><th style="text-align: right">Description</th></tr><tr><td style="text-align: right"><strong>Define</strong></td><td style="text-align: right"><code>EpiNet(species, transitions)</code></td><td style="text-align: right">Create a Petri net model</td></tr><tr><td style="text-align: right"><strong>Compose</strong></td><td style="text-align: right"><code>compose(net1, net2, ...)</code></td><td style="text-align: right">Merge models by shared species</td></tr><tr><td style="text-align: right"><strong>Stratify</strong></td><td style="text-align: right"><code>stratify(net, groups; contact=C)</code></td><td style="text-align: right">Replicate across groups</td></tr><tr><td style="text-align: right"><strong>Lower</strong></td><td style="text-align: right"><code>compile(net; mode=:ode)</code></td><td style="text-align: right">Compile to simulatable model</td></tr><tr><td style="text-align: right"><strong>Inspect</strong></td><td style="text-align: right"><code>lower_expr(net)</code></td><td style="text-align: right">View generated DSL code</td></tr></table><p>Pre-built models: <code>sir_net</code>, <code>seir_net</code>, <code>sis_net</code>, <code>sirs_net</code>, <code>seirs_net</code>, <code>sir_vax_net</code>.</p></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../06_inference/">« Bayesian Inference with MCMC</a><a class="docs-footer-nextpage" href="../08_time_varying/">Time-Varying Parameters »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="auto">Automatic (OS)</option><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option><option value="catppuccin-latte">catppuccin-latte</option><option value="catppuccin-frappe">catppuccin-frappe</option><option value="catppuccin-macchiato">catppuccin-macchiato</option><option value="catppuccin-mocha">catppuccin-mocha</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 1.17.0 on <span class="colophon-date" title="Friday 27 March 2026 16:28">Friday 27 March 2026</span>. Using Julia version 1.12.5.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>

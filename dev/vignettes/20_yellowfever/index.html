@@ -1,0 +1,353 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width, initial-scale=1.0"/><title>Yellow Fever SEIRV · Odin.jl</title><meta name="title" content="Yellow Fever SEIRV · Odin.jl"/><meta property="og:title" content="Yellow Fever SEIRV · Odin.jl"/><meta property="twitter:title" content="Yellow Fever SEIRV · Odin.jl"/><meta name="description" content="Documentation for Odin.jl."/><meta property="og:description" content="Documentation for Odin.jl."/><meta property="twitter:description" content="Documentation for Odin.jl."/><script data-outdated-warner src="../../assets/warner.js"></script><link href="https://cdnjs.cloudflare.com/ajax/libs/lato-font/3.0.0/css/lato-font.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/juliamono/0.050/juliamono.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/fontawesome.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/solid.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/brands.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.8/katex.min.css" rel="stylesheet" type="text/css"/><script>documenterBaseURL="../.."</script><script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.6/require.min.js" data-main="../../assets/documenter.js"></script><script src="../../search_index.js"></script><script src="../../siteinfo.js"></script><script src="../../../versions.js"></script><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/catppuccin-mocha.css" data-theme-name="catppuccin-mocha"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/catppuccin-macchiato.css" data-theme-name="catppuccin-macchiato"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/catppuccin-frappe.css" data-theme-name="catppuccin-frappe"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/catppuccin-latte.css" data-theme-name="catppuccin-latte"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/documenter-dark.css" data-theme-name="documenter-dark" data-theme-primary-dark/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/documenter-light.css" data-theme-name="documenter-light" data-theme-primary/><script src="../../assets/themeswap.js"></script></head><body><div id="documenter"><nav class="docs-sidebar"><div class="docs-package-name"><span class="docs-autofit"><a href="../../">Odin.jl</a></span></div><button class="docs-search-query input is-rounded is-small is-clickable my-2 mx-auto py-1 px-2" id="documenter-search-query">Search docs (Ctrl + /)</button><ul class="docs-menu"><li><a class="tocitem" href="../../">Home</a></li><li><a class="tocitem" href="../../getting_started/">Getting Started</a></li><li><span class="tocitem">Guide</span><ul><li><a class="tocitem" href="../../dsl/">DSL Reference</a></li><li><a class="tocitem" href="../../simulation/">Simulation</a></li><li><a class="tocitem" href="../../filtering/">Filtering &amp; Likelihood</a></li><li><a class="tocitem" href="../../inference/">Inference</a></li><li><a class="tocitem" href="../../solvers/">ODE Solvers</a></li><li><a class="tocitem" href="../../gpu/">GPU Acceleration</a></li><li><a class="tocitem" href="../../categorical/">Categorical Models</a></li></ul></li><li><span class="tocitem">Vignettes</span><ul><li><input class="collapse-toggle" id="menuitem-4-1" type="checkbox"/><label class="tocitem" for="menuitem-4-1"><span class="docs-label">Basics</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../01_basic_ode/">Basic ODE Model: SIR</a></li><li><a class="tocitem" href="../02_stochastic/">Stochastic Discrete-Time SIR</a></li><li><a class="tocitem" href="../03_observations/">Incidence Tracking with zero_every</a></li><li><a class="tocitem" href="../04_arrays/">Age-Structured SIR with Arrays</a></li><li><a class="tocitem" href="../05_particle_filter/">Particle Filter and Likelihood</a></li><li><a class="tocitem" href="../06_inference/">Bayesian Inference with MCMC</a></li></ul></li><li><input class="collapse-toggle" id="menuitem-4-2" type="checkbox"/><label class="tocitem" for="menuitem-4-2"><span class="docs-label">Intermediate</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../07_categorical/">Compositional Model Building</a></li><li><a class="tocitem" href="../08_time_varying/">Time-Varying Parameters</a></li><li><a class="tocitem" href="../09_advanced/">SEIR with Vaccination and Waning</a></li><li><a class="tocitem" href="../10_projections/">Counterfactual Projections</a></li><li><a class="tocitem" href="../11_delay_model/">Delay Compartments</a></li><li><a class="tocitem" href="../12_reactive_policy/">Reactive Vaccination Policy</a></li><li><a class="tocitem" href="../13_dynamicppl/">DynamicPPL Integration</a></li><li><a class="tocitem" href="../14_delay_vaccination/">SEIR with Delay and Vaccination</a></li><li><a class="tocitem" href="../15_vector_borne/">Vector-Borne Disease Dynamics</a></li></ul></li><li><input class="collapse-toggle" id="menuitem-4-3" type="checkbox" checked/><label class="tocitem" for="menuitem-4-3"><span class="docs-label">Advanced Models</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../16_multi_stream/">Multi-Stream Outbreak</a></li><li><a class="tocitem" href="../17_mpox_seir/">Mpox SEIR: Age-Structured</a></li><li><a class="tocitem" href="../18_malaria_simple/">Malaria: Ross-Macdonald</a></li><li><a class="tocitem" href="../19_sarscov2_multiregion/">SARS-CoV-2 Multi-Region</a></li><li class="is-active"><a class="tocitem" href>Yellow Fever SEIRV</a><ul class="internal"><li><a class="tocitem" href="#Introduction"><span>Introduction</span></a></li><li><a class="tocitem" href="#Model-Description"><span>Model Description</span></a></li><li><a class="tocitem" href="#Model-Definition"><span>Model Definition</span></a></li><li><a class="tocitem" href="#Parameter-Setup"><span>Parameter Setup</span></a></li><li><a class="tocitem" href="#Simulation"><span>Simulation</span></a></li><li><a class="tocitem" href="#Visualization"><span>Visualization</span></a></li><li><a class="tocitem" href="#Population-Conservation-Check"><span>Population Conservation Check</span></a></li><li><a class="tocitem" href="#Scenario:-No-Vaccination"><span>Scenario: No Vaccination</span></a></li><li><a class="tocitem" href="#Benchmark"><span>Benchmark</span></a></li><li><a class="tocitem" href="#Summary"><span>Summary</span></a></li></ul></li><li><a class="tocitem" href="../21_school_closure/">SIS with School Closure</a></li><li><a class="tocitem" href="../22_beta_blocks/">Beta Blocks</a></li><li><a class="tocitem" href="../23_orov/">OROV Vector-Borne</a></li><li><a class="tocitem" href="../24_yf_delay/">Yellow Fever with Erlang Delay</a></li><li><a class="tocitem" href="../25_yf_vtrack/">Yellow Fever 2-Track Vaccination</a></li><li><a class="tocitem" href="../26_fitting_workflow/">Complete Fitting Workflow</a></li><li><a class="tocitem" href="../27_spatial_composition/">Spatial Composition</a></li><li><a class="tocitem" href="../28_stratification/">Age Stratification</a></li><li><a class="tocitem" href="../29_multi_pathogen/">Multi-Pathogen Composition</a></li></ul></li><li><input class="collapse-toggle" id="menuitem-4-4" type="checkbox"/><label class="tocitem" for="menuitem-4-4"><span class="docs-label">Techniques</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../30_stiff_ode/">Stiff ODEs: SDIRK4 Solver</a></li><li><a class="tocitem" href="../31_gpu_filter/">GPU-Accelerated Filtering</a></li><li><a class="tocitem" href="../32_advanced_samplers/">Advanced MCMC Samplers</a></li><li><a class="tocitem" href="../33_sensitivity/">Sensitivity Analysis</a></li><li><a class="tocitem" href="../34_events/">Event Handling</a></li><li><a class="tocitem" href="../35_sde/">Stochastic Differential Equations</a></li><li><a class="tocitem" href="../36_model_selection/">Model Selection</a></li><li><a class="tocitem" href="../37_model_validation/">Model Validation</a></li></ul></li></ul></li><li><a class="tocitem" href="../../api/">API Reference</a></li></ul><div class="docs-version-selector field has-addons"><div class="control"><span class="docs-label button is-static is-size-7">Version</span></div><div class="docs-selector control is-expanded"><div class="select is-fullwidth is-size-7"><select id="documenter-version-selector"></select></div></div></div></nav><div class="docs-main"><header class="docs-navbar"><a class="docs-sidebar-button docs-navbar-link fa-solid fa-bars is-hidden-desktop" id="documenter-sidebar-button" href="#"></a><nav class="breadcrumb"><ul class="is-hidden-mobile"><li><a class="is-disabled">Vignettes</a></li><li><a class="is-disabled">Advanced Models</a></li><li class="is-active"><a href>Yellow Fever SEIRV</a></li></ul><ul class="is-hidden-tablet"><li class="is-active"><a href>Yellow Fever SEIRV</a></li></ul></nav><div class="docs-right"><a class="docs-navbar-link" href="https://github.com/epirecipes/Odin.jl" title="View the repository on GitHub"><span class="docs-icon fa-brands"></span><span class="docs-label is-hidden-touch">GitHub</span></a><a class="docs-settings-button docs-navbar-link fa-solid fa-gear" id="documenter-settings-button" href="#" title="Settings"></a><a class="docs-article-toggle-button fa-solid fa-chevron-up" id="documenter-article-toggle-button" href="javascript:;" title="Collapse all docstrings"></a></div></header><article class="content" id="documenter-page"><h1 id="Yellow-Fever-SEIRV:-Age-Structured-Model-with-Spillover"><a class="docs-heading-anchor" href="#Yellow-Fever-SEIRV:-Age-Structured-Model-with-Spillover">Yellow Fever SEIRV: Age-Structured Model with Spillover</a><a id="Yellow-Fever-SEIRV:-Age-Structured-Model-with-Spillover-1"></a><a class="docs-heading-anchor-permalink" href="#Yellow-Fever-SEIRV:-Age-Structured-Model-with-Spillover" title="Permalink"></a></h1><h2 id="Introduction"><a class="docs-heading-anchor" href="#Introduction">Introduction</a><a id="Introduction-1"></a><a class="docs-heading-anchor-permalink" href="#Introduction" title="Permalink"></a></h2><p>Yellow fever is a mosquito-borne flavivirus endemic in tropical Africa and South America. In addition to human-to-human (urban) transmission, <strong>sylvatic spillover</strong> from non-human primate reservoirs drives outbreaks even in partially vaccinated populations. The YF-17D vaccine provides long-lasting immunity but coverage varies by age group and year.</p><p>This vignette builds an <strong>age-structured discrete-time stochastic SEIRV model</strong> inspired by the <a href="https://github.com/mrc-ide/YEP">YEP</a> package. Key features:</p><table><tr><th style="text-align: right">Feature</th><th style="text-align: right">Odin construct</th></tr><tr><td style="text-align: right">Age structure (5 groups)</td><td style="text-align: right"><code>dim(S) = N_age</code>, 1D arrays</td></tr><tr><td style="text-align: right">SEIRV compartments</td><td style="text-align: right">Susceptible, Exposed, Infectious, Recovered, Vaccinated</td></tr><tr><td style="text-align: right">Spillover FOI</td><td style="text-align: right"><code>interpolate()</code> for time-varying zoonotic force</td></tr><tr><td style="text-align: right">Time-varying R0</td><td style="text-align: right"><code>interpolate()</code> for seasonal transmission</td></tr><tr><td style="text-align: right">Population dynamics</td><td style="text-align: right">Aging in/out flows per age group per year</td></tr><tr><td style="text-align: right">Vaccination</td><td style="text-align: right">Efficacy-weighted rate from annual schedule</td></tr><tr><td style="text-align: right">Cumulative cases</td><td style="text-align: right"><code>C[i]</code> tracking new infections per step</td></tr></table><pre><code class="language-julia hljs">using Odin
+using Plots
+using Statistics
+using Random</code></pre><h2 id="Model-Description"><a class="docs-heading-anchor" href="#Model-Description">Model Description</a><a id="Model-Description-1"></a><a class="docs-heading-anchor-permalink" href="#Model-Description" title="Permalink"></a></h2><h3 id="Compartments"><a class="docs-heading-anchor" href="#Compartments">Compartments</a><a id="Compartments-1"></a><a class="docs-heading-anchor-permalink" href="#Compartments" title="Permalink"></a></h3><p>For each of <span>$a = 1, \ldots, N_\text{age}$</span> age groups:</p><ul><li><p class="math-container">\[S_a\]</p>— Susceptible</li><li><p class="math-container">\[E_a\]</p>— Exposed (latent)</li><li><p class="math-container">\[I_a\]</p>— Infectious</li><li><p class="math-container">\[R_a\]</p>— Recovered (immune)</li><li><p class="math-container">\[V_a\]</p>— Vaccinated (effectively immune)</li><li><p class="math-container">\[C_a\]</p>— New cases this time step (reset each step)</li></ul><h3 id="Force-of-infection"><a class="docs-heading-anchor" href="#Force-of-infection">Force of infection</a><a id="Force-of-infection-1"></a><a class="docs-heading-anchor-permalink" href="#Force-of-infection" title="Permalink"></a></h3><p class="math-container">\[\lambda(t) = \min\!\Bigl(1,\;\beta(t) \frac{\sum_a I_a}{P_\text{tot}}
++ \text{FOI}_\text{spillover}(t)\Bigr)\]</p><p>where <span>$\beta(t) = R_0(t) / t_\text{infectious}$</span> and <span>$\text{FOI}_\text{spillover}(t)$</span> is a time-varying zoonotic force.</p><h3 id="Population-dynamics"><a class="docs-heading-anchor" href="#Population-dynamics">Population dynamics</a><a id="Population-dynamics-1"></a><a class="docs-heading-anchor-permalink" href="#Population-dynamics" title="Permalink"></a></h3><p>Each time step, individuals flow between age groups via demographic rates <code>dP1</code> (inflow) and <code>dP2</code> (outflow), distributed proportionally across compartments. The youngest age group receives external inflow via <code>dP1[1]</code> added to susceptibles.</p><h2 id="Model-Definition"><a class="docs-heading-anchor" href="#Model-Definition">Model Definition</a><a id="Model-Definition-1"></a><a class="docs-heading-anchor-permalink" href="#Model-Definition" title="Permalink"></a></h2><pre><code class="language-julia hljs">yf_seirv = @odin begin
+    # === Configuration ===
+    N_age = parameter(5)
+
+    # === Dimensions ===
+    dim(S) = N_age
+    dim(E) = N_age
+    dim(I) = N_age
+    dim(R) = N_age
+    dim(V) = N_age
+    dim(C) = N_age
+
+    dim(S_0) = N_age
+    dim(E_0) = N_age
+    dim(I_0) = N_age
+    dim(R_0) = N_age
+    dim(V_0) = N_age
+
+    dim(dP1) = N_age
+    dim(dP2) = N_age
+    dim(E_new) = N_age
+    dim(I_new) = N_age
+    dim(R_new) = N_age
+    dim(P_nV) = N_age
+    dim(inv_P_nV) = N_age
+    dim(P) = N_age
+    dim(inv_P) = N_age
+    dim(vacc_eff) = N_age
+
+    # === Epidemiological rates ===
+    t_latent = parameter(5.0)
+    t_infectious = parameter(5.0)
+    rate1 = 1.0 / t_latent
+    rate2 = 1.0 / t_infectious
+
+    # === Time-varying R0 and spillover ===
+    R0_t = interpolate(R0_time, R0_value, :linear)
+    FOI_sp = interpolate(sp_time, sp_value, :linear)
+    beta = R0_t / t_infectious
+
+    # === Force of infection ===
+    P_total = sum(P)
+    I_total = sum(I)
+    FOI_raw = beta * I_total / max(P_total, 1.0) + FOI_sp
+    FOI_max = 1.0
+    FOI_sum = min(FOI_max, FOI_raw)
+
+    # === Population totals per age ===
+    P_nV[i] = max(S[i] + R[i], 1e-99)
+    inv_P_nV[i] = 1.0 / P_nV[i]
+    P[i] = max(P_nV[i] + V[i], 1e-99)
+    inv_P[i] = 1.0 / P[i]
+
+    # === Transitions ===
+    p_inf = 1 - exp(-FOI_sum * dt)
+    p_lat = 1 - exp(-rate1 * dt)
+    p_rec = 1 - exp(-rate2 * dt)
+
+    E_new[i] = Binomial(S[i], p_inf)
+    I_new[i] = Binomial(E[i], p_lat)
+    R_new[i] = Binomial(I[i], p_rec)
+
+    # === Vaccination ===
+    vaccine_efficacy = parameter(0.95)
+    vacc_eff[i] = vacc_rate[i] * vaccine_efficacy * dt
+
+    # === Demographic flows ===
+    dP1_rate = interpolate(dP1_time, dP1_value, :constant)
+    dP2_rate = interpolate(dP2_time, dP2_value, :constant)
+    dP1[i] = dP1_rate * 0.01
+    dP2[i] = dP2_rate * 0.01
+
+    # === State updates: age group 1 (youngest) ===
+    update(S[1]) = max(0.0, S[1] - E_new[1]
+                       - vacc_eff[1] * S[1] * inv_P_nV[1]
+                       + dP1[1]
+                       - dP2[1] * S[1] * inv_P[1])
+    update(E[1]) = max(0.0, E[1] + E_new[1] - I_new[1])
+    update(I[1]) = max(0.0, I[1] + I_new[1] - R_new[1])
+    update(R[1]) = max(0.0, R[1] + R_new[1]
+                       - vacc_eff[1] * R[1] * inv_P_nV[1]
+                       - dP2[1] * R[1] * inv_P[1])
+    update(V[1]) = max(0.0, V[1] + vacc_eff[1]
+                       - dP2[1] * V[1] * inv_P[1])
+
+    # === State updates: age groups 2..N_age (aging from i-1) ===
+    update(S[2:N_age]) = max(0.0, S[i] - E_new[i]
+                             - vacc_eff[i] * S[i] * inv_P_nV[i]
+                             + dP1[i] * S[i - 1] * inv_P[i - 1]
+                             - dP2[i] * S[i] * inv_P[i])
+    update(E[2:N_age]) = max(0.0, E[i] + E_new[i] - I_new[i])
+    update(I[2:N_age]) = max(0.0, I[i] + I_new[i] - R_new[i])
+    update(R[2:N_age]) = max(0.0, R[i] + R_new[i]
+                             - vacc_eff[i] * R[i] * inv_P_nV[i]
+                             + dP1[i] * R[i - 1] * inv_P[i - 1]
+                             - dP2[i] * R[i] * inv_P[i])
+    update(V[2:N_age]) = max(0.0, V[i] + vacc_eff[i]
+                             + dP1[i] * V[i - 1] * inv_P[i - 1]
+                             - dP2[i] * V[i] * inv_P[i])
+
+    # === Cumulative new cases per step (reset each step) ===
+    initial(C[i], zero_every = 1) = 0
+    update(C[i]) = C[i] + I_new[i]
+
+    # === Outputs ===
+    output(FOI_total) = FOI_sum
+    output(total_I) = I_total
+    output(total_pop) = P_total
+
+    # === Initial conditions ===
+    initial(S[i]) = S_0[i]
+    initial(E[i]) = E_0[i]
+    initial(I[i]) = I_0[i]
+    initial(R[i]) = R_0[i]
+    initial(V[i]) = V_0[i]
+
+    # === Parameters ===
+    S_0 = parameter()
+    E_0 = parameter()
+    I_0 = parameter()
+    R_0 = parameter()
+    V_0 = parameter()
+    vacc_rate = parameter(rank = 1)
+
+    R0_time = parameter(rank = 1)
+    R0_value = parameter(rank = 1)
+    sp_time = parameter(rank = 1)
+    sp_value = parameter(rank = 1)
+    dP1_time = parameter(rank = 1)
+    dP1_value = parameter(rank = 1)
+    dP2_time = parameter(rank = 1)
+    dP2_value = parameter(rank = 1)
+end</code></pre><pre><code class="nohighlight hljs">Odin.DustSystemGenerator{var&quot;##OdinModel#277&quot;}(var&quot;##OdinModel#277&quot;(0, [:C, :S, :E, :I, :R, :V], [:N_age, :t_latent, :t_infectious, :vaccine_efficacy, :S_0, :E_0, :I_0, :R_0, :V_0, :vacc_rate, :R0_time, :R0_value, :sp_time, :sp_value, :dP1_time, :dP1_value, :dP2_time, :dP2_value], false, false, false, true, true, Dict{Symbol, Array}()))</code></pre><h2 id="Parameter-Setup"><a class="docs-heading-anchor" href="#Parameter-Setup">Parameter Setup</a><a id="Parameter-Setup-1"></a><a class="docs-heading-anchor-permalink" href="#Parameter-Setup" title="Permalink"></a></h2><h3 id="Demographics"><a class="docs-heading-anchor" href="#Demographics">Demographics</a><a id="Demographics-1"></a><a class="docs-heading-anchor-permalink" href="#Demographics" title="Permalink"></a></h3><p>We use five age groups — 0–4 years, 5–14, 15–29, 30–49, and 50+ — with population sizes reflecting a typical sub-Saharan African age distribution:</p><pre><code class="language-julia hljs">N_age = 5
+age_labels = [&quot;0–4&quot;, &quot;5–14&quot;, &quot;15–29&quot;, &quot;30–49&quot;, &quot;50+&quot;]
+age_colors = [:blue, :red, :green, :orange, :purple]
+
+pop = [150_000.0, 250_000.0, 200_000.0, 150_000.0, 100_000.0]
+N_total = sum(pop)
+println(&quot;Total population: &quot;, Int(N_total))</code></pre><pre><code class="nohighlight hljs">Total population: 850000</code></pre><h3 id="Initial-conditions"><a class="docs-heading-anchor" href="#Initial-conditions">Initial conditions</a><a id="Initial-conditions-1"></a><a class="docs-heading-anchor-permalink" href="#Initial-conditions" title="Permalink"></a></h3><p>We seed a small number of infections in the 15–29 age group, with some pre-existing immunity and vaccination:</p><pre><code class="language-julia hljs">S_0 = copy(pop)
+E_0 = zeros(N_age)
+I_0 = zeros(N_age)
+R_0 = zeros(N_age)
+V_0 = zeros(N_age)
+
+# Pre-existing immunity (10–30% by age)
+immun_frac = [0.05, 0.10, 0.15, 0.20, 0.30]
+for i in 1:N_age
+    R_0[i] = round(pop[i] * immun_frac[i])
+    S_0[i] -= R_0[i]
+end
+
+# Pre-existing vaccination (varies by age)
+vacc_frac = [0.30, 0.40, 0.20, 0.10, 0.05]
+for i in 1:N_age
+    V_0[i] = round(pop[i] * vacc_frac[i])
+    S_0[i] -= V_0[i]
+end
+
+# Seed 50 infections in 15–29 age group
+I_0[3] = 50.0
+S_0[3] -= 50.0
+
+println(&quot;S_0: &quot;, S_0)
+println(&quot;R_0: &quot;, R_0)
+println(&quot;V_0: &quot;, V_0)
+println(&quot;I_0: &quot;, I_0)</code></pre><pre><code class="nohighlight hljs">S_0: [97500.0, 125000.0, 129950.0, 105000.0, 65000.0]
+R_0: [7500.0, 25000.0, 30000.0, 30000.0, 30000.0]
+V_0: [45000.0, 100000.0, 40000.0, 15000.0, 5000.0]
+I_0: [0.0, 0.0, 50.0, 0.0, 0.0]</code></pre><h3 id="Time-varying-R0-and-spillover-FOI"><a class="docs-heading-anchor" href="#Time-varying-R0-and-spillover-FOI">Time-varying R0 and spillover FOI</a><a id="Time-varying-R0-and-spillover-FOI-1"></a><a class="docs-heading-anchor-permalink" href="#Time-varying-R0-and-spillover-FOI" title="Permalink"></a></h3><p>R0 has a seasonal pattern peaking mid-year (wet season), while spillover FOI has occasional pulses:</p><pre><code class="language-julia hljs">n_years = 10
+t_end = 365.0 * n_years
+
+# R0: seasonal pattern (range 2–5)
+R0_time = collect(0.0:30.0:(t_end + 30.0))
+R0_value = [3.5 + 1.5 * sin(2π * t / 365) for t in R0_time]
+
+# Spillover FOI: background + occasional pulses
+sp_time = collect(0.0:30.0:(t_end + 30.0))
+sp_value = [1e-6 + 5e-5 * max(0, sin(2π * t / 365 - π/3))^3 for t in sp_time]
+
+plot(R0_time[1:50], R0_value[1:50], lw=2, color=:steelblue,
+     xlabel=&quot;Day&quot;, ylabel=&quot;R0&quot;, title=&quot;Time-varying R0 (first 4 years)&quot;,
+     label=&quot;R0&quot;, legend=:topright)</code></pre><p><img src="../20_yellowfever_files/figure-commonmark/cell-6-output-1.svg" alt/></p><pre><code class="language-julia hljs">plot(sp_time[1:50], sp_value[1:50] .* 1e5, lw=2, color=:darkred,
+     xlabel=&quot;Day&quot;, ylabel=&quot;FOI × 10⁵&quot;, title=&quot;Spillover FOI (first 4 years)&quot;,
+     label=&quot;Spillover&quot;, legend=:topright)</code></pre><p><img src="../20_yellowfever_files/figure-commonmark/cell-7-output-1.svg" alt/></p><h3 id="Demographic-rates-and-vaccination"><a class="docs-heading-anchor" href="#Demographic-rates-and-vaccination">Demographic rates and vaccination</a><a id="Demographic-rates-and-vaccination-1"></a><a class="docs-heading-anchor-permalink" href="#Demographic-rates-and-vaccination" title="Permalink"></a></h3><pre><code class="language-julia hljs"># Demographic flows (simple constant rates for aging)
+dP1_time = [0.0, t_end + 1.0]
+dP1_value = [1.0, 1.0]
+dP2_time = [0.0, t_end + 1.0]
+dP2_value = [1.0, 1.0]
+
+# Daily vaccination rates by age group
+vacc_rate = [0.001, 0.0005, 0.0003, 0.0002, 0.0001]</code></pre><pre><code class="nohighlight hljs">5-element Vector{Float64}:
+ 0.001
+ 0.0005
+ 0.0003
+ 0.0002
+ 0.0001</code></pre><h3 id="Assemble-parameters"><a class="docs-heading-anchor" href="#Assemble-parameters">Assemble parameters</a><a id="Assemble-parameters-1"></a><a class="docs-heading-anchor-permalink" href="#Assemble-parameters" title="Permalink"></a></h3><pre><code class="language-julia hljs">pars = (
+    N_age = Float64(N_age),
+    t_latent = 5.0,
+    t_infectious = 5.0,
+    vaccine_efficacy = 0.95,
+    S_0 = S_0,
+    E_0 = E_0,
+    I_0 = I_0,
+    R_0 = R_0,
+    V_0 = V_0,
+    vacc_rate = vacc_rate,
+    R0_time = R0_time,
+    R0_value = R0_value,
+    sp_time = sp_time,
+    sp_value = sp_value,
+    dP1_time = dP1_time,
+    dP1_value = dP1_value,
+    dP2_time = dP2_time,
+    dP2_value = dP2_value,
+)</code></pre><pre><code class="nohighlight hljs">(N_age = 5.0, t_latent = 5.0, t_infectious = 5.0, vaccine_efficacy = 0.95, S_0 = [97500.0, 125000.0, 129950.0, 105000.0, 65000.0], E_0 = [0.0, 0.0, 0.0, 0.0, 0.0], I_0 = [0.0, 0.0, 50.0, 0.0, 0.0], R_0 = [7500.0, 25000.0, 30000.0, 30000.0, 30000.0], V_0 = [45000.0, 100000.0, 40000.0, 15000.0, 5000.0], vacc_rate = [0.001, 0.0005, 0.0003, 0.0002, 0.0001], R0_time = [0.0, 30.0, 60.0, 90.0, 120.0, 150.0, 180.0, 210.0, 240.0, 270.0  …  3390.0, 3420.0, 3450.0, 3480.0, 3510.0, 3540.0, 3570.0, 3600.0, 3630.0, 3660.0], R0_value = [3.5, 4.240663325239966, 4.788145937413704, 4.999652752969836, 4.8200183059603035, 4.2960950722429, 3.564533349506796, 2.8161399597373116, 2.246111780872045, 2.003124258701912  …  4.958177294943594, 4.594336331129731, 3.9450692289102482, 3.1797186268403115, 2.497904203679706, 2.077457629981743, 2.0280402945925875, 2.362541287282152, 2.9937156506088316, 3.7569397162722047], sp_time = [0.0, 30.0, 60.0, 90.0, 120.0, 150.0, 180.0, 210.0, 240.0, 270.0  …  3390.0, 3420.0, 3450.0, 3480.0, 3510.0, 3540.0, 3570.0, 3600.0, 3630.0, 3660.0], sp_value = [1.0e-6, 1.0e-6, 1.0e-6, 6.5729391399279415e-6, 3.185015736396266e-5, 5.0903611113164396e-5, 3.586190273481683e-5, 8.997773041104356e-6, 1.0094308797359557e-6, 1.0e-6  …  1.7363724843438468e-5, 4.483304264781666e-5, 4.739744365514602e-5, 2.1203190270689412e-5, 2.4950486203300477e-6, 1.0e-6, 1.0e-6, 1.0e-6, 1.0e-6, 1.0e-6], dP1_time = [0.0, 3651.0], dP1_value = [1.0, 1.0], dP2_time = [0.0, 3651.0], dP2_value = [1.0, 1.0])</code></pre><h2 id="Simulation"><a class="docs-heading-anchor" href="#Simulation">Simulation</a><a id="Simulation-1"></a><a class="docs-heading-anchor-permalink" href="#Simulation" title="Permalink"></a></h2><p>We run 10 stochastic particles for 10 years:</p><pre><code class="language-julia hljs">n_particles = 10
+sim_times = collect(0.0:1.0:t_end)
+
+result = simulate(yf_seirv, pars;
+    times=sim_times, dt=1.0, seed=42, n_particles=n_particles)
+
+println(&quot;Result shape: &quot;, size(result),
+        &quot;  (n_state+n_output × n_particles × n_times)&quot;)</code></pre><pre><code class="nohighlight hljs">Result shape: (33, 10, 3651)  (n_state+n_output × n_particles × n_times)</code></pre><h3 id="State-layout"><a class="docs-heading-anchor" href="#State-layout">State layout</a><a id="State-layout-1"></a><a class="docs-heading-anchor-permalink" href="#State-layout" title="Permalink"></a></h3><pre><code class="language-julia hljs"># State layout follows initial() declaration order:
+# C[1:5] (zero_every declared first), S[6:10], E[11:15], I[16:20], R[21:25], V[26:30]
+# Outputs: FOI_total, total_I, total_pop (indices 31, 32, 33)
+idx_C = 1:N_age
+idx_S = (N_age+1):(2*N_age)
+idx_E = (2*N_age+1):(3*N_age)
+idx_I = (3*N_age+1):(4*N_age)
+idx_R = (4*N_age+1):(5*N_age)
+idx_V = (5*N_age+1):(6*N_age)
+out_offset = 6 * N_age
+
+println(&quot;C indices: &quot;, idx_C)
+println(&quot;S indices: &quot;, idx_S)
+println(&quot;I indices: &quot;, idx_I)
+println(&quot;V indices: &quot;, idx_V)
+println(&quot;Output offset: &quot;, out_offset)</code></pre><pre><code class="nohighlight hljs">C indices: 1:5
+S indices: 6:10
+I indices: 16:20
+V indices: 26:30
+Output offset: 30</code></pre><h2 id="Visualization"><a class="docs-heading-anchor" href="#Visualization">Visualization</a><a id="Visualization-1"></a><a class="docs-heading-anchor-permalink" href="#Visualization" title="Permalink"></a></h2><h3 id="SEIRV-compartments-(mean-across-particles)"><a class="docs-heading-anchor" href="#SEIRV-compartments-(mean-across-particles)">SEIRV compartments (mean across particles)</a><a id="SEIRV-compartments-(mean-across-particles)-1"></a><a class="docs-heading-anchor-permalink" href="#SEIRV-compartments-(mean-across-particles)" title="Permalink"></a></h3><pre><code class="language-julia hljs">S_total = vec(mean(sum(result[idx_S, :, :], dims=1), dims=2))
+E_total = vec(mean(sum(result[idx_E, :, :], dims=1), dims=2))
+I_total = vec(mean(sum(result[idx_I, :, :], dims=1), dims=2))
+R_total = vec(mean(sum(result[idx_R, :, :], dims=1), dims=2))
+V_total = vec(mean(sum(result[idx_V, :, :], dims=1), dims=2))
+
+p = plot(xlabel=&quot;Day&quot;, ylabel=&quot;Population&quot;,
+         title=&quot;Yellow Fever SEIRV Dynamics (mean of $n_particles particles)&quot;,
+         legend=:right, size=(900, 400))
+plot!(p, sim_times, S_total, lw=2, label=&quot;S&quot;, color=:blue)
+plot!(p, sim_times, E_total, lw=2, label=&quot;E&quot;, color=:orange)
+plot!(p, sim_times, I_total, lw=2, label=&quot;I&quot;, color=:red)
+plot!(p, sim_times, R_total, lw=2, label=&quot;R&quot;, color=:green)
+plot!(p, sim_times, V_total, lw=2, label=&quot;V&quot;, color=:purple)
+p</code></pre><p><img src="../20_yellowfever_files/figure-commonmark/cell-12-output-1.svg" alt/></p><h3 id="Infectious-by-age-group"><a class="docs-heading-anchor" href="#Infectious-by-age-group">Infectious by age group</a><a id="Infectious-by-age-group-1"></a><a class="docs-heading-anchor-permalink" href="#Infectious-by-age-group" title="Permalink"></a></h3><pre><code class="language-julia hljs">p = plot(xlabel=&quot;Day&quot;, ylabel=&quot;Mean Infectious&quot;,
+         title=&quot;Infectious by Age Group&quot;, legend=:topright, size=(900, 400))
+for a in 1:N_age
+    I_a = vec(mean(result[idx_I[a], :, :], dims=1))
+    plot!(p, sim_times, I_a, lw=2, color=age_colors[a], label=age_labels[a])
+end
+p</code></pre><p><img src="../20_yellowfever_files/figure-commonmark/cell-13-output-1.svg" alt/></p><h3 id="Vaccination-coverage-over-time"><a class="docs-heading-anchor" href="#Vaccination-coverage-over-time">Vaccination coverage over time</a><a id="Vaccination-coverage-over-time-1"></a><a class="docs-heading-anchor-permalink" href="#Vaccination-coverage-over-time" title="Permalink"></a></h3><pre><code class="language-julia hljs">p = plot(xlabel=&quot;Day&quot;, ylabel=&quot;Mean Vaccinated (%)&quot;,
+         title=&quot;Vaccination Coverage by Age Group&quot;,
+         legend=:topleft, size=(900, 400))
+for a in 1:N_age
+    V_a = vec(mean(result[idx_V[a], :, :], dims=1))
+    coverage = V_a ./ pop[a] .* 100
+    plot!(p, sim_times, coverage, lw=2, color=age_colors[a],
+          label=age_labels[a])
+end
+p</code></pre><p><img src="../20_yellowfever_files/figure-commonmark/cell-14-output-1.svg" alt/></p><h3 id="Force-of-infection-2"><a class="docs-heading-anchor" href="#Force-of-infection-2">Force of infection</a><a class="docs-heading-anchor-permalink" href="#Force-of-infection-2" title="Permalink"></a></h3><pre><code class="language-julia hljs">FOI = vec(mean(result[out_offset + 1, :, :], dims=1))
+
+plot(sim_times, FOI, lw=1.5, color=:darkred,
+     xlabel=&quot;Day&quot;, ylabel=&quot;FOI&quot;,
+     title=&quot;Total Force of Infection (mean across particles)&quot;,
+     label=&quot;FOI&quot;, legend=:topright, size=(900, 350))</code></pre><p><img src="../20_yellowfever_files/figure-commonmark/cell-15-output-1.svg" alt/></p><h3 id="Cumulative-cases-by-age"><a class="docs-heading-anchor" href="#Cumulative-cases-by-age">Cumulative cases by age</a><a id="Cumulative-cases-by-age-1"></a><a class="docs-heading-anchor-permalink" href="#Cumulative-cases-by-age" title="Permalink"></a></h3><pre><code class="language-julia hljs">cum_cases = zeros(N_age, length(sim_times))
+for a in 1:N_age
+    daily = vec(mean(result[idx_C[a], :, :], dims=1))
+    cum_cases[a, :] = cumsum(daily)
+end
+
+p = plot(xlabel=&quot;Day&quot;, ylabel=&quot;Cumulative Cases&quot;,
+         title=&quot;Cumulative Cases by Age Group&quot;,
+         legend=:topleft, size=(900, 400))
+for a in 1:N_age
+    plot!(p, sim_times, cum_cases[a, :], lw=2,
+          color=age_colors[a], label=age_labels[a])
+end
+p</code></pre><p><img src="../20_yellowfever_files/figure-commonmark/cell-16-output-1.svg" alt/></p><h3 id="Stochastic-variability"><a class="docs-heading-anchor" href="#Stochastic-variability">Stochastic variability</a><a id="Stochastic-variability-1"></a><a class="docs-heading-anchor-permalink" href="#Stochastic-variability" title="Permalink"></a></h3><pre><code class="language-julia hljs">p = plot(xlabel=&quot;Day&quot;, ylabel=&quot;Total Infectious&quot;,
+         title=&quot;Stochastic Variability ($n_particles realisations)&quot;,
+         legend=false, size=(900, 400))
+for i in 1:n_particles
+    I_tot = sum(result[idx_I, i, :], dims=1)[:]
+    plot!(p, sim_times, I_tot, color=:red, alpha=0.4, lw=0.8)
+end
+I_mean = vec(mean(sum(result[idx_I, :, :], dims=1), dims=2))
+plot!(p, sim_times, I_mean, color=:black, lw=3)
+p</code></pre><p><img src="../20_yellowfever_files/figure-commonmark/cell-17-output-1.svg" alt/></p><h2 id="Population-Conservation-Check"><a class="docs-heading-anchor" href="#Population-Conservation-Check">Population Conservation Check</a><a id="Population-Conservation-Check-1"></a><a class="docs-heading-anchor-permalink" href="#Population-Conservation-Check" title="Permalink"></a></h2><p>The total population should remain approximately constant (small changes due to demographic flows and the <code>max(0, ...)</code> floor):</p><pre><code class="language-julia hljs">p = plot(xlabel=&quot;Day&quot;, ylabel=&quot;Total Population&quot;,
+         title=&quot;Population Conservation Check&quot;, legend=:topright,
+         size=(900, 350))
+for i in 1:min(5, n_particles)
+    pop_total = sum(result[idx_S, i, :], dims=1)[:] .+
+                sum(result[idx_E, i, :], dims=1)[:] .+
+                sum(result[idx_I, i, :], dims=1)[:] .+
+                sum(result[idx_R, i, :], dims=1)[:] .+
+                sum(result[idx_V, i, :], dims=1)[:] 
+    plot!(p, sim_times, pop_total, lw=1, alpha=0.6, label=(i == 1 ? &quot;Particles&quot; : &quot;&quot;))
+end
+hline!(p, [N_total], color=:black, lw=2, ls=:dash, label=&quot;Initial total&quot;)
+p</code></pre><p><img src="../20_yellowfever_files/figure-commonmark/cell-18-output-1.svg" alt/></p><pre><code class="language-julia hljs"># Quantify conservation error
+pop_t = zeros(n_particles, length(sim_times))
+for i in 1:n_particles
+    pop_t[i, :] = sum(result[idx_S, i, :], dims=1)[:] .+
+                  sum(result[idx_E, i, :], dims=1)[:] .+
+                  sum(result[idx_I, i, :], dims=1)[:] .+
+                  sum(result[idx_R, i, :], dims=1)[:] .+
+                  sum(result[idx_V, i, :], dims=1)[:]
+end
+println(&quot;Population at t=0: &quot;, mean(pop_t[:, 1]))
+println(&quot;Population at t=end: &quot;, mean(pop_t[:, end]))
+rel_change = abs(mean(pop_t[:, end]) - N_total) / N_total * 100
+println(&quot;Relative change: &quot;, round(rel_change, digits=4), &quot;%&quot;)</code></pre><pre><code class="nohighlight hljs">Population at t=0: 850000.0
+Population at t=end: 849999.9999999919
+Relative change: 0.0%</code></pre><h2 id="Scenario:-No-Vaccination"><a class="docs-heading-anchor" href="#Scenario:-No-Vaccination">Scenario: No Vaccination</a><a id="Scenario:-No-Vaccination-1"></a><a class="docs-heading-anchor-permalink" href="#Scenario:-No-Vaccination" title="Permalink"></a></h2><p>We compare the epidemic with and without vaccination:</p><pre><code class="language-julia hljs">pars_novacc = merge(pars, (vacc_rate = zeros(N_age), V_0 = zeros(N_age),
+                            S_0 = pop .- R_0 .- I_0))
+
+result_novacc = simulate(yf_seirv, pars_novacc;
+    times=sim_times, dt=1.0, seed=42, n_particles=n_particles)
+
+I_vacc = vec(mean(sum(result[idx_I, :, :], dims=1), dims=2))
+I_novacc = vec(mean(sum(result_novacc[idx_I, :, :], dims=1), dims=2))
+
+plot(sim_times, I_novacc, lw=2, color=:red, label=&quot;No vaccination&quot;,
+     xlabel=&quot;Day&quot;, ylabel=&quot;Mean Total Infectious&quot;,
+     title=&quot;Impact of Vaccination on Yellow Fever&quot;,
+     legend=:topright, size=(900, 400))
+plot!(sim_times, I_vacc, lw=2, color=:blue, label=&quot;With vaccination&quot;)</code></pre><p><img src="../20_yellowfever_files/figure-commonmark/cell-20-output-1.svg" alt/></p><h2 id="Benchmark"><a class="docs-heading-anchor" href="#Benchmark">Benchmark</a><a id="Benchmark-1"></a><a class="docs-heading-anchor-permalink" href="#Benchmark" title="Permalink"></a></h2><pre><code class="language-julia hljs">using BenchmarkTools
+
+@benchmark simulate($yf_seirv, $pars;
+    times=$sim_times, dt=1.0, seed=42, n_particles=10)</code></pre><pre><code class="nohighlight hljs">BenchmarkTools.Trial: 221 samples with 1 evaluation per sample.
+ Range (min … max):  20.672 ms … 56.397 ms  ┊ GC (min … max): 0.00% … 30.88%
+ Time  (median):     21.576 ms              ┊ GC (median):    0.00%
+ Time  (mean ± σ):   22.665 ms ±  3.057 ms  ┊ GC (mean ± σ):  5.03% ±  7.93%
+
+      █▆▆▇                                                     
+  ▂▄▆█████▇▅▆▃▂▄▂▁▁▁▁▂▁▁▁▁▁▁▁▁▁▁▁▁▁▁▃▂▃▇▅▄▄▄▁▁▃▂▂▃▁▂▁▁▁▁▁▁▂▁▃ ▃
+  20.7 ms         Histogram: frequency by time        28.2 ms &lt;
+
+ Memory estimate: 14.87 MiB, allocs estimate: 110079.</code></pre><h2 id="Summary"><a class="docs-heading-anchor" href="#Summary">Summary</a><a id="Summary-1"></a><a class="docs-heading-anchor-permalink" href="#Summary" title="Permalink"></a></h2><table><tr><th style="text-align: right">Component</th><th style="text-align: right">Value</th></tr><tr><td style="text-align: right"><strong>Age groups</strong></td><td style="text-align: right">5 (0–4, 5–14, 15–29, 30–49, 50+)</td></tr><tr><td style="text-align: right"><strong>Compartments</strong></td><td style="text-align: right">SEIRV + cumulative cases</td></tr><tr><td style="text-align: right"><strong>State variables</strong></td><td style="text-align: right">30 (6 compartments × 5 age groups)</td></tr><tr><td style="text-align: right"><strong>Time step</strong></td><td style="text-align: right">1 day</td></tr><tr><td style="text-align: right"><strong>Simulation</strong></td><td style="text-align: right">10 years (3650 days), 10 particles</td></tr><tr><td style="text-align: right"><strong>Stochastic draws</strong></td><td style="text-align: right">Binomial for infection, latency, recovery</td></tr><tr><td style="text-align: right"><strong>Time-varying forcing</strong></td><td style="text-align: right">R0 and spillover FOI via <code>interpolate()</code></td></tr></table><h3 id="Key-takeaways"><a class="docs-heading-anchor" href="#Key-takeaways">Key takeaways</a><a id="Key-takeaways-1"></a><a class="docs-heading-anchor-permalink" href="#Key-takeaways" title="Permalink"></a></h3><ol><li><p><strong>Partial array updates</strong> (<code>update(S[1])</code> vs <code>update(S[2:N_age])</code>)  allow different aging rules for the youngest vs older age groups —  inflow from births for group 1, vs aging from the previous group for  groups 2+.</p></li><li><p><strong>Interpolated time-varying parameters</strong> (<code>R0_t</code>, <code>FOI_sp</code>) provide  flexible seasonal and episodic forcing without requiring the model  to track time indices explicitly.</p></li><li><p><strong><code>max(0, ...)</code></strong> floors prevent negative populations from  stochastic overshooting, a common issue in discrete-time models with  large time steps or small compartments.</p></li><li><p><strong>Population dynamics</strong> (demographic aging flows) can create small  conservation errors when combined with the max-floor, but the  relative change remains negligible over the simulation period.</p></li></ol><table><tr><th style="text-align: right">Step</th><th style="text-align: right">API</th></tr><tr><td style="text-align: right">Define model</td><td style="text-align: right"><code>@odin begin … end</code> with 1D arrays and interpolation</td></tr><tr><td style="text-align: right">Simulate</td><td style="text-align: right"><code>simulate(gen, pars; times, dt, seed, n_particles)</code></td></tr><tr><td style="text-align: right">Scenario comparison</td><td style="text-align: right">Re-run with <code>vacc_rate = zeros(N_age)</code></td></tr></table></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../19_sarscov2_multiregion/">« SARS-CoV-2 Multi-Region</a><a class="docs-footer-nextpage" href="../21_school_closure/">SIS with School Closure »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="auto">Automatic (OS)</option><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option><option value="catppuccin-latte">catppuccin-latte</option><option value="catppuccin-frappe">catppuccin-frappe</option><option value="catppuccin-macchiato">catppuccin-macchiato</option><option value="catppuccin-mocha">catppuccin-mocha</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 1.17.0 on <span class="colophon-date" title="Friday 27 March 2026 16:28">Friday 27 March 2026</span>. Using Julia version 1.12.5.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>

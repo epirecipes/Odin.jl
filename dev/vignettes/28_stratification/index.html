@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width, initial-scale=1.0"/><title>Age Stratification · Odin.jl</title><meta name="title" content="Age Stratification · Odin.jl"/><meta property="og:title" content="Age Stratification · Odin.jl"/><meta property="twitter:title" content="Age Stratification · Odin.jl"/><meta name="description" content="Documentation for Odin.jl."/><meta property="og:description" content="Documentation for Odin.jl."/><meta property="twitter:description" content="Documentation for Odin.jl."/><script data-outdated-warner src="../../assets/warner.js"></script><link href="https://cdnjs.cloudflare.com/ajax/libs/lato-font/3.0.0/css/lato-font.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/juliamono/0.050/juliamono.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/fontawesome.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/solid.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/brands.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.8/katex.min.css" rel="stylesheet" type="text/css"/><script>documenterBaseURL="../.."</script><script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.6/require.min.js" data-main="../../assets/documenter.js"></script><script src="../../search_index.js"></script><script src="../../siteinfo.js"></script><script src="../../../versions.js"></script><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/catppuccin-mocha.css" data-theme-name="catppuccin-mocha"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/catppuccin-macchiato.css" data-theme-name="catppuccin-macchiato"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/catppuccin-frappe.css" data-theme-name="catppuccin-frappe"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/catppuccin-latte.css" data-theme-name="catppuccin-latte"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/documenter-dark.css" data-theme-name="documenter-dark" data-theme-primary-dark/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/documenter-light.css" data-theme-name="documenter-light" data-theme-primary/><script src="../../assets/themeswap.js"></script></head><body><div id="documenter"><nav class="docs-sidebar"><div class="docs-package-name"><span class="docs-autofit"><a href="../../">Odin.jl</a></span></div><button class="docs-search-query input is-rounded is-small is-clickable my-2 mx-auto py-1 px-2" id="documenter-search-query">Search docs (Ctrl + /)</button><ul class="docs-menu"><li><a class="tocitem" href="../../">Home</a></li><li><a class="tocitem" href="../../getting_started/">Getting Started</a></li><li><span class="tocitem">Guide</span><ul><li><a class="tocitem" href="../../dsl/">DSL Reference</a></li><li><a class="tocitem" href="../../simulation/">Simulation</a></li><li><a class="tocitem" href="../../filtering/">Filtering &amp; Likelihood</a></li><li><a class="tocitem" href="../../inference/">Inference</a></li><li><a class="tocitem" href="../../solvers/">ODE Solvers</a></li><li><a class="tocitem" href="../../gpu/">GPU Acceleration</a></li><li><a class="tocitem" href="../../categorical/">Categorical Models</a></li></ul></li><li><span class="tocitem">Vignettes</span><ul><li><input class="collapse-toggle" id="menuitem-4-1" type="checkbox"/><label class="tocitem" for="menuitem-4-1"><span class="docs-label">Basics</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../01_basic_ode/">Basic ODE Model: SIR</a></li><li><a class="tocitem" href="../02_stochastic/">Stochastic Discrete-Time SIR</a></li><li><a class="tocitem" href="../03_observations/">Incidence Tracking with zero_every</a></li><li><a class="tocitem" href="../04_arrays/">Age-Structured SIR with Arrays</a></li><li><a class="tocitem" href="../05_particle_filter/">Particle Filter and Likelihood</a></li><li><a class="tocitem" href="../06_inference/">Bayesian Inference with MCMC</a></li></ul></li><li><input class="collapse-toggle" id="menuitem-4-2" type="checkbox"/><label class="tocitem" for="menuitem-4-2"><span class="docs-label">Intermediate</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../07_categorical/">Compositional Model Building</a></li><li><a class="tocitem" href="../08_time_varying/">Time-Varying Parameters</a></li><li><a class="tocitem" href="../09_advanced/">SEIR with Vaccination and Waning</a></li><li><a class="tocitem" href="../10_projections/">Counterfactual Projections</a></li><li><a class="tocitem" href="../11_delay_model/">Delay Compartments</a></li><li><a class="tocitem" href="../12_reactive_policy/">Reactive Vaccination Policy</a></li><li><a class="tocitem" href="../13_dynamicppl/">DynamicPPL Integration</a></li><li><a class="tocitem" href="../14_delay_vaccination/">SEIR with Delay and Vaccination</a></li><li><a class="tocitem" href="../15_vector_borne/">Vector-Borne Disease Dynamics</a></li></ul></li><li><input class="collapse-toggle" id="menuitem-4-3" type="checkbox" checked/><label class="tocitem" for="menuitem-4-3"><span class="docs-label">Advanced Models</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../16_multi_stream/">Multi-Stream Outbreak</a></li><li><a class="tocitem" href="../17_mpox_seir/">Mpox SEIR: Age-Structured</a></li><li><a class="tocitem" href="../18_malaria_simple/">Malaria: Ross-Macdonald</a></li><li><a class="tocitem" href="../19_sarscov2_multiregion/">SARS-CoV-2 Multi-Region</a></li><li><a class="tocitem" href="../20_yellowfever/">Yellow Fever SEIRV</a></li><li><a class="tocitem" href="../21_school_closure/">SIS with School Closure</a></li><li><a class="tocitem" href="../22_beta_blocks/">Beta Blocks</a></li><li><a class="tocitem" href="../23_orov/">OROV Vector-Borne</a></li><li><a class="tocitem" href="../24_yf_delay/">Yellow Fever with Erlang Delay</a></li><li><a class="tocitem" href="../25_yf_vtrack/">Yellow Fever 2-Track Vaccination</a></li><li><a class="tocitem" href="../26_fitting_workflow/">Complete Fitting Workflow</a></li><li><a class="tocitem" href="../27_spatial_composition/">Spatial Composition</a></li><li class="is-active"><a class="tocitem" href>Age Stratification</a><ul class="internal"><li><a class="tocitem" href="#Introduction"><span>Introduction</span></a></li><li><a class="tocitem" href="#Setup"><span>Setup</span></a></li><li><a class="tocitem" href="#Base-SIR-Model"><span>Base SIR Model</span></a></li><li><a class="tocitem" href="#Three-Age-Groups"><span>Three Age Groups</span></a></li><li><a class="tocitem" href="#Mixing-Pattern-1:-Assortative-(Within-Group-Only)"><span>Mixing Pattern 1: Assortative (Within-Group Only)</span></a></li><li><a class="tocitem" href="#Mixing-Pattern-2:-Proportionate-(Homogeneous)"><span>Mixing Pattern 2: Proportionate (Homogeneous)</span></a></li><li><a class="tocitem" href="#Mixing-Pattern-3:-Realistic-Contact-Matrix"><span>Mixing Pattern 3: Realistic Contact Matrix</span></a></li><li><a class="tocitem" href="#Comparing-All-Three-Mixing-Patterns"><span>Comparing All Three Mixing Patterns</span></a></li><li><a class="tocitem" href="#Targeted-Vaccination"><span>Targeted Vaccination</span></a></li><li><a class="tocitem" href="#Inspecting-Stratified-Model-Structure"><span>Inspecting Stratified Model Structure</span></a></li><li><a class="tocitem" href="#Population-Conservation"><span>Population Conservation</span></a></li><li><a class="tocitem" href="#Summary"><span>Summary</span></a></li></ul></li><li><a class="tocitem" href="../29_multi_pathogen/">Multi-Pathogen Composition</a></li></ul></li><li><input class="collapse-toggle" id="menuitem-4-4" type="checkbox"/><label class="tocitem" for="menuitem-4-4"><span class="docs-label">Techniques</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../30_stiff_ode/">Stiff ODEs: SDIRK4 Solver</a></li><li><a class="tocitem" href="../31_gpu_filter/">GPU-Accelerated Filtering</a></li><li><a class="tocitem" href="../32_advanced_samplers/">Advanced MCMC Samplers</a></li><li><a class="tocitem" href="../33_sensitivity/">Sensitivity Analysis</a></li><li><a class="tocitem" href="../34_events/">Event Handling</a></li><li><a class="tocitem" href="../35_sde/">Stochastic Differential Equations</a></li><li><a class="tocitem" href="../36_model_selection/">Model Selection</a></li><li><a class="tocitem" href="../37_model_validation/">Model Validation</a></li></ul></li></ul></li><li><a class="tocitem" href="../../api/">API Reference</a></li></ul><div class="docs-version-selector field has-addons"><div class="control"><span class="docs-label button is-static is-size-7">Version</span></div><div class="docs-selector control is-expanded"><div class="select is-fullwidth is-size-7"><select id="documenter-version-selector"></select></div></div></div></nav><div class="docs-main"><header class="docs-navbar"><a class="docs-sidebar-button docs-navbar-link fa-solid fa-bars is-hidden-desktop" id="documenter-sidebar-button" href="#"></a><nav class="breadcrumb"><ul class="is-hidden-mobile"><li><a class="is-disabled">Vignettes</a></li><li><a class="is-disabled">Advanced Models</a></li><li class="is-active"><a href>Age Stratification</a></li></ul><ul class="is-hidden-tablet"><li class="is-active"><a href>Age Stratification</a></li></ul></nav><div class="docs-right"><a class="docs-navbar-link" href="https://github.com/epirecipes/Odin.jl" title="View the repository on GitHub"><span class="docs-icon fa-brands"></span><span class="docs-label is-hidden-touch">GitHub</span></a><a class="docs-settings-button docs-navbar-link fa-solid fa-gear" id="documenter-settings-button" href="#" title="Settings"></a><a class="docs-article-toggle-button fa-solid fa-chevron-up" id="documenter-article-toggle-button" href="javascript:;" title="Collapse all docstrings"></a></div></header><article class="content" id="documenter-page"><h1 id="Age-Stratification"><a class="docs-heading-anchor" href="#Age-Stratification">Age Stratification</a><a id="Age-Stratification-1"></a><a class="docs-heading-anchor-permalink" href="#Age-Stratification" title="Permalink"></a></h1><h2 id="Introduction"><a class="docs-heading-anchor" href="#Introduction">Introduction</a><a id="Introduction-1"></a><a class="docs-heading-anchor-permalink" href="#Introduction" title="Permalink"></a></h2><p>This vignette explores <strong>age stratification</strong> using Odin.jl’s categorical extension. Starting from a simple SIR model, we stratify by age group and compare how different contact (mixing) patterns — assortative, proportionate, and custom — affect epidemic dynamics. We then demonstrate targeted vaccination of specific age strata.</p><h2 id="Setup"><a class="docs-heading-anchor" href="#Setup">Setup</a><a id="Setup-1"></a><a class="docs-heading-anchor-permalink" href="#Setup" title="Permalink"></a></h2><pre><code class="language-julia hljs">using Odin
+using Plots
+using LinearAlgebra</code></pre><h2 id="Base-SIR-Model"><a class="docs-heading-anchor" href="#Base-SIR-Model">Base SIR Model</a><a id="Base-SIR-Model-1"></a><a class="docs-heading-anchor-permalink" href="#Base-SIR-Model" title="Permalink"></a></h2><pre><code class="language-julia hljs">sir = SIR(; S0=990.0, I0=10.0, R0=0.0)
+println(&quot;Base SIR: &quot;, species_names(sir), &quot; — &quot;, transition_names(sir))</code></pre><pre><code class="nohighlight hljs">Base SIR: [:S, :I, :R] — [:inf, :rec]</code></pre><h2 id="Three-Age-Groups"><a class="docs-heading-anchor" href="#Three-Age-Groups">Three Age Groups</a><a id="Three-Age-Groups-1"></a><a class="docs-heading-anchor-permalink" href="#Three-Age-Groups" title="Permalink"></a></h2><p>We define three age groups representing children, adults, and elderly:</p><pre><code class="language-julia hljs">age_groups = [:child, :adult, :elder]</code></pre><pre><code class="nohighlight hljs">3-element Vector{Symbol}:
+ :child
+ :adult
+ :elder</code></pre><h2 id="Mixing-Pattern-1:-Assortative-(Within-Group-Only)"><a class="docs-heading-anchor" href="#Mixing-Pattern-1:-Assortative-(Within-Group-Only)">Mixing Pattern 1: Assortative (Within-Group Only)</a><a id="Mixing-Pattern-1:-Assortative-(Within-Group-Only)-1"></a><a class="docs-heading-anchor-permalink" href="#Mixing-Pattern-1:-Assortative-(Within-Group-Only)" title="Permalink"></a></h2><p>In assortative mixing, each age group only contacts itself. This is equivalent to running three independent epidemics:</p><pre><code class="language-julia hljs">C_assort = Matrix{Float64}(I, 3, 3)
+println(&quot;Assortative contact matrix:&quot;)
+display(C_assort)
+
+sir_assort = stratify(sir, age_groups; contact=C_assort)
+println(&quot;\nSpecies: &quot;, species_names(sir_assort))
+println(&quot;Transitions: &quot;, ntransitions(sir_assort))</code></pre><pre><code class="nohighlight hljs">Assortative contact matrix:
+
+Species: [:S_child, :I_child, :R_child, :S_adult, :I_adult, :R_adult, :S_elder, :I_elder, :R_elder]
+Transitions: 6
+
+3×3 Matrix{Float64}:
+ 1.0  0.0  0.0
+ 0.0  1.0  0.0
+ 0.0  0.0  1.0</code></pre><pre><code class="language-julia hljs">gen_assort = compile(sir_assort; mode=:ode, frequency_dependent=true, N=:N,
+                   params=Dict(:beta =&gt; 0.3, :gamma =&gt; 0.1, :N =&gt; 1000.0))
+
+sys = System(gen_assort, (beta=0.3, gamma=0.1, N=1000.0))
+reset!(sys)
+times = collect(0.0:0.5:200.0)
+result_assort = simulate(sys, times)
+
+sn = species_names(sir_assort)
+p = plot(title=&quot;Assortative Mixing — Infected by Age&quot;,
+         xlabel=&quot;Time (days)&quot;, ylabel=&quot;Infected&quot;, linewidth=2)
+colors = [:blue, :red, :green]
+for (i, g) in enumerate(age_groups)
+    idx = findfirst(==(Symbol(:I_, g)), sn)
+    plot!(p, times, result_assort[idx, 1, :], label=string(g), color=colors[i])
+end
+p</code></pre><p><img src="../28_stratification_files/figure-commonmark/cell-6-output-1.svg" alt/></p><p>With assortative mixing and equal initial conditions, all three groups have identical epidemic curves.</p><h2 id="Mixing-Pattern-2:-Proportionate-(Homogeneous)"><a class="docs-heading-anchor" href="#Mixing-Pattern-2:-Proportionate-(Homogeneous)">Mixing Pattern 2: Proportionate (Homogeneous)</a><a id="Mixing-Pattern-2:-Proportionate-(Homogeneous)-1"></a><a class="docs-heading-anchor-permalink" href="#Mixing-Pattern-2:-Proportionate-(Homogeneous)" title="Permalink"></a></h2><p>In proportionate mixing, everyone contacts everyone equally. Activity levels can differ between groups:</p><pre><code class="language-julia hljs"># Activity levels: children most active, elderly least
+activity = [3.0, 2.0, 1.0]
+C_prop = activity * activity&#39;  # outer product
+# Normalise so max entry = 1
+C_prop ./= maximum(C_prop)
+println(&quot;Proportionate contact matrix:&quot;)
+display(round.(C_prop; digits=2))
+
+sir_prop = stratify(sir, age_groups; contact=C_prop)
+gen_prop = compile(sir_prop; mode=:ode, frequency_dependent=true, N=:N,
+                 params=Dict(:beta =&gt; 0.3, :gamma =&gt; 0.1, :N =&gt; 1000.0))
+
+sys = System(gen_prop, (beta=0.3, gamma=0.1, N=1000.0))
+reset!(sys)
+result_prop = simulate(sys, times)
+
+p = plot(title=&quot;Proportionate Mixing — Infected by Age&quot;,
+         xlabel=&quot;Time (days)&quot;, ylabel=&quot;Infected&quot;, linewidth=2)
+sn_prop = species_names(sir_prop)
+for (i, g) in enumerate(age_groups)
+    idx = findfirst(==(Symbol(:I_, g)), sn_prop)
+    plot!(p, times, result_prop[idx, 1, :], label=string(g), color=colors[i])
+end
+p</code></pre><pre><code class="nohighlight hljs">Proportionate contact matrix:
+
+3×3 Matrix{Float64}:
+ 1.0   0.67  0.33
+ 0.67  0.44  0.22
+ 0.33  0.22  0.11</code></pre><p><img src="../28_stratification_files/figure-commonmark/cell-7-output-3.svg" alt/></p><h2 id="Mixing-Pattern-3:-Realistic-Contact-Matrix"><a class="docs-heading-anchor" href="#Mixing-Pattern-3:-Realistic-Contact-Matrix">Mixing Pattern 3: Realistic Contact Matrix</a><a id="Mixing-Pattern-3:-Realistic-Contact-Matrix-1"></a><a class="docs-heading-anchor-permalink" href="#Mixing-Pattern-3:-Realistic-Contact-Matrix" title="Permalink"></a></h2><p>A realistic contact matrix has strong within-group (assortative) contact, especially for children, with weaker cross-group contact:</p><pre><code class="language-julia hljs">C_real = [3.0  1.0  0.3;
+          1.0  2.0  0.5;
+          0.3  0.5  1.5]
+println(&quot;Realistic contact matrix:&quot;)
+display(C_real)
+
+sir_real = stratify(sir, age_groups; contact=C_real)
+gen_real = compile(sir_real; mode=:ode, frequency_dependent=true, N=:N,
+                 params=Dict(:beta =&gt; 0.15, :gamma =&gt; 0.1, :N =&gt; 1000.0))
+
+sys = System(gen_real, (beta=0.15, gamma=0.1, N=1000.0))
+reset!(sys)
+result_real = simulate(sys, times)
+
+p = plot(title=&quot;Realistic Contact — Infected by Age&quot;,
+         xlabel=&quot;Time (days)&quot;, ylabel=&quot;Infected&quot;, linewidth=2)
+sn_real = species_names(sir_real)
+for (i, g) in enumerate(age_groups)
+    idx = findfirst(==(Symbol(:I_, g)), sn_real)
+    plot!(p, times, result_real[idx, 1, :], label=string(g), color=colors[i])
+end
+p</code></pre><pre><code class="nohighlight hljs">Realistic contact matrix:
+
+3×3 Matrix{Float64}:
+ 3.0  1.0  0.3
+ 1.0  2.0  0.5
+ 0.3  0.5  1.5</code></pre><p><img src="../28_stratification_files/figure-commonmark/cell-8-output-3.svg" alt/></p><h2 id="Comparing-All-Three-Mixing-Patterns"><a class="docs-heading-anchor" href="#Comparing-All-Three-Mixing-Patterns">Comparing All Three Mixing Patterns</a><a id="Comparing-All-Three-Mixing-Patterns-1"></a><a class="docs-heading-anchor-permalink" href="#Comparing-All-Three-Mixing-Patterns" title="Permalink"></a></h2><pre><code class="language-julia hljs">p = plot(layout=(1,3), size=(1100, 350),
+         title=[&quot;Assortative&quot; &quot;Proportionate&quot; &quot;Realistic&quot;])
+
+for (col, res, snames) in [(1, result_assort, sn),
+                            (2, result_prop, sn_prop),
+                            (3, result_real, sn_real)]
+    for (i, g) in enumerate(age_groups)
+        idx = findfirst(==(Symbol(:I_, g)), snames)
+        plot!(p, times, res[idx, 1, :], subplot=col,
+              label=string(g), color=colors[i], linewidth=2,
+              xlabel=&quot;Time&quot;, ylabel=&quot;Infected&quot;)
+    end
+end
+p</code></pre><p><img src="../28_stratification_files/figure-commonmark/cell-9-output-1.svg" alt/></p><pre><code class="language-julia hljs">println(&quot;Final attack rates (% recovered):&quot;)
+for (label, res, snames) in [(&quot;Assortative&quot;, result_assort, sn),
+                               (&quot;Proportionate&quot;, result_prop, sn_prop),
+                               (&quot;Realistic&quot;, result_real, sn_real)]
+    print(&quot;  $label: &quot;)
+    for g in age_groups
+        R_idx = findfirst(==(Symbol(:R_, g)), snames)
+        S_idx = findfirst(==(Symbol(:S_, g)), snames)
+        I_idx = findfirst(==(Symbol(:I_, g)), snames)
+        pop = res[S_idx, 1, 1] + res[I_idx, 1, 1]
+        ar = pop &gt; 0 ? round(100 * res[R_idx, 1, end] / pop; digits=1) : 0.0
+        print(&quot;$g=$(ar)%  &quot;)
+    end
+    println()
+end</code></pre><pre><code class="nohighlight hljs">Final attack rates (% recovered):
+  Assortative: child=12.0%  adult=12.0%  elder=12.0%  
+  Proportionate: child=68.8%  adult=54.2%  elder=32.7%  
+  Realistic: child=80.9%  adult=71.4%  elder=49.3%</code></pre><h2 id="Targeted-Vaccination"><a class="docs-heading-anchor" href="#Targeted-Vaccination">Targeted Vaccination</a><a id="Targeted-Vaccination-1"></a><a class="docs-heading-anchor-permalink" href="#Targeted-Vaccination" title="Permalink"></a></h2><p>We can add vaccination to specific age strata by composing with a vaccination sub-model. Here we vaccinate only children:</p><pre><code class="language-julia hljs"># Start with the realistic-contact stratified SIR
+sir_stratified = stratify(sir, age_groups; contact=C_real)
+
+# Vaccination sub-model targeting children only
+vax_child = EpiNet(
+    [:S_child =&gt; 0.0, :V_child =&gt; 0.0],
+    [:vax_child =&gt; ([:S_child] =&gt; [:V_child], :nu)]
+)
+
+# Compose vaccination into the stratified model
+sir_vax = compose(sir_stratified, vax_child)
+println(&quot;Species: &quot;, species_names(sir_vax))
+println(&quot;Transitions: &quot;, ntransitions(sir_vax))</code></pre><pre><code class="nohighlight hljs">Species: [:S_child, :I_child, :R_child, :S_adult, :I_adult, :R_adult, :S_elder, :I_elder, :R_elder, :V_child]
+Transitions: 13</code></pre><pre><code class="language-julia hljs"># Compare: no vaccination vs vaccinating children
+gen_vax = compile(sir_vax; mode=:ode, frequency_dependent=true, N=:N,
+                params=Dict(:beta =&gt; 0.15, :gamma =&gt; 0.1, :nu =&gt; 0.0, :N =&gt; 1000.0))
+
+times = collect(0.0:0.5:200.0)
+
+# No vaccination
+sys_nv = System(gen_vax, (beta=0.15, gamma=0.1, nu=0.0, N=1000.0))
+reset!(sys_nv)
+r_nv = simulate(sys_nv, times)
+
+# With vaccination of children (ν = 0.01/day)
+sys_v = System(gen_vax, (beta=0.15, gamma=0.1, nu=0.01, N=1000.0))
+reset!(sys_v)
+r_v = simulate(sys_v, times)
+
+sn_vax = species_names(sir_vax)
+p = plot(layout=(1,2), size=(900, 400),
+         title=[&quot;No Vaccination&quot; &quot;Children Vaccinated (ν=0.01)&quot;])
+for (col, res) in [(1, r_nv), (2, r_v)]
+    for (i, g) in enumerate(age_groups)
+        idx = findfirst(==(Symbol(:I_, g)), sn_vax)
+        plot!(p, times, res[idx, 1, :], subplot=col,
+              label=string(g), color=colors[i], linewidth=2,
+              xlabel=&quot;Time&quot;, ylabel=&quot;Infected&quot;)
+    end
+end
+p</code></pre><p><img src="../28_stratification_files/figure-commonmark/cell-12-output-1.svg" alt/></p><pre><code class="language-julia hljs">println(&quot;Attack rates — No vaccination vs Children vaccinated:&quot;)
+for (label, res) in [(&quot;No vax&quot;, r_nv), (&quot;Vax children&quot;, r_v)]
+    print(&quot;  $label: &quot;)
+    for g in age_groups
+        R_idx = findfirst(==(Symbol(:R_, g)), sn_vax)
+        S_idx = findfirst(==(Symbol(:S_, g)), sn_vax)
+        I_idx = findfirst(==(Symbol(:I_, g)), sn_vax)
+        pop = res[S_idx, 1, 1] + res[I_idx, 1, 1]
+        ar = pop &gt; 0 ? round(100 * res[R_idx, 1, end] / pop; digits=1) : 0.0
+        print(&quot;$g=$(ar)%  &quot;)
+    end
+    println()
+end</code></pre><pre><code class="nohighlight hljs">Attack rates — No vaccination vs Children vaccinated:
+  No vax: child=80.9%  adult=71.4%  elder=49.3%  
+  Vax children: child=42.0%  adult=60.4%  elder=41.3%</code></pre><p>Vaccinating children — the group with the highest contact rate — reduces the epidemic in <strong>all</strong> age groups through indirect (herd) effects.</p><h2 id="Inspecting-Stratified-Model-Structure"><a class="docs-heading-anchor" href="#Inspecting-Stratified-Model-Structure">Inspecting Stratified Model Structure</a><a id="Inspecting-Stratified-Model-Structure-1"></a><a class="docs-heading-anchor-permalink" href="#Inspecting-Stratified-Model-Structure" title="Permalink"></a></h2><p>The <code>lower_expr()</code> function reveals the generated ODE system:</p><pre><code class="language-julia hljs">exprs = lower_expr(sir_stratified; mode=:ode, frequency_dependent=true, N=:N,
+                   params=Dict(:beta =&gt; 0.15, :gamma =&gt; 0.1, :N =&gt; 1000.0))
+println(&quot;Generated equations for age-stratified SIR:&quot;)
+for e in exprs
+    println(&quot;  &quot;, e)
+end</code></pre><pre><code class="nohighlight hljs">Generated equations for age-stratified SIR:
+  N = parameter(1000.0)
+  beta = parameter(0.15)
+  gamma = parameter(0.1)
+  initial(S_child) = begin
+        #= /Users/sdwfrost/Projects/odin/Odin.jl/src/categorical/lowering.jl:88 =#
+        330.0
+    end
+  initial(I_child) = begin
+        #= /Users/sdwfrost/Projects/odin/Odin.jl/src/categorical/lowering.jl:88 =#
+        3.3333333333333335
+    end
+  initial(R_child) = begin
+        #= /Users/sdwfrost/Projects/odin/Odin.jl/src/categorical/lowering.jl:88 =#
+        0.0
+    end
+  initial(S_adult) = begin
+        #= /Users/sdwfrost/Projects/odin/Odin.jl/src/categorical/lowering.jl:88 =#
+        330.0
+    end
+  initial(I_adult) = begin
+        #= /Users/sdwfrost/Projects/odin/Odin.jl/src/categorical/lowering.jl:88 =#
+        3.3333333333333335
+    end
+  initial(R_adult) = begin
+        #= /Users/sdwfrost/Projects/odin/Odin.jl/src/categorical/lowering.jl:88 =#
+        0.0
+    end
+  initial(S_elder) = begin
+        #= /Users/sdwfrost/Projects/odin/Odin.jl/src/categorical/lowering.jl:88 =#
+        330.0
+    end
+  initial(I_elder) = begin
+        #= /Users/sdwfrost/Projects/odin/Odin.jl/src/categorical/lowering.jl:88 =#
+        3.3333333333333335
+    end
+  initial(R_elder) = begin
+        #= /Users/sdwfrost/Projects/odin/Odin.jl/src/categorical/lowering.jl:88 =#
+        0.0
+    end
+  flow_inf_child_child = (((3.0beta) * S_child) * I_child) / N
+  flow_inf_child_adult = ((beta * S_child) * I_adult) / N
+  flow_inf_child_elder = (((0.3beta) * S_child) * I_elder) / N
+  flow_inf_adult_child = ((beta * S_adult) * I_child) / N
+  flow_inf_adult_adult = (((2.0beta) * S_adult) * I_adult) / N
+  flow_inf_adult_elder = (((0.5beta) * S_adult) * I_elder) / N
+  flow_inf_elder_child = (((0.3beta) * S_elder) * I_child) / N
+  flow_inf_elder_adult = (((0.5beta) * S_elder) * I_adult) / N
+  flow_inf_elder_elder = (((1.5beta) * S_elder) * I_elder) / N
+  flow_rec_child = gamma * I_child
+  flow_rec_adult = gamma * I_adult
+  flow_rec_elder = gamma * I_elder
+  deriv(S_child) = begin
+        #= /Users/sdwfrost/Projects/odin/Odin.jl/src/categorical/lowering.jl:150 =#
+        (-flow_inf_child_child - flow_inf_child_adult) - flow_inf_child_elder
+    end
+  deriv(I_child) = begin
+        #= /Users/sdwfrost/Projects/odin/Odin.jl/src/categorical/lowering.jl:150 =#
+        ((flow_inf_child_child + flow_inf_child_adult) + flow_inf_child_elder) - flow_rec_child
+    end
+  deriv(R_child) = begin
+        #= /Users/sdwfrost/Projects/odin/Odin.jl/src/categorical/lowering.jl:150 =#
+        flow_rec_child
+    end
+  deriv(S_adult) = begin
+        #= /Users/sdwfrost/Projects/odin/Odin.jl/src/categorical/lowering.jl:150 =#
+        (-flow_inf_adult_child - flow_inf_adult_adult) - flow_inf_adult_elder
+    end
+  deriv(I_adult) = begin
+        #= /Users/sdwfrost/Projects/odin/Odin.jl/src/categorical/lowering.jl:150 =#
+        ((flow_inf_adult_child + flow_inf_adult_adult) + flow_inf_adult_elder) - flow_rec_adult
+    end
+  deriv(R_adult) = begin
+        #= /Users/sdwfrost/Projects/odin/Odin.jl/src/categorical/lowering.jl:150 =#
+        flow_rec_adult
+    end
+  deriv(S_elder) = begin
+        #= /Users/sdwfrost/Projects/odin/Odin.jl/src/categorical/lowering.jl:150 =#
+        (-flow_inf_elder_child - flow_inf_elder_adult) - flow_inf_elder_elder
+    end
+  deriv(I_elder) = begin
+        #= /Users/sdwfrost/Projects/odin/Odin.jl/src/categorical/lowering.jl:150 =#
+        ((flow_inf_elder_child + flow_inf_elder_adult) + flow_inf_elder_elder) - flow_rec_elder
+    end
+  deriv(R_elder) = begin
+        #= /Users/sdwfrost/Projects/odin/Odin.jl/src/categorical/lowering.jl:150 =#
+        flow_rec_elder
+    end</code></pre><h2 id="Population-Conservation"><a class="docs-heading-anchor" href="#Population-Conservation">Population Conservation</a><a id="Population-Conservation-1"></a><a class="docs-heading-anchor-permalink" href="#Population-Conservation" title="Permalink"></a></h2><pre><code class="language-julia hljs">for (label, res, snames) in [(&quot;Assortative&quot;, result_assort, sn),
+                               (&quot;Proportionate&quot;, result_prop, sn_prop),
+                               (&quot;Realistic&quot;, result_real, sn_real)]
+    total = sum(res[:, 1, end])
+    println(&quot;$label — total population at t=200: $(round(total; digits=2))&quot;)
+end</code></pre><pre><code class="nohighlight hljs">Assortative — total population at t=200: 1000.0
+Proportionate — total population at t=200: 1000.0
+Realistic — total population at t=200: 1000.0</code></pre><h2 id="Summary"><a class="docs-heading-anchor" href="#Summary">Summary</a><a id="Summary-1"></a><a class="docs-heading-anchor-permalink" href="#Summary" title="Permalink"></a></h2><table><tr><th style="text-align: right">Mixing Pattern</th><th style="text-align: right">Description</th><th style="text-align: right">Effect</th></tr><tr><td style="text-align: right"><strong>Assortative</strong></td><td style="text-align: right">Identity matrix; groups isolated</td><td style="text-align: right">Identical epidemics per group</td></tr><tr><td style="text-align: right"><strong>Proportionate</strong></td><td style="text-align: right">Outer product of activity; well-mixed</td><td style="text-align: right">Higher-activity groups hit harder, faster</td></tr><tr><td style="text-align: right"><strong>Realistic</strong></td><td style="text-align: right">Strong diagonal, weaker off-diagonal</td><td style="text-align: right">Children peak first, elderly buffered</td></tr></table><p>Key takeaway: <code>stratify()</code> makes it trivial to test different mixing hypotheses — just swap the contact matrix while keeping the same base epidemiology.</p></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../27_spatial_composition/">« Spatial Composition</a><a class="docs-footer-nextpage" href="../29_multi_pathogen/">Multi-Pathogen Composition »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="auto">Automatic (OS)</option><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option><option value="catppuccin-latte">catppuccin-latte</option><option value="catppuccin-frappe">catppuccin-frappe</option><option value="catppuccin-macchiato">catppuccin-macchiato</option><option value="catppuccin-mocha">catppuccin-mocha</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 1.17.0 on <span class="colophon-date" title="Friday 27 March 2026 16:28">Friday 27 March 2026</span>. Using Julia version 1.12.5.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
