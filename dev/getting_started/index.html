@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width, initial-scale=1.0"/><title>Getting Started · Odin.jl</title><meta name="title" content="Getting Started · Odin.jl"/><meta property="og:title" content="Getting Started · Odin.jl"/><meta property="twitter:title" content="Getting Started · Odin.jl"/><meta name="description" content="Documentation for Odin.jl."/><meta property="og:description" content="Documentation for Odin.jl."/><meta property="twitter:description" content="Documentation for Odin.jl."/><script data-outdated-warner src="../assets/warner.js"></script><link href="https://cdnjs.cloudflare.com/ajax/libs/lato-font/3.0.0/css/lato-font.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/juliamono/0.050/juliamono.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/fontawesome.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/solid.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/brands.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.8/katex.min.css" rel="stylesheet" type="text/css"/><script>documenterBaseURL=".."</script><script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.6/require.min.js" data-main="../assets/documenter.js"></script><script src="../search_index.js"></script><script src="../siteinfo.js"></script><script src="../../versions.js"></script><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../assets/themes/catppuccin-mocha.css" data-theme-name="catppuccin-mocha"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../assets/themes/catppuccin-macchiato.css" data-theme-name="catppuccin-macchiato"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../assets/themes/catppuccin-frappe.css" data-theme-name="catppuccin-frappe"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../assets/themes/catppuccin-latte.css" data-theme-name="catppuccin-latte"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../assets/themes/documenter-dark.css" data-theme-name="documenter-dark" data-theme-primary-dark/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../assets/themes/documenter-light.css" data-theme-name="documenter-light" data-theme-primary/><script src="../assets/themeswap.js"></script></head><body><div id="documenter"><nav class="docs-sidebar"><div class="docs-package-name"><span class="docs-autofit"><a href="../">Odin.jl</a></span></div><button class="docs-search-query input is-rounded is-small is-clickable my-2 mx-auto py-1 px-2" id="documenter-search-query">Search docs (Ctrl + /)</button><ul class="docs-menu"><li><a class="tocitem" href="../">Home</a></li><li class="is-active"><a class="tocitem" href>Getting Started</a><ul class="internal"><li><a class="tocitem" href="#Installation"><span>Installation</span></a></li><li><a class="tocitem" href="#Your-First-Model"><span>Your First Model</span></a></li><li><a class="tocitem" href="#Stochastic-Models"><span>Stochastic Models</span></a></li><li><a class="tocitem" href="#Next-Steps"><span>Next Steps</span></a></li></ul></li><li><span class="tocitem">Guide</span><ul><li><a class="tocitem" href="../dsl/">DSL Reference</a></li><li><a class="tocitem" href="../simulation/">Simulation</a></li><li><a class="tocitem" href="../filtering/">Filtering &amp; Likelihood</a></li><li><a class="tocitem" href="../inference/">Inference</a></li><li><a class="tocitem" href="../solvers/">ODE Solvers</a></li><li><a class="tocitem" href="../gpu/">GPU Acceleration</a></li><li><a class="tocitem" href="../categorical/">Categorical Models</a></li></ul></li><li><a class="tocitem" href="../api/">API Reference</a></li></ul><div class="docs-version-selector field has-addons"><div class="control"><span class="docs-label button is-static is-size-7">Version</span></div><div class="docs-selector control is-expanded"><div class="select is-fullwidth is-size-7"><select id="documenter-version-selector"></select></div></div></div></nav><div class="docs-main"><header class="docs-navbar"><a class="docs-sidebar-button docs-navbar-link fa-solid fa-bars is-hidden-desktop" id="documenter-sidebar-button" href="#"></a><nav class="breadcrumb"><ul class="is-hidden-mobile"><li class="is-active"><a href>Getting Started</a></li></ul><ul class="is-hidden-tablet"><li class="is-active"><a href>Getting Started</a></li></ul></nav><div class="docs-right"><a class="docs-settings-button docs-navbar-link fa-solid fa-gear" id="documenter-settings-button" href="#" title="Settings"></a><a class="docs-article-toggle-button fa-solid fa-chevron-up" id="documenter-article-toggle-button" href="javascript:;" title="Collapse all docstrings"></a></div></header><article class="content" id="documenter-page"><h1 id="Getting-Started"><a class="docs-heading-anchor" href="#Getting-Started">Getting Started</a><a id="Getting-Started-1"></a><a class="docs-heading-anchor-permalink" href="#Getting-Started" title="Permalink"></a></h1><h2 id="Installation"><a class="docs-heading-anchor" href="#Installation">Installation</a><a id="Installation-1"></a><a class="docs-heading-anchor-permalink" href="#Installation" title="Permalink"></a></h2><pre><code class="language-julia hljs">using Pkg
+Pkg.add(url=&quot;https://github.com/epirecipes/Odin.jl&quot;)</code></pre><p>Or in the Pkg REPL:</p><pre><code class="nohighlight hljs">] add https://github.com/epirecipes/Odin.jl</code></pre><h2 id="Your-First-Model"><a class="docs-heading-anchor" href="#Your-First-Model">Your First Model</a><a id="Your-First-Model-1"></a><a class="docs-heading-anchor-permalink" href="#Your-First-Model" title="Permalink"></a></h2><h3 id="1.-Define-a-model"><a class="docs-heading-anchor" href="#1.-Define-a-model">1. Define a model</a><a id="1.-Define-a-model-1"></a><a class="docs-heading-anchor-permalink" href="#1.-Define-a-model" title="Permalink"></a></h3><p>Use the <code>@odin</code> macro to define a system of ODEs:</p><pre><code class="language-julia hljs">using Odin
+
+sir = @odin begin
+    # Differential equations
+    deriv(S) = -beta * S * I / N
+    deriv(I) = beta * S * I / N - gamma * I
+    deriv(R) = gamma * I
+
+    # Initial conditions
+    initial(S) = N - I0
+    initial(I) = I0
+    initial(R) = 0
+
+    # Parameters with defaults
+    N = parameter(1000)
+    I0 = parameter(10)
+    beta = parameter(0.5)
+    gamma = parameter(0.1)
+end</code></pre><p>The <code>@odin</code> macro compiles this into a <code>OdinModel</code> — a factory for creating runnable systems.</p><h3 id="2.-Create-a-system-and-simulate"><a class="docs-heading-anchor" href="#2.-Create-a-system-and-simulate">2. Create a system and simulate</a><a id="2.-Create-a-system-and-simulate-1"></a><a class="docs-heading-anchor-permalink" href="#2.-Create-a-system-and-simulate" title="Permalink"></a></h3><pre><code class="language-julia hljs">pars = (beta=0.5, gamma=0.1, N=1000.0, I0=10.0)
+sys = System(sir, pars)
+reset!(sys)
+
+times = 0.0:1.0:100.0
+result = simulate(sys, times)
+# result is a 3×101 matrix (3 states × 101 time points)</code></pre><h3 id="3.-Fit-to-data"><a class="docs-heading-anchor" href="#3.-Fit-to-data">3. Fit to data</a><a id="3.-Fit-to-data-1"></a><a class="docs-heading-anchor-permalink" href="#3.-Fit-to-data" title="Permalink"></a></h3><pre><code class="language-julia hljs"># Observed incidence data
+data = ObservedData(;
+    time = 1.0:1.0:50.0,
+    cases = [3, 5, 8, 12, ...]  # your observed counts
+)
+
+# Create an unfilter (deterministic likelihood)
+uf = Likelihood(sir; data=data, time_start=0.0)
+
+# Pack parameters for MCMC
+packer = Packer([:beta, :gamma];
+    fixed = (N=1000.0, I0=10.0))
+
+# Define priors
+prior = @prior begin
+    beta ~ Exponential(1.0)
+    gamma ~ Exponential(1.0)
+end
+
+# Bridge to monty model and combine with prior
+likelihood = as_model(uf, packer)
+posterior = likelihood + prior
+
+# Sample with adaptive MCMC
+sampler = adaptive_mh(;
+    initial_vcv = [0.01 0.0; 0.0 0.01])
+samples = sample(posterior, sampler, 5000;
+    initial = Dict(:beta =&gt; 0.3, :gamma =&gt; 0.1),
+    n_chains = 4)</code></pre><h3 id="4.-Examine-results"><a class="docs-heading-anchor" href="#4.-Examine-results">4. Examine results</a><a id="4.-Examine-results-1"></a><a class="docs-heading-anchor-permalink" href="#4.-Examine-results" title="Permalink"></a></h3><pre><code class="language-julia hljs"># Parameter estimates
+println(&quot;β: &quot;, mean(samples.pars[1, :, :]))
+println(&quot;γ: &quot;, mean(samples.pars[2, :, :]))
+println(&quot;Acceptance: &quot;, mean(samples.details[&quot;accept&quot;]))</code></pre><h2 id="Stochastic-Models"><a class="docs-heading-anchor" href="#Stochastic-Models">Stochastic Models</a><a id="Stochastic-Models-1"></a><a class="docs-heading-anchor-permalink" href="#Stochastic-Models" title="Permalink"></a></h2><p>Replace <code>deriv</code> with <code>update</code> and add stochastic transitions:</p><pre><code class="language-julia hljs">sir_stoch = @odin begin
+    p_SI = 1 - exp(-beta * I / N * dt)
+    p_IR = 1 - exp(-gamma * dt)
+    n_SI = Binomial(S, p_SI)
+    n_IR = Binomial(I, p_IR)
+
+    update(S) = S - n_SI
+    update(I) = I + n_SI - n_IR
+    update(R) = R + n_IR
+
+    initial(S) = N - I0
+    initial(I) = I0
+    initial(R) = 0
+
+    beta = parameter(0.5)
+    gamma = parameter(0.1)
+    N = parameter(1000)
+    I0 = parameter(10)
+end
+
+sys = System(sir_stoch, pars; n_particles=100, dt=0.25)
+reset!(sys)
+result = simulate(sys, 0.0:1.0:100.0)
+# result is 3×101×100 (states × times × particles)</code></pre><h2 id="Next-Steps"><a class="docs-heading-anchor" href="#Next-Steps">Next Steps</a><a id="Next-Steps-1"></a><a class="docs-heading-anchor-permalink" href="#Next-Steps" title="Permalink"></a></h2><ul><li><a href="../dsl/#DSL-Reference">DSL Reference</a> — full syntax guide for <code>@odin</code></li><li><a href="../simulation/#Simulation">Simulation</a> — system creation, time-stepping, and output</li><li><a href="../filtering/#Filtering-and-Likelihood">Filtering &amp; Likelihood</a> — particle filter, unfilter, and data fitting</li><li><a href="../inference/#Inference">Inference</a> — samplers, runners, and MCMC</li><li><a href="../solvers/#ODE-Solvers">ODE Solvers</a> — DP5 and SDIRK4 solver details</li><li><a href="../gpu/#GPU-Acceleration">GPU Acceleration</a> — Metal/CUDA/AMDGPU backends</li><li><a href="../categorical/#Categorical-Models">Categorical Models</a> — compositional model building</li></ul></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../">« Home</a><a class="docs-footer-nextpage" href="../dsl/">DSL Reference »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="auto">Automatic (OS)</option><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option><option value="catppuccin-latte">catppuccin-latte</option><option value="catppuccin-frappe">catppuccin-frappe</option><option value="catppuccin-macchiato">catppuccin-macchiato</option><option value="catppuccin-mocha">catppuccin-mocha</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 1.17.0 on <span class="colophon-date" title="Friday 27 March 2026 16:17">Friday 27 March 2026</span>. Using Julia version 1.12.5.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
