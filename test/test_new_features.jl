@@ -149,7 +149,8 @@ using Random
         @test isfinite(ll)
         trajs = last_trajectories(uf)
         @test trajs !== nothing
-        @test size(trajs) == (3, 10)  # n_state × n_data
+        @test size(trajs, 1) == 3   # n_state (S, I, R)
+        @test size(trajs, 2) == 10  # n_data
     end
 
     # ═══════════════════════════════════════════════════════════

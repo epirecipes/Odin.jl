@@ -138,6 +138,22 @@ function _unfilter_run_single!(unfilter::DustUnfilter, pars::NamedTuple;
                 ll_t = _odin_compare_data(model, state_t, full_pars, data_t, data_times[t_idx])
                 log_likelihood += ll_t
             end
+
+            # Save trajectories: copy result_matrix (n_state × n_data)
+            unfilter._last_trajectories = copy(ws.result_matrix[:, 1:n_data])
+
+            # Save snapshots at requested times
+            if save_snapshots !== nothing
+                snap_dict = Dict{Float64, Vector{Float64}}()
+                for st in save_snapshots
+                    idx = findfirst(t -> abs(t - st) < 1e-10, data_times)
+                    if idx !== nothing
+                        snap_dict[st] = ws.result_matrix[:, idx]
+                    end
+                end
+                unfilter._last_snapshots = snap_dict
+            end
+
             return log_likelihood
         end
     else
