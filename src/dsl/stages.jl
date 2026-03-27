@@ -101,6 +101,13 @@ function organise_phases(
         end
     end
 
+    # Add print statements to dynamic phase
+    for ex in exprs
+        if ex.type == EXPR_PRINT
+            push!(dynamic_eqs, ex)
+        end
+    end
+
     # Output phase
     for ex in exprs
         if ex.type == EXPR_OUTPUT

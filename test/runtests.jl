@@ -4,6 +4,7 @@ using Test
     include("dsl/test_parse.jl")
     include("dsl/test_classify.jl")
     include("dsl/test_codegen.jl")
+    include("dsl/test_print.jl")
     include("dsl/test_arrays.jl")
     include("dsl/test_output.jl")
     include("dsl/test_interpolation.jl")
@@ -35,4 +36,5 @@ using Test
     include("categorical/test_categorical.jl")
     include("categorical/test_categorical_advanced.jl")
     include("gpu/test_gpu.jl")
+    include("test-validate.jl")
 end

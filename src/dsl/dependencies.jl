@@ -70,6 +70,8 @@ function build_dependency_graph(exprs::Vector{OdinExpr}, classification::ModelCl
     for ex in exprs
         # Skip dim declarations — they're metadata
         ex.type == EXPR_DIM && continue
+        # Skip print statements — they don't define variables
+        ex.type == EXPR_PRINT && continue
 
         deps = Set{Symbol}()
         if ex.type == EXPR_INITIAL

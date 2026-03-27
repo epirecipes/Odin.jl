@@ -1,6 +1,19 @@
 # Code generation: convert parsed odin model into Julia types and functions.
 # This is the heart of the DSL compiler — it generates a DustSystemGenerator.
 
+using Printf
+
+const _PRINTF_CACHE = Dict{String, Printf.Format}()
+
+"""Runtime helper for print() statements in generated odin models."""
+function _odin_printf(fmt::String, args...)
+    f = get!(_PRINTF_CACHE, fmt) do
+        Printf.Format(fmt)
+    end
+    Printf.format(stdout, f, args...)
+    return nothing
+end
+
 # ── Array & layout helpers ────────────────────────────────────
 
 """Check whether any state variable is an array."""
@@ -747,6 +760,32 @@ function _gen_initial(phases, cl, sv_set)
     return Expr(:block, stmts...)
 end
 
+"""Generate print statements for all EXPR_PRINT expressions in the dynamic phase."""
+function _gen_print_stmts(phases, cl, sv_set)
+    stmts = Expr[]
+    for ex in phases.dynamic_eqs
+        ex.type == EXPR_PRINT || continue
+        pinfo = ex.rhs::PrintInfo
+
+        printf_fmt = pinfo.format_string
+        for (var, fmt) in zip(pinfo.variables, pinfo.formats)
+            printf_fmt = replace(printf_fmt, Regex("\\{$(var)(?:\\s*;\\s*[^}]*)?\\}") => fmt; count=1)
+        end
+        printf_fmt *= "\n"
+
+        arg_exprs = Any[_translate_expr(var, cl, sv_set, :pars) for var in pinfo.variables]
+        print_call = :(Odin._odin_printf($printf_fmt, $(arg_exprs...)))
+
+        if pinfo.condition !== nothing
+            cond = _translate_expr(pinfo.condition, cl, sv_set, :pars)
+            push!(stmts, Expr(:if, cond, print_call))
+        else
+            push!(stmts, print_call)
+        end
+    end
+    return stmts
+end
+
 function _gen_rhs(phases, cl, sv_set)
     stmts = Expr[]
     dims = cl.dims
@@ -781,6 +820,9 @@ function _gen_rhs(phases, cl, sv_set)
             push!(stmts, :(dstate[$off + 1] = $rj))
         end
     end
+
+    append!(stmts, _gen_print_stmts(phases, cl, sv_set))
+
     return Expr(:block, stmts...)
 end
 
@@ -857,6 +899,9 @@ function _gen_update(phases, cl, sv_set)
             push!(stmts, :(state_next[$off + 1] = convert(T, $rj)))
         end
     end
+
+    append!(stmts, _gen_print_stmts(phases, cl, sv_set))
+
     return Expr(:block, stmts...)
 end
 

@@ -101,6 +101,8 @@ function classify_variables(exprs::Vector{OdinExpr})
             comparisons[ex.name] = ex.rhs
         elseif ex.type == EXPR_ASSIGNMENT
             push!(assigned, ex.name)
+        elseif ex.type == EXPR_PRINT
+            # Print expressions don't define variables; nothing to classify
         end
     end
 

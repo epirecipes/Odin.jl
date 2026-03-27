@@ -14,6 +14,7 @@
     EXPR_INTERPOLATE    # X = interpolate(...)
     EXPR_ASSIGNMENT     # X = <expr>
     EXPR_COMPARE        # X ~ Distribution(...)
+    EXPR_PRINT          # print("format {var; fmt}", when = cond)
 end
 
 """Parsed representation of a single odin equation."""
@@ -53,6 +54,14 @@ struct CompareInfo
     args::Vector{Any}           # distribution arguments as expressions
 end
 
+"""Parsed print statement metadata."""
+struct PrintInfo
+    format_string::String           # The raw format string from the user
+    variables::Vector{Symbol}       # Variables referenced in {var; fmt}
+    formats::Vector{String}         # Printf format specifiers (e.g., "%.2f", "%d", "%g")
+    condition::Union{Nothing, Any}  # Optional when= condition expression
+end
+
 """
     parse_odin_expr(expr, src)
 
@@ -63,6 +72,8 @@ function parse_odin_expr(expr::Expr, src::LineNumberNode)
         return _parse_assignment(expr, src)
     elseif expr.head == :call && expr.args[1] == :(~)
         return _parse_compare(expr, src)
+    elseif expr.head == :call && expr.args[1] == :print
+        return _parse_print(expr, src)
     elseif expr.head == :macrocall
         error("Macro calls are not supported inside @odin blocks")
     else
@@ -285,6 +296,59 @@ function _parse_interpolate_call(expr::Expr)
     mode in (:constant, :linear, :spline) || error("interpolate() mode must be :constant, :linear, or :spline")
 
     return InterpolateInfo(time_var, value_var, mode)
+end
+
+"""
+    _parse_print(expr, src) -> OdinExpr
+
+Parse a `print("format {var; fmt}", when = cond)` call.
+"""
+function _parse_print(expr::Expr, src::LineNumberNode)
+    args = expr.args[2:end]
+    isempty(args) && error("print() requires a format string argument")
+
+    fmt_str = nothing
+    condition = nothing
+    for arg in args
+        if arg isa Expr && arg.head == :kw
+            if arg.args[1] == :when
+                condition = arg.args[2]
+            else
+                error("Unknown keyword argument to print(): $(arg.args[1])")
+            end
+        elseif fmt_str === nothing
+            fmt_str = arg isa String ? arg : error("print() first argument must be a string literal, got: $arg")
+        else
+            error("print() takes exactly one positional argument (a format string)")
+        end
+    end
+    fmt_str === nothing && error("print() requires a format string argument")
+
+    variables, formats = _parse_print_format(fmt_str)
+    pinfo = PrintInfo(fmt_str, variables, formats, condition)
+    return OdinExpr(EXPR_PRINT, :_print, pinfo, Symbol[], src)
+end
+
+"""
+    _parse_print_format(fmt::String) -> (variables, formats)
+
+Parse an odin format string like `"time={time; .2f} S={S; .1f}"`.
+Returns vectors of referenced variables and their Printf format specifiers.
+"""
+function _parse_print_format(fmt::String)
+    variables = Symbol[]
+    formats = String[]
+    for m in eachmatch(r"\{(\w+)(?:\s*;\s*([^}]*))?\}", fmt)
+        push!(variables, Symbol(m.captures[1]))
+        spec = m.captures[2]
+        if spec === nothing || strip(spec) == ""
+            push!(formats, "%g")
+        else
+            s = strip(spec)
+            push!(formats, startswith(s, "%") ? s : "%" * s)
+        end
+    end
+    return variables, formats
 end
 
 """
