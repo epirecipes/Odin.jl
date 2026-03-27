@@ -37,4 +37,5 @@ using Test
     include("categorical/test_categorical_advanced.jl")
     include("gpu/test_gpu.jl")
     include("test-validate.jl")
+    include("test_new_features.jl")
 end
