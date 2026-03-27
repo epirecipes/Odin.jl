@@ -8,6 +8,7 @@ using Test
     include("dsl/test_arrays.jl")
     include("dsl/test_output.jl")
     include("dsl/test_interpolation.jl")
+    include("dsl/test_delay.jl")
     include("dsl/test_odin_model.jl")
     include("dsl/test_additional_models.jl")
     include("dsl/test_school_closure.jl")
