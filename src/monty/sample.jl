@@ -14,6 +14,10 @@ struct MontySamples
     observations::Union{Nothing, Any}
 end
 
+# Backward-compatible 5-arg constructor (observations defaults to nothing)
+MontySamples(pars, density, initial, parameter_names, details) =
+    MontySamples(pars, density, initial, parameter_names, details, nothing)
+
 """
     monty_sample(model, sampler, n_steps; kwargs...)
 
