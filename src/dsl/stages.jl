@@ -86,7 +86,7 @@ function organise_phases(
     for name in sorted_intermediates
         if haskey(expr_by_name, name)
             for ex in expr_by_name[name]
-                if ex.type == EXPR_ASSIGNMENT
+                if ex.type == EXPR_ASSIGNMENT || ex.type == EXPR_DELAY
                     push!(dynamic_eqs, ex)
                     push!(intermediates_added, name)
                 end

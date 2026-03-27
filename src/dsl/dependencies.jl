@@ -87,6 +87,10 @@ function build_dependency_graph(exprs::Vector{OdinExpr}, classification::ModelCl
             iinfo = ex.rhs::InterpolateInfo
             push!(deps, iinfo.time_var)
             push!(deps, iinfo.value_var)
+        elseif ex.type == EXPR_DELAY
+            dinfo = ex.rhs::DelayInfo
+            push!(deps, dinfo.expr)
+            union!(deps, find_dependencies(dinfo.tau))
         elseif ex.type == EXPR_PARAMETER
             pinfo = ex.rhs::ParameterInfo
             if pinfo.default !== nothing
@@ -120,7 +124,7 @@ function topological_sort(entries::Vector{DepEntry}, available::Set{Symbol})
     # We only sort intermediate assignments
     to_sort = DepEntry[]
     for e in entries
-        if e.expr_type == EXPR_ASSIGNMENT
+        if e.expr_type == EXPR_ASSIGNMENT || e.expr_type == EXPR_DELAY
             push!(to_sort, e)
         end
     end

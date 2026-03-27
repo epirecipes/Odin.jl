@@ -20,6 +20,7 @@ function _odin_output! end
 function _odin_n_output end
 function _odin_output_names end
 function _odin_setup_pars end
+function _odin_delay_tau_values end
 
 # Symbolic differentiation stubs (overridden when symbolic succeeds)
 function _odin_vjp_state! end
@@ -29,6 +30,9 @@ function _odin_n_diff_params end
 
 """Default: model does not have symbolic Jacobian."""
 _odin_has_symbolic_jacobian(::AbstractOdinModel) = false
+
+"""Default: model does not have delay."""
+_odin_has_delay(model::AbstractOdinModel) = hasproperty(model, :has_delay) && model.has_delay
 
 """Default: no differentiated parameters."""
 _odin_diff_param_names(::AbstractOdinModel) = Symbol[]

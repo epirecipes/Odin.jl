@@ -15,6 +15,12 @@ mutable struct DustFilter{M<:AbstractOdinModel, T<:AbstractFloat, D<:NamedTuple}
     save_trajectories::Bool
     # Cached system — reused across filter runs to avoid allocations
     _cached_sys::Union{Nothing, DustSystem}
+    # Multi-group support
+    n_groups::Int
+    group_data::Union{Nothing, Vector{FilterData{D}}}
+    # Snapshot/trajectory storage (populated after run)
+    _last_snapshots::Union{Nothing, Dict{Float64, Matrix{Float64}}}
+    _last_trajectories::Union{Nothing, Array{Float64, 3}}
 end
 
 """
@@ -31,7 +37,8 @@ function dust_filter_create(
     seed::Union{Nothing, Int}=nothing,
     save_trajectories::Bool=false,
 ) where {M, D}
-    return DustFilter{M, Float64, D}(gen, data, time_start, n_particles, dt, seed, save_trajectories, nothing)
+    return DustFilter{M, Float64, D}(gen, data, time_start, n_particles, dt, seed, save_trajectories, nothing,
+                                       1, nothing, nothing, nothing)
 end
 
 """
@@ -50,17 +57,27 @@ end
 
 Run the particle filter with given parameters and return the log-likelihood.
 """
-function dust_likelihood_run!(filter::DustFilter, pars::NamedTuple)
+function dust_likelihood_run!(filter::DustFilter, pars::NamedTuple;
+                               save_snapshots::Union{Nothing, Vector{Float64}}=nothing)
+    if filter.n_groups > 1 && filter.group_data !== nothing
+        return _run_grouped_filter!(filter, pars; save_snapshots=save_snapshots)
+    end
     sys = _get_or_create_sys!(filter, pars)
     dust_system_set_state_initial!(sys)
     np = filter.n_particles
     use_threads = np >= 4 && Threads.nthreads() > 1
-    # Pass pars explicitly to maintain type stability through the inner loop
+    save_traj = filter.save_trajectories
     if use_threads
-        return _filter_inner_threaded!(sys, sys.pars, filter.data, np, filter.save_trajectories)
+        result = _filter_inner_threaded!(sys, sys.pars, filter.data, np, save_traj)
     else
-        return _filter_inner!(sys, sys.pars, filter.data, np, filter.save_trajectories)
+        result = _filter_inner!(sys, sys.pars, filter.data, np, save_traj)
     end
+    if result isa NamedTuple
+        filter._last_snapshots = get(result, :snapshots, nothing)
+        filter._last_trajectories = get(result, :trajectories, nothing)
+        return result.ll
+    end
+    return result
 end
 
 """Type-stable inner loop of the particle filter."""
@@ -257,3 +274,50 @@ function _get_or_create_sys!(filter::DustFilter, pars::NamedTuple)
         return sys
     end
 end
+
+
+"""
+    dust_filter_create(gen, group_data::Vector{FilterData}; kwargs...)
+
+Create a multi-group particle filter.
+"""
+function dust_filter_create(
+    gen::DustSystemGenerator{M},
+    group_data::Vector{FilterData{D}};
+    time_start::Float64=0.0,
+    n_particles::Int=100,
+    dt::Float64=1.0,
+    seed::Union{Nothing, Int}=nothing,
+    save_trajectories::Bool=false,
+) where {M, D}
+    n_groups = length(group_data)
+    filt = DustFilter{M, Float64, D}(gen, group_data[1], time_start, n_particles, dt, seed,
+                                      save_trajectories, nothing, n_groups, group_data,
+                                      nothing, nothing)
+    return filt
+end
+
+"""Run grouped filter: sum log-likelihoods across groups."""
+function _run_grouped_filter!(filter::DustFilter, pars::NamedTuple;
+                              save_snapshots=nothing)
+    total_ll = 0.0
+    for g in 1:filter.n_groups
+        gdata = filter.group_data[g]
+        sys = _get_or_create_sys!(filter, pars)
+        dust_system_set_state_initial!(sys)
+        np = filter.n_particles
+        ll = _filter_inner!(sys, sys.pars, gdata, np, filter.save_trajectories)
+        if ll isa NamedTuple
+            total_ll += ll.ll
+        else
+            total_ll += ll
+        end
+    end
+    return total_ll
+end
+
+"""Retrieve saved snapshots from last filter/unfilter run."""
+last_snapshots(f::DustFilter) = f._last_snapshots
+
+"""Retrieve saved trajectories from last filter/unfilter run."""
+last_trajectories(f::DustFilter) = f._last_trajectories

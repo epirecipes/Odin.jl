@@ -213,13 +213,12 @@ end
 
 function _simulate_continuous(sys::DustSystem{M, T, P}, times::AbstractVector{T}, output::Array{T, 3}, solver::Symbol=:dp5; events::Union{Nothing, EventSet}=nothing) where {M, T, P}
     np = sys.n_particles
-    use_threads = np >= 4 && Threads.nthreads() > 1 && !_has_events(events)
+    model = sys.generator.model
+    use_threads = np >= 4 && Threads.nthreads() > 1 && !_has_events(events) && !_odin_has_delay(model)
 
     if use_threads
         return _simulate_continuous_threaded(sys, times, output, solver)
     end
-
-    model = sys.generator.model
     n_state = sys.n_state
     n_output = sys.n_output
     output_buf = sys._thread_output_buf[1]
@@ -240,6 +239,41 @@ function _simulate_continuous(sys::DustSystem{M, T, P}, times::AbstractVector{T}
 
             _sdirk_solve_core!(rhs_fn!, state_vec, (sys.time, last(times)), sys.pars,
                                times, ws, nothing, T(1e-6), T(1e-6), 100000)
+
+            for ti in 1:length(times)
+                @inbounds for j in 1:n_state
+                    output[j, p, ti] = ws.result_matrix[j, ti]
+                end
+                if n_output > 0
+                    sv = @view ws.result_matrix[:, ti]
+                    _odin_output!(model, output_buf, sv, sys.pars, times[ti])
+                    @inbounds for j in 1:n_output
+                        output[n_state + j, p, ti] = output_buf[j]
+                    end
+                end
+            end
+        end
+    elseif _odin_has_delay(model)
+        # DDE path: use DP5 with history tracking
+        if sys._dp5_workspace === nothing
+            sys._dp5_workspace = DP5Workspace(n_state, T)
+        end
+        ws = sys._dp5_workspace::DP5Workspace{T}
+
+        tau_vals = _odin_delay_tau_values(model, sys.pars)
+        h_max = minimum(tau_vals)
+        hist = DDEHistory(n_state; T=T)
+        model._workspace[:_dde_history] = [hist]
+
+        for p in 1:np
+            @inbounds for j in 1:n_state
+                state_vec[j] = sys.state[j, p]
+            end
+
+            dde_history_init!(hist, state_vec, sys.time)
+
+            _dp5_solve_dde_core!(rhs_fn!, state_vec, (sys.time, last(times)), sys.pars,
+                                 times, ws, hist, h_max, nothing, T(1e-6), T(1e-6), 100000)
 
             for ti in 1:length(times)
                 @inbounds for j in 1:n_state
@@ -456,4 +490,32 @@ function dust_system_simulate(
         dust_system_set_state_initial!(sys)
         return dust_system_simulate(sys, times; solver=solver)
     end
+end
+
+
+"""
+    dust_system_simulate(gen, pars_vec::Vector{<:NamedTuple}; times, kwargs...)
+
+Simulate a multi-group system. Returns 4D array: (n_rows, n_particles, n_times, n_groups).
+"""
+function dust_system_simulate(
+    gen::DustSystemGenerator,
+    pars_vec::Vector{<:NamedTuple};
+    times::AbstractVector{Float64},
+    dt::Float64=1.0,
+    seed::Union{Nothing, Int}=nothing,
+    n_particles::Int=1,
+    solver::Symbol=:dp5,
+)
+    n_groups = length(pars_vec)
+    result1 = dust_system_simulate(gen, pars_vec[1]; times=times, dt=dt, seed=seed,
+                                    n_particles=n_particles, solver=solver)
+    n_rows, np, nt = size(result1)
+    output = zeros(Float64, n_rows, np, nt, n_groups)
+    output[:, :, :, 1] .= result1
+    for g in 2:n_groups
+        output[:, :, :, g] .= dust_system_simulate(gen, pars_vec[g]; times=times, dt=dt,
+                                                     seed=seed, n_particles=n_particles, solver=solver)
+    end
+    return output
 end

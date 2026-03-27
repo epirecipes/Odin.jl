@@ -37,6 +37,7 @@ struct ModelClassification
     data_vars::Vector{Symbol}
     intermediates::Vector{Symbol}
     interpolated::Dict{Symbol, InterpolateInfo}
+    delayed::Dict{Symbol, DelayInfo}
     outputs::Vector{Symbol}
     comparisons::Dict{Symbol, CompareInfo}
     dims::Dict{Symbol, Any}            # variable => dimension expr
@@ -62,6 +63,7 @@ function classify_variables(exprs::Vector{OdinExpr})
     parameters = Dict{Symbol, ParameterInfo}()
     data_vars = Set{Symbol}()
     interpolated = Dict{Symbol, InterpolateInfo}()
+    delayed = Dict{Symbol, DelayInfo}()
     outputs = Symbol[]
     comparisons = Dict{Symbol, CompareInfo}()
     dims = Dict{Symbol, Any}()
@@ -97,6 +99,9 @@ function classify_variables(exprs::Vector{OdinExpr})
             push!(data_vars, ex.name)
         elseif ex.type == EXPR_INTERPOLATE
             interpolated[ex.name] = ex.rhs
+        elseif ex.type == EXPR_DELAY
+            delayed[ex.name] = ex.rhs
+            push!(assigned, ex.name)
         elseif ex.type == EXPR_COMPARE
             comparisons[ex.name] = ex.rhs
         elseif ex.type == EXPR_ASSIGNMENT
@@ -135,6 +140,7 @@ function classify_variables(exprs::Vector{OdinExpr})
         v in deriv_vars || error("Variable $v has diffusion() but no deriv()")
     end
     !isempty(diffusion_vars) && has_update && error("Cannot use diffusion() with update() (discrete) models")
+    !isempty(delayed) && has_update && error("Cannot use delay() with update() (discrete) models")
 
     # Intermediates: assigned but not state/parameter/data/interpolated
     intermediates = Symbol[]
@@ -183,6 +189,7 @@ function classify_variables(exprs::Vector{OdinExpr})
         collect(data_vars),
         intermediates,
         interpolated,
+        delayed,
         outputs,
         comparisons,
         dims,

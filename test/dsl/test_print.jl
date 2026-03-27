@@ -2,11 +2,15 @@ using Test
 using Odin
 using Odin: parse_odin_block, EXPR_PRINT, PrintInfo
 
-"""Capture stdout output from a block of code."""
-function capture_stdout(f)
+"""Capture odin print output from a block of code."""
+function capture_odin_output(f)
     buf = IOBuffer()
-    redirect_stdout(buf) do
+    old_io = Odin._PRINT_IO[]
+    Odin._PRINT_IO[] = buf
+    try
         f()
+    finally
+        Odin._PRINT_IO[] = old_io
     end
     return String(take!(buf))
 end
@@ -98,7 +102,7 @@ end
 
         sys = System(gen, (beta=0.2, gamma=0.1, I0=10.0, N=1000.0))
         reset!(sys)
-        output = capture_stdout() do
+        output = capture_odin_output() do
             run_to!(sys, 1.0)
         end
         @test length(output) > 0
@@ -130,7 +134,7 @@ end
 
         sys = System(gen, (beta=0.2, gamma=0.1, I0=10.0, N=1000.0); dt=1.0)
         reset!(sys)
-        output = capture_stdout() do
+        output = capture_odin_output() do
             run_to!(sys, 3.0)
         end
         @test length(output) > 0
@@ -149,11 +153,11 @@ end
 
         sys = System(gen, (a=0.5,))
         reset!(sys)
-        output_early = capture_stdout() do
+        output_early = capture_odin_output() do
             run_to!(sys, 0.3)
         end
 
-        output_late = capture_stdout() do
+        output_late = capture_odin_output() do
             run_to!(sys, 1.0)
         end
         @test length(output_late) > 0
@@ -175,7 +179,7 @@ end
         @test gen isa OdinModel
         sys = System(gen, (a=0.5, b=0.1))
         reset!(sys)
-        output = capture_stdout() do
+        output = capture_odin_output() do
             run_to!(sys, 1.0)
         end
         @test occursin("x=", output)
@@ -205,7 +209,7 @@ end
         @test gen isa OdinModel
         sys = System(gen, (a=0.5,))
         reset!(sys)
-        output = capture_stdout() do
+        output = capture_odin_output() do
             run_to!(sys, 0.5)
         end
         @test occursin("a=", output)
@@ -222,7 +226,7 @@ end
         @test gen isa OdinModel
         sys = System(gen, (;))
         reset!(sys)
-        output = capture_stdout() do
+        output = capture_odin_output() do
             run_to!(sys, 0.5)
         end
         @test occursin("t=", output)

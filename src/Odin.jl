@@ -26,10 +26,12 @@ include("dsl/codegen.jl")
 include("dsl/symbolic.jl")
 include("dsl/macro.jl")
 include("dsl/odin_model.jl")
+include("dsl/validate.jl")
 
 # ── Dust runtime (dust2) ────────────────────────────────────
 include("dust/fast_random.jl")
 include("dust/fast_logpdf.jl")
+include("dust/delay.jl")
 include("dust/dp5.jl")
 include("dust/sdirk.jl")
 include("dust/sde.jl")
@@ -57,6 +59,7 @@ include("monty/samplers/slice.jl")
 include("monty/samplers/mala.jl")
 include("monty/samplers/gibbs.jl")
 include("monty/runners.jl")
+include("monty/observer.jl")
 include("monty/sample.jl")
 include("monty/dsl.jl")
 include("monty/model_selection.jl")
@@ -86,6 +89,9 @@ include("api.jl")
 # DSL
 export @odin, @odin_model, @prior
 
+# Introspection
+export validate_model, show_code, OdinValidationResult
+
 # Type aliases
 export OdinModel, Samples, ObservedData, ODEControl
 
@@ -109,10 +115,13 @@ export nuts, random_walk, hmc, adaptive_mh, mala, slice
 export parallel_tempering, gibbs
 
 # Runners
-export Serial, Threaded
+export Serial, Threaded, Simultaneous
 
 # Sampling
 export sample, sample_continue
+
+# Observer
+export Observer, MontyObserver, last_snapshots, last_trajectories
 
 # Diagnostics & validation
 export posterior_predict

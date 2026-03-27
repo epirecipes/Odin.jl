@@ -131,6 +131,16 @@ function simulate(sys::DustSystem; times::AbstractVector, kwargs...)
     dust_system_simulate(sys, Float64.(collect(times)); kwargs...)
 end
 
+"""
+    simulate(model, pars_vec::Vector{NamedTuple}, times; kwargs...)
+
+Multi-group simulation: returns `(n_state+n_output, n_particles, n_times, n_groups)`.
+"""
+function simulate(gen::DustSystemGenerator, pars_vec::AbstractVector{<:NamedTuple},
+                  times::AbstractVector; kwargs...)
+    dust_system_simulate(gen, pars_vec; times=Float64.(collect(times)), kwargs...)
+end
+
 # ── System construction helpers ──────────────────────────────
 
 """
@@ -152,11 +162,25 @@ System(gen::DustSystemGenerator, pars::NamedTuple; kwargs...) =
     dust_system_create(gen, pars; kwargs...)
 
 """
+    System(model, pars_vec::Vector{NamedTuple}; kwargs...)
+
+Create a multi-group simulation system.
+"""
+System(gen::DustSystemGenerator, pars_vec::AbstractVector{<:NamedTuple}; kwargs...) =
+    dust_system_create(gen, pars_vec; kwargs...)
+
+"""
     reset!(sys)
 
 Reset system state to initial conditions.
 """
-reset!(sys::DustSystem) = dust_system_set_state_initial!(sys)
+function reset!(sys::DustSystem)
+    if sys.n_groups > 1
+        dust_system_set_state_initial!(sys, Val(:grouped))
+    else
+        dust_system_set_state_initial!(sys)
+    end
+end
 
 """
     state(sys)
@@ -440,6 +464,14 @@ Run MCMC chains in parallel using Julia threads.
 """
 Threaded() = monty_runner_threaded()
 
+"""
+    Simultaneous()
+
+Run all MCMC chains simultaneously in lock-step.
+Enables cross-chain interactions (e.g., parallel tempering swaps).
+"""
+Simultaneous() = monty_runner_simultaneous()
+
 
 # ═══════════════════════════════════════════════════════════════
 # Sampling
@@ -629,3 +661,98 @@ result = simulate(model, pars, times)
 ```
 """
 compile(net::EpiNet; kwargs...) = lower(net; kwargs...)
+
+
+# ═══════════════════════════════════════════════════════════════
+# Observer
+# ═══════════════════════════════════════════════════════════════
+
+"""
+    Observer(observe; finalise=auto, combine=auto, append=auto)
+
+Create an observer for collecting custom outputs during MCMC sampling.
+
+The `observe` function is called after each accepted sample with
+`(model, rng)` and should return an observation (e.g., NamedTuple).
+
+# Example
+```julia
+obs = Observer((model, rng) -> (trajectories = last_trajectories(filter),))
+samples = sample(posterior, sampler, 1000; observer=obs)
+samples.observations  # combined observations
+```
+"""
+const Observer = MontyObserver
+
+
+# ═══════════════════════════════════════════════════════════════
+# Likelihood — multi-group overloads
+# ═══════════════════════════════════════════════════════════════
+
+"""
+    Likelihood(model, group_data::Vector{FilterData}; kwargs...)
+
+Create a multi-group likelihood from per-group data.
+"""
+function Likelihood(gen::DustSystemGenerator, group_data::Vector{<:FilterData};
+                    time_start::Float64=0.0,
+                    ode_control::DustODEControl=DustODEControl(),
+                    n_particles::Union{Nothing,Int}=nothing,
+                    kwargs...)
+    if n_particles !== nothing
+        return Likelihood(dust_filter_create(gen, group_data;
+            time_start=time_start, n_particles=n_particles, kwargs...))
+    else
+        return Likelihood(dust_unfilter_create(gen, group_data;
+            time_start=time_start, ode_control=ode_control))
+    end
+end
+
+# ═══════════════════════════════════════════════════════════════
+# Model introspection
+# ═══════════════════════════════════════════════════════════════
+
+"""
+    validate_model(block::Expr) -> OdinValidationResult
+
+Parse an odin DSL expression and return structured diagnostics without compiling.
+
+# Example
+```julia
+result = validate_model(quote
+    deriv(S) = -beta * S * I / N
+    deriv(I) = beta * S * I / N - gamma * I
+    deriv(R) = gamma * I
+    initial(S) = N - I0; initial(I) = I0; initial(R) = 0
+    beta = parameter(0.4); gamma = parameter(0.2)
+    I0 = parameter(10); N = parameter(1000)
+end)
+result.success        # true
+result.time_type      # :continuous
+result.state_variables # [:S, :I, :R]
+```
+"""
+validate_model(block::Expr) = odin_validate(block)
+
+"""
+    show_code(block::Expr; what=:all) -> Expr
+
+Generate and return the Julia code for an odin DSL block.
+
+`what` can be `:all` (default) or a specific method name such as `:update`,
+`:rhs`, `:initial`, `:compare`, `:output`, or `:diffusion`.
+
+# Example
+```julia
+code = show_code(quote
+    update(S) = S - n_SI
+    update(I) = I + n_SI - n_IR
+    update(R) = R + n_IR
+    initial(S) = N - I0; initial(I) = I0; initial(R) = 0
+    n_SI = Binomial(S, beta); n_IR = Binomial(I, gamma)
+    beta = parameter(0.4); gamma = parameter(0.2)
+    I0 = parameter(10); N = parameter(1000)
+end)
+```
+"""
+show_code(block::Expr; what::Symbol=:all) = odin_show(block; what=what)

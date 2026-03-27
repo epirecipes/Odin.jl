@@ -52,6 +52,10 @@ mutable struct DustSystem{M<:AbstractOdinModel, T<:AbstractFloat, P}
     _thread_output_buf::Vector{Vector{T}}
     _thread_workspaces::Vector{Dict{Symbol, Array}}
     n_threads::Int
+    # Multi-group support
+    n_groups::Int
+    group_state::Union{Nothing, Vector{Matrix{Float64}}}
+    group_pars::Union{Nothing, Vector}
 end
 
 """
@@ -141,6 +145,7 @@ function dust_system_create(
         nothing,  # _sde_workspace: lazily initialized for SDE models
         thread_sde_workspaces,
         thread_state_next, thread_output_buf, thread_workspaces, nt,
+        1, nothing, nothing,  # n_groups=1, no group_state, no group_pars
     )
 
     return sys
@@ -312,4 +317,59 @@ function dust_system_compare_data(sys::DustSystem, data::NamedTuple)
         ll[p] = _odin_compare_data(model, state_view, sys.pars, data, sys.time)
     end
     return ll
+end
+
+
+"""
+    dust_system_create(gen, pars_vec::Vector{<:NamedTuple}; kwargs...)
+
+Create a multi-group dust system. Each element of `pars_vec` is for one group.
+"""
+function dust_system_create(
+    gen::DustSystemGenerator{M},
+    pars_vec::Vector{<:NamedTuple};
+    n_particles::Int=1,
+    dt::Float64=1.0,
+    time::Float64=0.0,
+    seed::Union{Nothing, Int}=nothing,
+) where {M}
+    n_groups = length(pars_vec)
+    n_groups >= 1 || error("Need at least one group")
+    sys = dust_system_create(gen, pars_vec[1]; n_particles=n_particles, dt=dt, time=time, seed=seed)
+    if n_groups == 1
+        return sys
+    end
+    group_state = [copy(sys.state) for _ in 1:n_groups]
+    model = gen.model
+    group_pars_vec = Any[]
+    for g in 1:n_groups
+        fp = _merge_pars(model, pars_vec[g], dt)
+        if model.has_interpolation
+            fp = _odin_setup_pars(model, fp)
+        end
+        push!(group_pars_vec, fp)
+    end
+    sys.n_groups = n_groups
+    sys.group_state = group_state
+    sys.group_pars = group_pars_vec
+    sys.state = group_state[1]
+    sys.pars = group_pars_vec[1]
+    return sys
+end
+
+"""Set initial state for multi-group systems."""
+function dust_system_set_state_initial!(sys::DustSystem, ::Val{:grouped})
+    if sys.n_groups <= 1
+        return dust_system_set_state_initial!(sys)
+    end
+    model = sys.generator.model
+    for g in 1:sys.n_groups
+        state_g = sys.group_state[g]
+        pars_g = sys.group_pars[g]
+        for p in 1:sys.n_particles
+            sv = @view state_g[:, p]
+            _odin_initial!(model, sv, pars_g, sys.rng[p])
+        end
+    end
+    return nothing
 end

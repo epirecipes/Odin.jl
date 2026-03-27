@@ -5,12 +5,15 @@ using Printf
 
 const _PRINTF_CACHE = Dict{String, Printf.Format}()
 
+"""Configurable output stream for print() statements. Defaults to stdout."""
+const _PRINT_IO = Ref{IO}(stdout)
+
 """Runtime helper for print() statements in generated odin models."""
 function _odin_printf(fmt::String, args...)
     f = get!(_PRINTF_CACHE, fmt) do
         Printf.Format(fmt)
     end
-    Printf.format(stdout, f, args...)
+    Printf.format(_PRINT_IO[], f, args...)
     return nothing
 end
 
@@ -285,6 +288,7 @@ function generate_system(
     has_interp    = !isempty(classification.interpolated)
     is_continuous = classification.time_type == TIME_CONTINUOUS
     is_sde        = !isempty(classification.diffusion_vars)
+    has_delay     = !isempty(classification.delayed)
     has_arr       = _has_arrays(classification)
     n_state_fixed = has_arr ? 0 : length(classification.state_vars)
 
@@ -333,6 +337,7 @@ function generate_system(
             has_compare::Bool
             has_output::Bool
             has_interpolation::Bool
+            has_delay::Bool
             _workspace::Dict{Symbol, Array}
         end
 
@@ -430,6 +435,17 @@ function generate_system(
             nothing
         end)
 
+        $(if has_delay
+            delay_tau_body = _gen_delay_tau_body(classification)
+            quote
+                function Odin._odin_delay_tau_values(model::$model_name, pars)
+                    $delay_tau_body
+                end
+            end
+        else
+            nothing
+        end)
+
         $(if symbolic_jac_code !== nothing
             symbolic_jac_code
         else
@@ -446,6 +462,7 @@ function generate_system(
                 $has_compare,
                 $has_output,
                 $has_interp,
+                $has_delay,
                 Dict{Symbol, Array}(),
             )
         )
@@ -732,6 +749,17 @@ end
 
 # ── Body generators ───────────────────────────────────────────
 
+function _gen_delay_tau_body(cl::ModelClassification)
+    stmts = Expr[]
+    push!(stmts, :(_taus = Float64[]))
+    for (name, dinfo) in cl.delayed
+        tau_expr = _translate_expr(dinfo.tau, cl, Set{Symbol}(cl.state_vars), :pars)
+        push!(stmts, :(push!(_taus, Float64($tau_expr))))
+    end
+    push!(stmts, :(return _taus))
+    return Expr(:block, stmts...)
+end
+
 function _gen_initial(phases, cl, sv_set)
     stmts = Expr[]
     dims = cl.dims
@@ -805,6 +833,20 @@ function _gen_rhs(phases, cl, sv_set)
         else
             push!(stmts, :($(ex.name) = $rj))
         end
+    end
+
+    # Delay evaluations
+    for ex in phases.dynamic_eqs
+        ex.type == EXPR_DELAY || continue
+        dinfo = ex.rhs::DelayInfo
+        state_sym = dinfo.expr
+        tau_expr = _translate_expr(dinfo.tau, cl, sv_set, :pars)
+        state_off = offs[state_sym]
+        state_idx = state_off isa Integer ? state_off + 1 : :($state_off + 1)
+        push!(stmts, :(begin
+            _dde_hist = (model._workspace[:_dde_history]::Vector{Odin.DDEHistory{T}})[1]
+            $(ex.name) = Odin.dde_history_eval(_dde_hist, time - $tau_expr, $state_idx)
+        end))
     end
 
     # Derivatives

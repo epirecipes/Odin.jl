@@ -319,3 +319,136 @@ function _dp5_initial_step(f!::F, u0::AbstractVector{T}, f0::AbstractVector{T},
     f1 = f1_buf !== nothing ? f1_buf : similar(u0, T, n)
     return _dp5_initial_step(f!, u0, f0, pars, t0, tf, abstol, reltol, n, u1, f1)
 end
+
+
+# ── DDE variant of DP5 solver ──────────────────────────────────
+# Records each step into DDEHistory and caps step size at h_max.
+
+function _dp5_solve_dde_core!(
+    f!::F, u0::AbstractVector{T}, tspan::Tuple{T,T}, pars::P,
+    t_out::AbstractVector{T}, ws::DP5Workspace{T},
+    hist::DDEHistory{T}, h_max::T,
+    mass::Nothing, abstol::T, reltol::T, maxsteps::Int,
+) where {F, T, P}
+    n = length(u0)
+    t0, tf = tspan
+    nt_out = length(t_out)
+
+    _ensure_workspace!(ws, n)
+    _ensure_result_matrix!(ws, n, nt_out)
+
+    u  = ws.u;  copyto!(u, u0)
+    u_new = ws.u_new; u_prev = ws.u_prev
+    k1 = ws.k1; k2 = ws.k2; k3 = ws.k3; k4 = ws.k4
+    k5 = ws.k5; k6 = ws.k6; k7 = ws.k7
+
+    f!(k1, u, pars, t0)
+    dde_history_push!(hist, u, k1, t0)
+
+    h = _dp5_initial_step(f!, u, k1, pars, t0, tf, abstol, reltol, n,
+                          ws.init_u1, ws.init_f1)
+    h = min(h, h_max)
+
+    t = t0
+    out_idx = 1
+    step_count = 0
+
+    a21 = T(1)/T(5)
+    a31 = T(3)/T(40);    a32 = T(9)/T(40)
+    a41 = T(44)/T(45);   a42 = T(-56)/T(15);   a43 = T(32)/T(9)
+    a51 = T(19372)/T(6561); a52 = T(-25360)/T(2187)
+    a53 = T(64448)/T(6561); a54 = T(-212)/T(729)
+    a61 = T(9017)/T(3168);  a62 = T(-355)/T(33)
+    a63 = T(46732)/T(5247); a64 = T(49)/T(176); a65 = T(-5103)/T(18656)
+    b1  = T(35)/T(384);  b3  = T(500)/T(1113)
+    b4  = T(125)/T(192);  b5 = T(-2187)/T(6784); b6 = T(11)/T(84)
+    e1  = T(71)/T(57600); e3 = T(-71)/T(16695)
+    e4  = T(71)/T(1920);  e5 = T(-17253)/T(339200); e6 = T(22)/T(525); e7 = T(-1)/T(40)
+
+    while t < tf && step_count < maxsteps
+        step_count += 1
+        h = min(h, tf - t)
+        h = min(h, h_max)
+
+        # Save state for potential rollback
+        @inbounds for i in 1:n; u_prev[i] = u[i]; end
+
+        @inbounds for i in 1:n
+            u_new[i] = u[i] + h * a21 * k1[i]
+        end
+        f!(k2, u_new, pars, t + T(1)/T(5)*h)
+
+        @inbounds for i in 1:n
+            u_new[i] = u[i] + h * (a31*k1[i] + a32*k2[i])
+        end
+        f!(k3, u_new, pars, t + T(3)/T(10)*h)
+
+        @inbounds for i in 1:n
+            u_new[i] = u[i] + h * (a41*k1[i] + a42*k2[i] + a43*k3[i])
+        end
+        f!(k4, u_new, pars, t + T(4)/T(5)*h)
+
+        @inbounds for i in 1:n
+            u_new[i] = u[i] + h * (a51*k1[i] + a52*k2[i] + a53*k3[i] + a54*k4[i])
+        end
+        f!(k5, u_new, pars, t + T(8)/T(9)*h)
+
+        @inbounds for i in 1:n
+            u_new[i] = u[i] + h * (a61*k1[i] + a62*k2[i] + a63*k3[i] + a64*k4[i] + a65*k5[i])
+        end
+        f!(k6, u_new, pars, t + h)
+
+        @inbounds for i in 1:n
+            u[i] = u[i] + h * (b1*k1[i] + b3*k3[i] + b4*k4[i] + b5*k5[i] + b6*k6[i])
+        end
+
+        t_new = t + h
+        f!(k7, u, pars, t_new)
+
+        err = T(0)
+        @inbounds for i in 1:n
+            sc = abstol + reltol * max(abs(u[i]), abs(u[i] - h*(b1*k1[i]+b3*k3[i]+b4*k4[i]+b5*k5[i]+b6*k6[i])))
+            ei = h * (e1*k1[i] + e3*k3[i] + e4*k4[i] + e5*k5[i] + e6*k6[i] + e7*k7[i])
+            err += (ei / sc)^2
+        end
+        err = sqrt(err / n)
+
+        if err <= T(1)
+            t = t_new
+            dde_history_push!(hist, u, k7, t)
+            copyto!(k1, k7)
+
+            while out_idx <= nt_out && t_out[out_idx] <= t + 10*eps(t)
+                if abs(t_out[out_idx] - t) < 10*eps(t)
+                    @inbounds for j in 1:n
+                        ws.result_matrix[j, out_idx] = u[j]
+                    end
+                else
+                    t_target = t_out[out_idx]
+                    @inbounds for j in 1:n
+                        ws.result_matrix[j, out_idx] = dde_history_eval(hist, t_target, j)
+                    end
+                end
+                out_idx += 1
+            end
+
+            factor = err > T(0) ? T(0.9) * err^(T(-1)/T(5)) : T(5)
+            factor = clamp(factor, T(0.2), T(5))
+            h = min(h * factor, h_max)
+        else
+            factor = T(0.9) * err^(T(-1)/T(5))
+            factor = max(factor, T(0.2))
+            h *= factor
+            copyto!(u, u_prev)
+        end
+    end
+
+    while out_idx <= nt_out
+        @inbounds for j in 1:n
+            ws.result_matrix[j, out_idx] = u[j]
+        end
+        out_idx += 1
+    end
+
+    return nothing
+end

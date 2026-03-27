@@ -14,6 +14,7 @@
     EXPR_INTERPOLATE    # X = interpolate(...)
     EXPR_ASSIGNMENT     # X = <expr>
     EXPR_COMPARE        # X ~ Distribution(...)
+    EXPR_DELAY          # X = delay(...)
     EXPR_PRINT          # print("format {var; fmt}", when = cond)
 end
 
@@ -52,6 +53,12 @@ end
 struct CompareInfo
     distribution::Symbol        # e.g., :Normal, :Poisson
     args::Vector{Any}           # distribution arguments as expressions
+end
+
+"""Parsed delay metadata."""
+struct DelayInfo
+    expr::Symbol                # the state variable being delayed
+    tau::Any                    # delay duration (symbol or expression)
 end
 
 """Parsed print statement metadata."""
@@ -218,6 +225,9 @@ function _parse_plain_assignment(varname::Symbol, rhs_expr, src::LineNumberNode)
         elseif rhs_fname == :interpolate
             iinfo = _parse_interpolate_call(rhs_expr)
             return OdinExpr(EXPR_INTERPOLATE, varname, iinfo, Symbol[], src)
+        elseif rhs_fname == :delay
+            dinfo = _parse_delay_call(rhs_expr)
+            return OdinExpr(EXPR_DELAY, varname, dinfo, Symbol[], src)
         end
     end
 
@@ -296,6 +306,15 @@ function _parse_interpolate_call(expr::Expr)
     mode in (:constant, :linear, :spline) || error("interpolate() mode must be :constant, :linear, or :spline")
 
     return InterpolateInfo(time_var, value_var, mode)
+end
+
+function _parse_delay_call(expr::Expr)
+    args = expr.args[2:end]
+    length(args) == 2 || error("delay() requires exactly 2 arguments: delay(expr, tau)")
+    delayed_expr = args[1]
+    delayed_expr isa Symbol || error("First argument to delay() must be a state variable name, got: $delayed_expr")
+    tau_expr = args[2]
+    return DelayInfo(delayed_expr, tau_expr)
 end
 
 """

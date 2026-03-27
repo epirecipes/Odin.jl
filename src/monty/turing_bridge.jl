@@ -85,7 +85,7 @@ function from_chains(chain::Chains, parameter_names::Union{Nothing, Vector{Strin
     end
     density = zeros(Float64, n_samples, n_chains)
     initial = pars[:, 1, :]
-    return MontySamples(pars, density, initial, parameter_names, Dict{Symbol, Any}())
+    return MontySamples(pars, density, initial, parameter_names, Dict{Symbol, Any}(), nothing)
 end
 
 # ═══════════════════════════════════════════════════════════════

@@ -20,6 +20,12 @@ mutable struct DustUnfilter{M<:AbstractOdinModel, D<:NamedTuple}
     _dp5_workspace::Union{Nothing, DP5Workspace{Float64}}
     _sdirk_workspace::Union{Nothing, SDIRKWorkspace{Float64}}
     _saveat_cache::Vector{Float64}
+    # Multi-group support
+    n_groups::Int
+    group_data::Union{Nothing, Vector{FilterData{D}}}
+    # Snapshot/trajectory storage
+    _last_snapshots::Union{Nothing, Dict{Float64, Vector{Float64}}}
+    _last_trajectories::Union{Nothing, Matrix{Float64}}
 end
 
 """
@@ -37,7 +43,8 @@ function dust_unfilter_create(
     saveat_cache = collect(Float64, data.times)
     return DustUnfilter{M,D}(gen, data, time_start, ode_control,
                               zeros(Float64, n_state), Random.Xoshiro(), nothing,
-                              nothing, nothing, saveat_cache)
+                              nothing, nothing, saveat_cache,
+                               1, nothing, nothing, nothing)
 end
 
 """
@@ -46,7 +53,16 @@ end
 Run the deterministic unfilter and return the log-likelihood.
 Uses lightweight DP5 or SDIRK4 for Float64, DifferentialEquations.jl for AD (Dual numbers).
 """
-function dust_unfilter_run!(unfilter::DustUnfilter, pars::NamedTuple)
+function dust_unfilter_run!(unfilter::DustUnfilter, pars::NamedTuple;
+                                save_snapshots::Union{Nothing, Vector{Float64}}=nothing)
+    if unfilter.n_groups > 1 && unfilter.group_data !== nothing
+        return _run_grouped_unfilter!(unfilter, pars; save_snapshots=save_snapshots)
+    end
+    return _unfilter_run_single!(unfilter, pars; save_snapshots=save_snapshots)
+end
+
+function _unfilter_run_single!(unfilter::DustUnfilter, pars::NamedTuple;
+                                save_snapshots::Union{Nothing, Vector{Float64}}=nothing)
     model = unfilter.generator.model
     n_state = model.n_state
     n_data = length(unfilter.data.times)
@@ -149,3 +165,48 @@ function dust_unfilter_run!(unfilter::DustUnfilter, pars::NamedTuple)
         return log_likelihood
     end
 end
+
+
+"""
+    dust_unfilter_create(gen, group_data::Vector{FilterData}; kwargs...)
+
+Create a multi-group deterministic unfilter.
+"""
+function dust_unfilter_create(
+    gen::DustSystemGenerator{M},
+    group_data::Vector{FilterData{D}};
+    time_start::Float64=0.0,
+    ode_control::DustODEControl=DustODEControl(),
+) where {M, D}
+    n_groups = length(group_data)
+    n_state = gen.model.n_state
+    saveat_cache = collect(Float64, group_data[1].times)
+    return DustUnfilter{M,D}(gen, group_data[1], time_start, ode_control,
+                              zeros(Float64, n_state), Random.Xoshiro(), nothing,
+                              nothing, nothing, saveat_cache,
+                              n_groups, group_data, nothing, nothing)
+end
+
+"""Run grouped unfilter: sum log-likelihoods across groups."""
+function _run_grouped_unfilter!(unfilter::DustUnfilter, pars::NamedTuple;
+                                save_snapshots=nothing)
+    total_ll = 0.0
+    orig_data = unfilter.data
+    orig_saveat = unfilter._saveat_cache
+    for g in 1:unfilter.n_groups
+        gdata = unfilter.group_data[g]
+        unfilter.data = gdata
+        unfilter._saveat_cache = collect(Float64, gdata.times)
+        ll = _unfilter_run_single!(unfilter, pars; save_snapshots=save_snapshots)
+        total_ll += ll
+    end
+    unfilter.data = orig_data
+    unfilter._saveat_cache = orig_saveat
+    return total_ll
+end
+
+"""Retrieve saved snapshots from last unfilter run."""
+last_snapshots(u::DustUnfilter) = u._last_snapshots
+
+"""Retrieve saved trajectories from last unfilter run."""
+last_trajectories(u::DustUnfilter) = u._last_trajectories

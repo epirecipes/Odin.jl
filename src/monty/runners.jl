@@ -34,3 +34,18 @@ struct MontyThreadedRunner <: AbstractMontyRunner end
 Create a threaded runner that executes chains in parallel using Julia threads.
 """
 monty_runner_threaded() = MontyThreadedRunner()
+
+
+"""
+    MontySimultaneousRunner
+
+Run all chains simultaneously in lock-step (enables cross-chain interactions).
+"""
+struct MontySimultaneousRunner <: AbstractMontyRunner end
+
+"""
+    monty_runner_simultaneous()
+
+Create a simultaneous runner that advances all chains in lock-step.
+"""
+monty_runner_simultaneous() = MontySimultaneousRunner()

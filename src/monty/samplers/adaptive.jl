@@ -15,6 +15,8 @@ struct MontyAdaptiveSampler <: AbstractMontySampler
     pre_diminish::Int
     boundaries::Symbol
     log_scaling_update::Bool
+    rerun_every::Int
+    rerun_random::Bool
 end
 
 mutable struct AdaptiveState <: AbstractSamplerState
@@ -30,6 +32,7 @@ mutable struct AdaptiveState <: AbstractSamplerState
     history_pars::Vector{Vector{Float64}}
     n_accepted::Int
     n_total::Int
+    rerun_count::Int
 end
 
 """
@@ -47,11 +50,13 @@ function monty_sampler_adaptive(
     pre_diminish::Int=0,
     boundaries::Symbol=:reflect,
     log_scaling_update::Bool=true,
+    rerun_every::Int=0,
+    rerun_random::Bool=true,
 )
     return MontyAdaptiveSampler(
         Matrix(initial_vcv), initial_vcv_weight, acceptance_target,
         forget_rate, forget_end, adapt_end, pre_diminish, boundaries,
-        log_scaling_update,
+        log_scaling_update, rerun_every, rerun_random,
     )
 end
 
@@ -72,6 +77,7 @@ function initialise(sampler::MontyAdaptiveSampler, chain::ChainState, model::Mon
         similar(chain.pars),               # proposal
         Vector{Float64}[],                 # history
         0, 0,                              # accepted, total
+        0,                                 # rerun_count
     )
 end
 
@@ -107,6 +113,20 @@ function step!(sampler::MontyAdaptiveSampler, chain::ChainState, state::Adaptive
     state.n_total += 1
     if accepted
         state.n_accepted += 1
+    end
+
+    # Rerun mechanism for stochastic models
+    state.rerun_count += 1
+    if sampler.rerun_every > 0
+        should_rerun = if sampler.rerun_random
+            rand(rng) < 1.0 / sampler.rerun_every
+        else
+            state.rerun_count >= sampler.rerun_every
+        end
+        if should_rerun
+            chain.density = model(chain.pars)
+            state.rerun_count = 0
+        end
     end
 
     # Adapt
