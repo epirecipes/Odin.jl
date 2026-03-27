@@ -1,0 +1,201 @@
+# GPU-Accelerated Particle Filtering
+
+
+## Overview
+
+Odin.jl supports GPU-accelerated particle filtering via an extensible
+backend system. The primary backend targets **Metal.jl** for Apple
+Silicon Macs, with placeholders for CUDA.jl (NVIDIA) and AMDGPU.jl (AMD)
+for future expansion.
+
+The GPU acceleration uses a **hybrid strategy**:
+
+- **State matrix** is managed for GPU-friendly access patterns
+- **Per-particle update and compare** operations are parallelised
+- **Resampling** (inherently sequential) runs on the CPU
+- A **CPU fallback** is always available and delegates to the existing
+  `DustFilter`
+
+## Backend Selection
+
+``` julia
+using Odin
+
+# Automatic detection — picks best available backend
+be = gpu_backend(; preferred=:auto)
+
+# Force a specific backend
+be_cpu = gpu_backend(; preferred=:cpu)
+# be_metal = gpu_backend(; preferred=:metal)  # requires `using Metal`
+
+# Query availability
+println("GPU available: ", has_gpu())
+println("Backends: ", available_gpu_backends())
+println("Using: ", backend_name(be))
+```
+
+To activate the Metal backend on Apple Silicon:
+
+``` julia
+using Metal   # triggers the OdinMetalExt package extension
+using Odin
+
+be = gpu_backend()  # now returns MetalBackend()
+```
+
+## Example: SIR Model with GPU Particle Filter
+
+### Define the Model
+
+``` julia
+sir = @odin begin
+    update(S) = S - n_SI
+    update(I) = I + n_SI - n_IR
+    update(R) = R + n_IR
+    initial(S) = N - I0
+    initial(I) = I0
+    initial(R) = 0
+
+    p_SI = 1 - exp(-beta * I / N * dt)
+    p_IR = 1 - exp(-gamma * dt)
+    n_SI = Binomial(S, p_SI)
+    n_IR = Binomial(I, p_IR)
+
+    cases = data()
+    cases ~ Poisson(max(I, 1.0))
+
+    N = parameter(1000)
+    I0 = parameter(10)
+    beta = parameter(0.5)
+    gamma = parameter(0.1)
+end
+```
+
+### Generate Synthetic Data
+
+``` julia
+pars = (N=1000.0, I0=10.0, beta=0.5, gamma=0.1)
+sys = System(sir, pars; n_particles=1, dt=1.0, seed=1)
+reset!(sys)
+times = collect(1.0:1.0:100.0)
+result = simulate(sys, times)
+
+data_vec = [(time=times[i], cases=max(1.0, result[2,1,i])) for i in eachindex(times)]
+fdata = ObservedData(data_vec)
+```
+
+### Run GPU Particle Filter
+
+``` julia
+# Create the GPU-accelerated filter
+gf = gpu_Likelihood(sir, fdata;
+    n_particles=10_000,
+    dt=1.0,
+    seed=42,
+    backend=:auto,  # uses Metal if available, otherwise CPU
+)
+
+# Run the filter
+ll = gpu_dust_filter_run!(gf, pars)
+println("Log-likelihood: ", ll)
+```
+
+### Compare CPU vs GPU Performance
+
+``` julia
+using BenchmarkTools
+
+# CPU filter
+cpu_filter = Likelihood(sir, fdata; n_particles=10_000, dt=1.0, seed=42)
+@btime loglik($cpu_filter, $pars)
+
+# GPU filter (CPU fallback for comparison)
+gpu_filter = gpu_Likelihood(sir, fdata;
+    n_particles=10_000, dt=1.0, seed=42, backend=:auto)
+@btime gpu_dust_filter_run!($gpu_filter, $pars)
+```
+
+### GPU Simulation
+
+For multi-particle simulation without data comparison:
+
+``` julia
+output = gpu_dust_simulate(sir, pars;
+    times=collect(0.0:1.0:100.0),
+    n_particles=10_000,
+    dt=1.0,
+    seed=42,
+    backend=:auto,
+)
+# output is (n_state, n_particles, n_times)
+println("Output shape: ", size(output))
+```
+
+### Integration with Monty MCMC
+
+The GPU filter integrates with monty samplers via
+`gpu_dust_likelihood_monty`:
+
+``` julia
+packer = Packer([:beta, :gamma]; fixed=(I0=10.0, N=1000.0))
+ll_model = gpu_as_model(gf, packer)
+
+# Use with any monty sampler
+sampler = random_walk(
+    vcv=diagm([0.01, 0.001]),
+    boundaries=[(0.0, Inf), (0.0, Inf)],
+)
+
+samples = sample(ll_model, sampler, 1000; n_chains=4)
+```
+
+## Architecture
+
+### Backend Abstraction
+
+    GPUBackend (abstract)
+    ├── CPUBackend     — fallback, wraps existing DustFilter
+    ├── MetalBackend   — Apple Silicon via Metal.jl (extension)
+    ├── CUDABackend    — placeholder for NVIDIA CUDA.jl
+    └── AMDGPUBackend  — placeholder for AMD AMDGPU.jl
+
+Metal-specific code lives in `ext/OdinMetalExt.jl` and is loaded
+automatically when `using Metal` is active. This uses Julia’s **package
+extension** mechanism so Metal.jl is not a hard dependency.
+
+### Filter Strategy
+
+For each data time point:
+
+1.  **Advance particles** — per-particle update (parallelisable)
+2.  **Compute weights** — per-particle log p(obs \| state)
+    (parallelisable)
+3.  **Log-sum-exp** — accumulate log-likelihood
+4.  **Resample** — systematic resampling (sequential, on CPU)
+5.  **Scatter** — redistribute state according to resampled indices
+
+Steps 1–2 are the parallel bottleneck and benefit from GPU execution.
+Steps 3–5 involve small data transfers (n_particles floats/ints).
+
+### Model Compatibility
+
+GPU particle filters work with **discrete-time stochastic models**
+(those using `update()`). Continuous ODE models should use `Likelihood`
+instead.
+
+Not all model features are GPU-kernel compatible (e.g., interpolation,
+complex array operations). The current implementation uses a hybrid
+approach where model evaluation happens on the CPU with GPU-managed
+state, ensuring compatibility with all `@odin` models.
+
+## API Reference
+
+| Function                             | Description                       |
+|--------------------------------------|-----------------------------------|
+| `gpu_backend(; preferred)`           | Select GPU backend                |
+| `has_gpu()`                          | Check if GPU is available         |
+| `available_gpu_backends()`           | List registered backends          |
+| `gpu_Likelihood(gen, data; ...)`     | Create GPU particle filter        |
+| `gpu_dust_filter_run!(filter, pars)` | Run filter, return log-likelihood |
+| `gpu_as_model(filter, packer)`       | Bridge to monty MCMC              |
+| `gpu_dust_simulate(gen, pars; ...)`  | GPU multi-particle simulation     |
