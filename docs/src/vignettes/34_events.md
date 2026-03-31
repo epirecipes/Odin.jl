@@ -239,7 +239,6 @@ println("Tolerance:  < 1e-10? ", error < 1e-10)
 | Continuous events | Brent’s method + dense output | \< 1e-10            |
 | Discrete events   | Check at accepted steps       | Step-size dependent |
 
-Events are fully compatible with the `dust_system_simulate` interface
-and work with both single-particle and multi-particle simulations. The
-zero-allocation DP5 core path is preserved for simulations without
-events.
+Events are fully compatible with the `simulate` interface and work with
+both single-particle and multi-particle simulations. The zero-allocation
+DP5 core path is preserved for simulations without events.

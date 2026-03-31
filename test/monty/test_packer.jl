@@ -36,6 +36,13 @@ using Odin
         @test nt.gamma ≈ 0.1
     end
 
+    @testset "Scalar-only unpack avoids Any-valued fields" begin
+        p = Packer([:beta]; fixed=(N=1000.0,))
+        nt = p([0.5])
+        @test nt.beta isa Float64
+        @test nt.N isa Float64
+    end
+
     @testset "Process function" begin
         p = Packer([:a, :b]; process=nt -> (c=nt.a + nt.b,))
 

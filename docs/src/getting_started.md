@@ -52,20 +52,21 @@ reset!(sys)
 
 times = 0.0:1.0:100.0
 result = simulate(sys, times)
-# result is a 3×101 matrix (3 states × 101 time points)
+# result is a 3×1×101 array (states × particles × time points)
 ```
 
 ### 3. Fit to data
 
 ```julia
 # Observed incidence data
-data = ObservedData(;
-    time = 1.0:1.0:50.0,
-    cases = [3, 5, 8, 12, ...]  # your observed counts
-)
+data = ObservedData([
+    (time=1.0, cases=3.0),
+    (time=2.0, cases=5.0),
+    (time=3.0, cases=8.0),
+])
 
 # Create an unfilter (deterministic likelihood)
-uf = Likelihood(sir; data=data, time_start=0.0)
+uf = Likelihood(sir, data; time_start=0.0)
 
 # Pack parameters for MCMC
 packer = Packer([:beta, :gamma];
@@ -126,7 +127,7 @@ end
 sys = System(sir_stoch, pars; n_particles=100, dt=0.25)
 reset!(sys)
 result = simulate(sys, 0.0:1.0:100.0)
-# result is 3×101×100 (states × times × particles)
+# result is 3×100×101 (states × particles × time points)
 ```
 
 ## Next Steps

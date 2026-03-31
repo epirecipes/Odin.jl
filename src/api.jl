@@ -1,8 +1,8 @@
 # ── Julia-friendly API layer ───────────────────────────────────
 #
 # Provides clean, idiomatic Julia names for the Odin.jl public API.
-# The original R-style names (dust_*, monty_*) remain as aliases for
-# backward compatibility. New code should prefer the names in this file.
+# The low-level dust_*/monty_* functions still exist internally because they
+# implement the runtime, but user-facing code should prefer the names here.
 #
 # Design principles:
 #   - Types as constructors: Likelihood(model, data) not dust_unfilter_create(...)
@@ -67,8 +67,15 @@ Prepare observation data for likelihood evaluation.
 obs = ObservedData([(time=1.0, cases=10.0), (time=2.0, cases=25.0)])
 ```
 """
-ObservedData(data::AbstractVector{<:NamedTuple}; kwargs...) =
-    dust_filter_data(data; kwargs...)
+function ObservedData(data::AbstractVector{<:NamedTuple};
+                      time_field::Symbol=:time,
+                      group_field::Union{Nothing,Symbol}=nothing)
+    if group_field === nothing
+        return dust_filter_data(data; time_field=time_field)
+    else
+        return dust_filter_data_grouped(data; time_field=time_field, group_field=group_field)
+    end
+end
 
 # ═══════════════════════════════════════════════════════════════
 # Simulation
@@ -190,12 +197,31 @@ Get current state matrix (n_state × n_particles).
 state(sys::DustSystem) = dust_system_state(sys)
 
 """
+    set_state!(sys, state)
+
+Replace the current system state.
+
+`state` may be a vector (broadcast to all particles) or a
+`n_state × n_particles` matrix.
+"""
+set_state!(sys::DustSystem, state::Union{AbstractVector,AbstractMatrix}) =
+    dust_system_set_state!(sys, state)
+
+"""
     run_to!(sys, time)
 
 Advance system to the specified time.
 """
-run_to!(sys::DustSystem, time::Real) =
-    dust_system_run_to_time!(sys, Float64(time))
+run_to!(sys::DustSystem, time::Real; kwargs...) =
+    dust_system_run_to_time!(sys, Float64(time); kwargs...)
+
+"""
+    compare_data(sys, data)
+
+Evaluate the model comparison density at the current system state.
+Returns one log-likelihood contribution per particle.
+"""
+compare_data(sys::DustSystem, data::NamedTuple) = dust_system_compare_data(sys, data)
 
 
 # ═══════════════════════════════════════════════════════════════
@@ -277,10 +303,10 @@ lik = Likelihood(model, data)
 ll = loglik(lik, (beta=0.4, gamma=0.2, I0=10.0, N=1000.0))
 ```
 """
-loglik(lik::Likelihood{<:DustUnfilter}, pars::NamedTuple) =
-    dust_unfilter_run!(lik.inner, pars)
-loglik(lik::Likelihood{<:DustFilter}, pars::NamedTuple) =
-    dust_likelihood_run!(lik.inner, pars)
+loglik(lik::Likelihood{<:DustUnfilter}, pars::NamedTuple; kwargs...) =
+    dust_unfilter_run!(lik.inner, pars; kwargs...)
+loglik(lik::Likelihood{<:DustFilter}, pars::NamedTuple; kwargs...) =
+    dust_likelihood_run!(lik.inner, pars; kwargs...)
 
 """
     loglik_pointwise(lik, pars)
@@ -297,15 +323,36 @@ loglik_pointwise(lik::Likelihood{<:DustFilter}, pars::NamedTuple) =
 
 Compute the gradient of the log-likelihood w.r.t. parameters (via AD).
 """
-loglik_gradient(lik::Likelihood{<:DustUnfilter}, pars::NamedTuple) =
-    dust_unfilter_gradient(lik.inner, pars)
+function loglik_gradient(lik::Likelihood{<:DustUnfilter},
+                         pars::NamedTuple,
+                         packer::MontyPacker; kwargs...)
+    dust_unfilter_gradient(lik.inner, pars, packer; kwargs...)
+end
+
+function loglik_gradient(::Likelihood{<:DustUnfilter}, ::NamedTuple; kwargs...)
+    throw(ArgumentError(
+        "loglik_gradient for deterministic likelihoods requires a `Packer(...)` " *
+        "to specify differentiated parameters",
+    ))
+end
 
 # ── Convenience: also work on bare DustUnfilter/DustFilter ────
-loglik(uf::DustUnfilter, pars::NamedTuple) = dust_unfilter_run!(uf, pars)
-loglik(f::DustFilter, pars::NamedTuple) = dust_likelihood_run!(f, pars)
+loglik(uf::DustUnfilter, pars::NamedTuple; kwargs...) = dust_unfilter_run!(uf, pars; kwargs...)
+loglik(f::DustFilter, pars::NamedTuple; kwargs...) = dust_likelihood_run!(f, pars; kwargs...)
 loglik_pointwise(uf::DustUnfilter, pars::NamedTuple) = dust_unfilter_run_pointwise!(uf, pars)
 loglik_pointwise(f::DustFilter, pars::NamedTuple) = dust_filter_run_pointwise!(f, pars)
-loglik_gradient(uf::DustUnfilter, pars::NamedTuple) = dust_unfilter_gradient(uf, pars)
+function loglik_gradient(uf::DustUnfilter,
+                         pars::NamedTuple,
+                         packer::MontyPacker; kwargs...)
+    dust_unfilter_gradient(uf, pars, packer; kwargs...)
+end
+
+function loglik_gradient(::DustUnfilter, ::NamedTuple; kwargs...)
+    throw(ArgumentError(
+        "loglik_gradient for deterministic likelihoods requires a `Packer(...)` " *
+        "to specify differentiated parameters",
+    ))
+end
 
 """
     as_model(lik, packer)
@@ -321,11 +368,11 @@ m = as_model(lik, packer)
 samples = sample(m, nuts(), 2000)
 ```
 """
-as_model(lik::Likelihood, packer::MontyPacker) =
+as_model(lik::Likelihood, packer::Union{MontyPacker, MontyPackerGrouped}) =
     dust_likelihood_monty(lik.inner, packer)
-as_model(uf::DustUnfilter, packer::MontyPacker) =
+as_model(uf::DustUnfilter, packer::Union{MontyPacker, MontyPackerGrouped}) =
     dust_likelihood_monty(uf, packer)
-as_model(f::DustFilter, packer::MontyPacker) =
+as_model(f::DustFilter, packer::Union{MontyPacker, MontyPackerGrouped}) =
     dust_likelihood_monty(f, packer)
 
 
@@ -493,8 +540,8 @@ Run MCMC sampling. This is the main inference entry point.
 
 # Example
 ```julia
-posterior = as_model(lik, packer) + @monty_prior(beta ~ Exponential(0.5))
-samples = sample(posterior, NUTS(), 2000; n_chains=4)
+posterior = as_model(lik, packer) + @prior(beta ~ Exponential(0.5))
+samples = sample(posterior, nuts(), 2000; n_chains=4)
 ```
 
 # Keyword Arguments
@@ -692,6 +739,9 @@ samples.observations  # combined observations
 ```
 """
 const Observer = MontyObserver
+
+last_snapshots(lik::Likelihood) = last_snapshots(lik.inner)
+last_trajectories(lik::Likelihood) = last_trajectories(lik.inner)
 
 
 # ═══════════════════════════════════════════════════════════════

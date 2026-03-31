@@ -240,7 +240,7 @@ yf_delay = @odin begin
 end
 ```
 
-    Odin.DustSystemGenerator{var"##OdinModel#277"}(var"##OdinModel#277"(0, [:C_new, :S, :E_chain, :I_chain, :R, :V], [:N_age, :k_E, :k_I, :t_latent, :t_infectious, :vaccine_efficacy, :S_0, :R_0, :V_0, :vacc_rate, :R0_time, :R0_value, :sp_time, :sp_value, :dP1_time, :dP1_value, :dP2_time, :dP2_value], false, false, false, true, true, Dict{Symbol, Array}()))
+    Odin.DustSystemGenerator{var"##OdinModel#287"}(var"##OdinModel#287"(0, [:C_new, :S, :E_chain, :I_chain, :R, :V], [:N_age, :k_E, :k_I, :t_latent, :t_infectious, :vaccine_efficacy, :S_0, :R_0, :V_0, :vacc_rate, :R0_time, :R0_value, :sp_time, :sp_value, :dP1_time, :dP1_value, :dP2_time, :dP2_value], (N_age = 3, k_E = 4, k_I = 3, t_latent = 5.0, t_infectious = 5.0, vaccine_efficacy = 0.95), false, false, false, true, true, false, Dict{Symbol, Array}()))
 
 Note the 2D partial updates: `update(E_chain[1:N_age, 1])` handles the
 first stage across all age groups, while
@@ -412,7 +412,7 @@ i_chain_idx_2_1 = i_chain_offset + 2  # I_chain[2, 1] in column-major
 for p in 1:n_particles
     state[i_chain_idx_2_1, p] = n_seed
 end
-Odin.dust_system_set_state!(sys, state)
+Odin.set_state!(sys, state)
 
 # Simulate
 result = Odin.simulate(sys, sim_times)
@@ -728,7 +728,7 @@ st1 = Odin.state(sys_c1)
 ic_off1 = N_age + N_age + N_age * 1
 st1[ic_off1 + 2, 1] = n_seed
 st1[N_age + 2, 1] -= n_seed
-Odin.dust_system_set_state!(sys_c1, st1)
+Odin.set_state!(sys_c1, st1)
 r1 = Odin.simulate(sys_c1, compare_times)
 I_exp = [sum(r1[(ic_off1+1):(ic_off1+N_age*1), 1, t]) for t in 1:length(compare_times)]
 
@@ -744,7 +744,7 @@ st2 = Odin.state(sys_c2)
 ic_off2 = N_age + N_age + N_age * 4
 st2[ic_off2 + 2, 1] = n_seed
 st2[N_age + 2, 1] -= n_seed
-Odin.dust_system_set_state!(sys_c2, st2)
+Odin.set_state!(sys_c2, st2)
 r2 = Odin.simulate(sys_c2, compare_times)
 I_erl = [sum(r2[(ic_off2+1):(ic_off2+N_age*3), 1, t]) for t in 1:length(compare_times)]
 
@@ -776,7 +776,7 @@ st_nv = Odin.state(sys_nv)
 for p in 1:n_particles
     st_nv[i_chain_idx_2_1, p] = n_seed
 end
-Odin.dust_system_set_state!(sys_nv, st_nv)
+Odin.set_state!(sys_nv, st_nv)
 result_nv = Odin.simulate(sys_nv, sim_times)
 
 I_vacc = vec(mean(sum(result[idx_I, :, :], dims=1), dims=2))

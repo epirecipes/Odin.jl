@@ -44,7 +44,7 @@ function _simulate_discrete(sys::DustSystem{M, T, P}, times::AbstractVector{T}, 
     n_output = sys.n_output
     np = sys.n_particles
     state = sys.state
-    use_threads = np >= 4 && Threads.nthreads() > 1
+    use_threads = false
 
     if use_threads
         return _simulate_discrete_threaded(sys, times, output)
@@ -197,14 +197,11 @@ end
 function _make_thread_models(model::M, thread_workspaces::Vector{Dict{Symbol, Array}}, nt::Int) where M <: AbstractOdinModel
     models = Vector{M}(undef, nt)
     nf = fieldcount(M)
+    base_fields = ntuple(i -> getfield(model, i), nf)
     for t in 1:nt
-        m = ccall(:jl_new_struct_uninit, Any, (Any,), M)::M
-        for i in 1:nf
-            if fieldname(M, i) === :_workspace
-                setfield!(m, i, thread_workspaces[t])
-            else
-                setfield!(m, i, getfield(model, i))
-            end
+        m = M(base_fields...)
+        if :_workspace in fieldnames(M)
+            setfield!(m, :_workspace, thread_workspaces[t])
         end
         models[t] = m
     end
@@ -261,6 +258,8 @@ function _simulate_continuous(sys::DustSystem{M, T, P}, times::AbstractVector{T}
         ws = sys._dp5_workspace::DP5Workspace{T}
 
         tau_vals = _odin_delay_tau_values(model, sys.pars)
+        isempty(tau_vals) && error("DDE model reported no delay values")
+        any(x -> x <= zero(T), tau_vals) && error("Delay values must be positive, got $(tau_vals)")
         h_max = minimum(tau_vals)
         hist = DDEHistory(n_state; T=T)
         model._workspace[:_dde_history] = [hist]
@@ -514,8 +513,9 @@ function dust_system_simulate(
     output = zeros(Float64, n_rows, np, nt, n_groups)
     output[:, :, :, 1] .= result1
     for g in 2:n_groups
+        group_seed = seed === nothing ? nothing : seed + g - 1
         output[:, :, :, g] .= dust_system_simulate(gen, pars_vec[g]; times=times, dt=dt,
-                                                     seed=seed, n_particles=n_particles, solver=solver)
+                                                     seed=group_seed, n_particles=n_particles, solver=solver)
     end
     return output
 end

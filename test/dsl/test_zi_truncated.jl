@@ -38,6 +38,17 @@ using Random
         @test Odin._logpdf_zinegbinomial(r, p, 0.0, 5) ≈ logpdf(NegativeBinomial(r, p), 5) atol=1e-12
     end
 
+    @testset "Fast logpdf validation" begin
+        @test Odin._logpdf_negbinomial(0.0, 0.4, 2) == -Inf
+        @test Odin._logpdf_negbinomial(3.0, 1.2, 2) == -Inf
+        @test Odin._logpdf_gamma(0.0, 1.0, 2.0) == -Inf
+        @test Odin._logpdf_gamma(2.0, 0.0, 2.0) == -Inf
+        @test Odin._logpdf_uniform(2.0, 1.0, 1.5) == -Inf
+        @test Odin._logpdf_zipoisson(5.0, -0.1, 0) == -Inf
+        @test Odin._logpdf_zinegbinomial(3.0, 0.4, 1.1, 0) == -Inf
+        @test Odin._logpdf_truncnormal(0.0, 1.0, 2.0, 1.0, 1.5) == -Inf
+    end
+
     @testset "Fast logpdf — TruncatedNormal" begin
         mu, sigma = 5.0, 2.0
         lo, hi = 0.0, 10.0

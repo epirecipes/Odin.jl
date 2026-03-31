@@ -73,7 +73,7 @@ ws = SDIRKWorkspace(n_state)
 result = sdirk_solve!(f!, u0, tspan, ws; atol=1e-6, rtol=1e-6)
 ```
 
-The workspaces are created automatically by [`dust_system_create`](@ref) and
+The workspaces are created automatically by [`System`](@ref) and
 cached on the [`DustSystem`](@ref) for reuse across time steps.
 
 ## Configuration
@@ -89,11 +89,11 @@ ctrl = ODEControl(;
 )
 ```
 
-Pass this to [`dust_system_create`](@ref) or [`dust_unfilter_create`](@ref):
+Pass this to [`System`](@ref) or [`Likelihood`](@ref):
 
 ```julia
 sys = System(gen, pars; ode_control=ctrl)
-uf  = Likelihood(gen; data=data, time_start=0.0, ode_control=ctrl)
+uf  = Likelihood(gen, data; time_start=0.0, ode_control=ctrl)
 ```
 
 ## API Reference

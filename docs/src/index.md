@@ -69,7 +69,7 @@ Progressive tutorials are available in the `vignettes/` directory:
 | 05 | Arrays | Age-structured SIR, `dim()`, `sum()` |
 | 06 | Vaccination | Multi-dimensional arrays, vaccination strata |
 | 07 | Particle filter | Bootstrap PF, log-likelihood estimation |
-| 08 | Inference | MCMC with `monty_sample`, posterior diagnostics |
+| 08 | Inference | MCMC with `sample`, posterior diagnostics |
 | 09 | Projections | Counterfactual scenarios from posterior |
 | 10 | Advanced model | Complex real-world epi model |
 | 11 | Categorical models | Composition, stratification via `EpiNet` |

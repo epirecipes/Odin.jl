@@ -23,7 +23,7 @@ end
 """NegativeBinomial log-pdf (size r, prob p parameterisation)"""
 @inline function _logpdf_negbinomial(r::Real, p::Real, k::Real)
     k_int = round(Int, k)
-    k_int < 0 && return -Inf
+    (k_int < 0 || r <= 0 || p <= 0 || p >= 1) && return -Inf
     return _loggamma(k_int + r) - _loggamma(r) - _loggamma(k_int + 1) +
            r * log(p) + k_int * log(1 - p)
 end
@@ -41,25 +41,25 @@ end
 
 """Gamma log-pdf (shape α, scale θ)"""
 @inline function _logpdf_gamma(alpha::Real, theta::Real, x::Real)
-    x <= 0 && return -Inf
+    (alpha <= 0 || theta <= 0 || x <= 0) && return -Inf
     return (alpha - 1) * log(x) - x / theta - alpha * log(theta) - _loggamma(alpha)
 end
 
 """Exponential log-pdf (scale θ)"""
 @inline function _logpdf_exponential(theta::Real, x::Real)
-    x < 0 && return -Inf
+    (theta <= 0 || x < 0) && return -Inf
     return -x / theta - log(theta)
 end
 
 """Beta log-pdf"""
 @inline function _logpdf_beta(a::Real, b::Real, x::Real)
-    (x <= 0 || x >= 1) && return -Inf
+    (a <= 0 || b <= 0 || x <= 0 || x >= 1) && return -Inf
     return (a - 1) * log(x) + (b - 1) * log(1 - x) - (_loggamma(a) + _loggamma(b) - _loggamma(a + b))
 end
 
 """Uniform log-pdf"""
 @inline function _logpdf_uniform(a::Real, b::Real, x::Real)
-    (x < a || x > b) && return -Inf
+    (a >= b || x < a || x > b) && return -Inf
     return -log(b - a)
 end
 
@@ -68,7 +68,7 @@ Args: lambda (rate), p0 (zero-inflation probability), k (observed count).
 P(k=0) = p0 + (1-p0)*Poisson(0|λ), P(k>0) = (1-p0)*Poisson(k|λ)."""
 @inline function _logpdf_zipoisson(lambda::Real, p0::Real, k::Real)
     k_int = round(Int, k)
-    k_int < 0 && return -Inf
+    (k_int < 0 || p0 < 0 || p0 > 1) && return -Inf
     if k_int == 0
         # log(p0 + (1-p0)*exp(-lambda))
         log_pois0 = -lambda
@@ -84,7 +84,7 @@ Args: r (size), p (success prob), p0 (zero-inflation probability), k (observed c
 P(k=0) = p0 + (1-p0)*NB(0|r,p), P(k>0) = (1-p0)*NB(k|r,p)."""
 @inline function _logpdf_zinegbinomial(r::Real, p::Real, p0::Real, k::Real)
     k_int = round(Int, k)
-    k_int < 0 && return -Inf
+    (k_int < 0 || p0 < 0 || p0 > 1) && return -Inf
     if k_int == 0
         log_nb0 = r * log(p)  # NB(0|r,p) = p^r
         return _log_sum_exp(log(p0), log(1 - p0) + log_nb0)
@@ -96,14 +96,16 @@ end
 """Truncated Normal log-pdf.
 Args: mu, sigma, lower, upper, x."""
 @inline function _logpdf_truncnormal(mu::Real, sigma::Real, lower::Real, upper::Real, x::Real)
-    (x < lower || x > upper) && return -Inf
+    (lower >= upper || x < lower || x > upper) && return -Inf
     sigma <= 0 && return -Inf
     # log-pdf of Normal - log(Φ(upper) - Φ(lower))
     logpdf_normal = -0.5 * ((x - mu) / sigma)^2 - log(sigma) - 0.9189385332046727
     # CDF: Φ((b-μ)/σ) - Φ((a-μ)/σ) using erfc for numerical stability
     z_lo = (lower - mu) / (sigma * sqrt(2.0))
     z_hi = (upper - mu) / (sigma * sqrt(2.0))
-    log_norm = log(0.5 * (_erfc(z_lo) - _erfc(z_hi)))
+    norm = 0.5 * (_erfc(z_lo) - _erfc(z_hi))
+    norm <= 0 && return -Inf
+    log_norm = log(norm)
     return logpdf_normal - log_norm
 end
 

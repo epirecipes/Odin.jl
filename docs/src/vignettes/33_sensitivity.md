@@ -168,16 +168,16 @@ sim = simulate(sys, collect(5.0:5.0:50.0))
 data_vec = [(time=5.0*i, obs=max(1.0, round(sim[2,1,i]))) for i in 1:10]
 fdata = Odin.ObservedData(data_vec)
 
-unfilter = Odin.dust_unfilter_create(sir_compare, fdata)
+unfilter = Likelihood(sir_compare, fdata)
 packer = Packer([:beta, :gamma]; fixed=(I0=10.0, N=1000.0))
 
 # Forward sensitivity gradient
-fwd = Odin.dust_unfilter_gradient(unfilter, pars, packer; method=:forward)
+fwd = loglik_gradient(unfilter, pars, packer; method=:forward)
 println("Forward: LL = $(round(fwd.log_likelihood, digits=2)), ",
         "grad = [$(round(fwd.gradient[1], digits=3)), $(round(fwd.gradient[2], digits=3))]")
 
 # Adjoint gradient
-adj = Odin.dust_unfilter_gradient(unfilter, pars, packer; method=:adjoint)
+adj = loglik_gradient(unfilter, pars, packer; method=:adjoint)
 println("Adjoint: LL = $(round(adj.log_likelihood, digits=2)), ",
         "grad = [$(round(adj.gradient[1], digits=3)), $(round(adj.gradient[2], digits=3))]")
 ```
@@ -214,10 +214,10 @@ end
 
     Parameter  | First-order | Total-order
     -----------|-------------|------------
-    beta       |       0.079 |       0.291
-    gamma      |       0.407 |       0.658
-    N          |       0.055 |       0.236
-    I0         |       0.000 |       0.067
+    beta       |       0.245 |       0.535
+    gamma      |       0.515 |       0.876
+    N          |       0.056 |       0.189
+    I0         |       0.007 |       0.070
 
 Parameters with high total-order but low first-order indices have
 important **interactions** with other parameters.
@@ -245,10 +245,10 @@ end
 
     Parameter  |    μ*    |    σ
     -----------|----------|--------
-    beta       |     49.2 |    155.7
-    gamma      |    119.3 |    211.1
-    N          |     32.7 |     74.8
-    I0         |     16.0 |     28.9
+    beta       |     42.1 |     71.6
+    gamma      |    110.7 |    299.0
+    N          |     29.6 |     61.9
+    I0         |     26.0 |     60.3
 
 ### Interpretation
 
@@ -296,6 +296,6 @@ include the `adjoint()` method in the generated C++ code.
 | Use case | Recommended method |
 |----|----|
 | Trajectory sensitivity (few params) | `sensitivity(; method=:forward)` |
-| Gradient for optimisation/MCMC | `dust_unfilter_gradient` with `:adjoint` |
-| Parameter importance ranking | `dust_sensitivity_sobol` |
-| Quick screening (many params) | `dust_sensitivity_morris` |
+| Gradient for optimisation/MCMC | `loglik_gradient(unfilter, pars, packer; method=:adjoint)` |
+| Parameter importance ranking | `sensitivity(; method=:sobol)` |
+| Quick screening (many params) | `sensitivity(; method=:morris)` |

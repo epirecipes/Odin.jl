@@ -18,6 +18,7 @@ Prepare data for a particle filter. Each element must have a `time` field.
 Returns sorted `FilterData`.
 """
 function dust_filter_data(data::AbstractVector{<:NamedTuple}; time_field::Symbol=:time)
+    isempty(data) && throw(ArgumentError("data must be non-empty"))
     times = Float64[getfield(d, time_field) for d in data]
     perm = sortperm(times)
     sorted_times = times[perm]
@@ -48,6 +49,7 @@ Groups are sorted by their first appearance.
 function dust_filter_data_grouped(data::AbstractVector{<:NamedTuple};
                                   time_field::Symbol=:time,
                                   group_field::Symbol=:group)
+    isempty(data) && throw(ArgumentError("grouped data must be non-empty"))
     group_order = []
     groups = Dict{Any, Vector{eltype(data)}}()
     for d in data

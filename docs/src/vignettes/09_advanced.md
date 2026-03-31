@@ -71,7 +71,7 @@ seir_vax = @odin begin
 end
 ```
 
-    Odin.DustSystemGenerator{var"##OdinModel#277"}(var"##OdinModel#277"(6, [:cases_inc, :S, :E, :I, :R, :V], [:nu_time, :nu_value, :beta, :sigma, :gamma, :omega, :omega_v, :E0, :I0, :N], false, false, true, false, true, Dict{Symbol, Array}()))
+    Odin.DustSystemGenerator{var"##OdinModel#281"}(var"##OdinModel#281"(6, [:cases_inc, :S, :E, :I, :R, :V], [:nu_time, :nu_value, :beta, :sigma, :gamma, :omega, :omega_v, :E0, :I0, :N], (beta = 0.4, sigma = 0.2, gamma = 0.1, omega = 0.005, omega_v = 0.01, E0 = 5, I0 = 5, N = 10000), false, false, true, false, true, false, Dict{Symbol, Array}()))
 
 ## Simulation
 
@@ -197,7 +197,7 @@ prior = @prior begin
     sigma ~ Gamma(2.0, 0.1)
 end
 
-posterior = Odin.monty_model_combine(ll_model, prior)
+posterior = ll_model + prior
 sampler = random_walk(diagm([0.001, 0.001]))
 samples = sample(posterior, sampler, 2000;
                        initial=repeat([0.3, 0.15], 1, 4), n_chains=4, n_burnin=500)
@@ -210,8 +210,8 @@ end
 ```
 
     Parameter estimates (posterior mean ± std):
-      beta: 1.02 ± 0.135
-      sigma: 0.027 ± 0.002
+      beta: 0.86 ± 0.136
+      sigma: 0.03 ± 0.003
 
 ## Summary
 

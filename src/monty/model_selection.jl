@@ -166,6 +166,8 @@ Returns `[ll_1, ll_2, ..., ll_T]` for each data point.
 """
 function dust_unfilter_run_pointwise!(unfilter::DustUnfilter, pars::NamedTuple)
     model = unfilter.generator.model
+    _odin_has_delay(model) &&
+        throw(ArgumentError("Delay models are not supported by deterministic pointwise likelihoods yet"))
     n_state = model.n_state
     n_data = length(unfilter.data.times)
 

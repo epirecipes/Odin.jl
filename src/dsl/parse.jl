@@ -164,6 +164,9 @@ function _extract_lhs_target(first_arg, all_args)
         return first_arg, indices, kwargs, range_bounds
     elseif first_arg isa Expr && first_arg.head == :ref
         varname = first_arg.args[1]
+        if length(first_arg.args) == 1
+            range_bounds[:__odin_implicit_all__] = (nothing, nothing)
+        end
         for (dim_pos, a) in enumerate(first_arg.args[2:end])
             if a isa Symbol
                 push!(indices, a)
@@ -190,6 +193,10 @@ end
 function _parse_indexed_assignment(lhs::Expr, rhs_expr, src::LineNumberNode)
     varname = lhs.args[1]
     indices = Symbol[]
+    range_bounds = Dict{Symbol, Tuple{Any, Any}}()
+    if length(lhs.args) == 1
+        range_bounds[:__odin_implicit_all__] = (nothing, nothing)
+    end
     for a in lhs.args[2:end]
         if a isa Symbol
             push!(indices, a)
@@ -201,13 +208,13 @@ function _parse_indexed_assignment(lhs::Expr, rhs_expr, src::LineNumberNode)
         rhs_fname = rhs_expr.args[1]
         if rhs_fname == :parameter
             pinfo = _parse_parameter_call(rhs_expr)
-            return OdinExpr(EXPR_PARAMETER, varname, pinfo, indices, src)
+            return OdinExpr(EXPR_PARAMETER, varname, pinfo, indices, src, range_bounds)
         elseif rhs_fname == :data
-            return OdinExpr(EXPR_DATA, varname, nothing, indices, src)
+            return OdinExpr(EXPR_DATA, varname, nothing, indices, src, range_bounds)
         end
     end
 
-    return OdinExpr(EXPR_ASSIGNMENT, varname, rhs_expr, indices, src)
+    return OdinExpr(EXPR_ASSIGNMENT, varname, rhs_expr, indices, src, range_bounds)
 end
 
 function _parse_plain_assignment(varname::Symbol, rhs_expr, src::LineNumberNode)

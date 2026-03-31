@@ -2,6 +2,7 @@ using Test
 using Odin
 using Distributions
 using LinearAlgebra
+using Statistics
 
 @testset "Validate & Show Code" begin
     @testset "validate_model — continuous model" begin

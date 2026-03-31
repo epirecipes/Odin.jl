@@ -48,7 +48,7 @@ pars = Odin.unpack(packer, [0.5, 0.1])
 For models with shared and per-group parameters (e.g., hierarchical models):
 
 ```julia
-gpacker = GroupedPacker([:beta, :gamma]; n_groups=4)
+gpacker = GroupedPacker([:g1, :g2]; shared=[:gamma], varied=[:beta])
 ```
 
 ## Samplers
@@ -253,39 +253,32 @@ end
 
 ```@docs
 Odin.MontyModel
-Odin.monty_model
-Odin.monty_model_combine
-Odin.MontyPacker
-Odin.monty_packer
-Odin.MontyPackerGrouped
-Odin.monty_packer_grouped
+Odin.DensityModel
+Odin.Packer
+Odin.GroupedPacker
 ```
 
 ### Samplers
 
 ```@docs
-Odin.Odin.MontyRandomWalkSampler
-Odin.monty_sampler_random_walk
-Odin.Odin.MontyAdaptiveSampler
-Odin.monty_sampler_adaptive
-Odin.Odin.MontyHMCSampler
-Odin.monty_sampler_hmc
-Odin.Odin.MontyNUTSSampler
-Odin.monty_sampler_nuts
-Odin.Odin.MontyParallelTemperingSampler
-Odin.monty_sampler_parallel_tempering
+Odin.random_walk
+Odin.adaptive_mh
+Odin.hmc
+Odin.nuts
+Odin.parallel_tempering
+Odin.mala
+Odin.slice
+Odin.gibbs
 ```
 
 ### Runners and Sampling
 
 ```@docs
-Odin.Odin.MontySerialRunner
-Odin.Odin.MontyThreadedRunner
-Odin.monty_runner_serial
-Odin.monty_runner_threaded
+Odin.Serial
+Odin.Threaded
 Odin.Samples
-Odin.monty_sample
-Odin.monty_sample_continue
+Odin.sample
+Odin.sample_continue
 Odin.@prior
 ```
 

@@ -134,6 +134,15 @@ import LogDensityProblems
         @test prior(theta) ≈ expected
     end
 
+    @testset "dppl_prior shifted supports" begin
+        DynamicPPL.@model function shifted_uniform_prior()
+            x ~ Uniform(2.0, 5.0)
+        end
+
+        prior = dppl_prior(shifted_uniform_prior())
+        @test prior.domain === nothing
+    end
+
     # ─── 5–7. SIR model integration tests ─────────────────────
 
     # Build a shared SIR model + data + unfilter + packer for tests 5–7

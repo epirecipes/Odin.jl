@@ -1,3 +1,6 @@
+using Test
+using Odin
+
 @testset "DDE — delay() support" begin
     @testset "Parsing" begin
         exprs = Odin.parse_odin_block(quote
@@ -50,6 +53,40 @@
             tau = parameter(1.0)
         end
         @test m.model.has_delay == true
+    end
+
+    @testset "Delay models rejected for deterministic likelihoods" begin
+        m = @odin begin
+            deriv(x) = -a * x_lag
+            initial(x) = 1.0
+            x_lag = delay(x, tau)
+            obs = data()
+            obs ~ Normal(x, 1.0)
+            a = parameter(0.1)
+            tau = parameter(1.0)
+        end
+        data = [(time=1.0, obs=0.9), (time=2.0, obs=0.8)]
+        lik = Likelihood(m, data)
+        @test_throws ArgumentError loglik(lik, (a=0.1, tau=1.0))
+        @test_throws ArgumentError loglik_pointwise(lik, (a=0.1, tau=1.0))
+    end
+
+    @testset "Delay works in compare after DDE simulation" begin
+        m = @odin begin
+            deriv(x) = -a * x_lag
+            initial(x) = 1.0
+            x_lag = delay(x, tau)
+            obs = data()
+            obs ~ Normal(x_lag, 0.1)
+            a = parameter(0.1)
+            tau = parameter(1.0)
+        end
+        pars = (a=0.1, tau=1.0)
+        sys = System(m, pars; dt=0.1)
+        reset!(sys)
+        run_to!(sys, 2.0)
+        ll = Odin._odin_compare_data(m.model, vec(state(sys)), sys.pars, (obs=0.95,), 2.0)
+        @test isfinite(ll)
     end
 
     @testset "Simulation — constant decay on [0, tau]" begin

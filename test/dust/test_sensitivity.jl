@@ -107,15 +107,15 @@ using Statistics
         fdata = Odin.ObservedData(data_vec)
 
         # Build unfilter
-        unfilter = Odin.dust_unfilter_create(sir_compare, fdata)
+        unfilter = Likelihood(sir_compare, fdata)
         packer = Packer([:beta, :gamma]; fixed=(I0=10.0, N=1000.0))
 
         # Forward gradient
-        fwd_result = Odin.dust_unfilter_gradient(unfilter, pars, packer;
+        fwd_result = loglik_gradient(unfilter, pars, packer;
             method=:forward)
 
         # Adjoint gradient
-        adj_result = Odin.dust_unfilter_gradient(unfilter, pars, packer;
+        adj_result = loglik_gradient(unfilter, pars, packer;
             method=:adjoint)
 
         # Both should give the same log-likelihood
@@ -157,7 +157,7 @@ using Statistics
                      for i in 1:length(obs_times)]
         fdata = Odin.ObservedData(data_vec)
 
-        unfilter = Odin.dust_unfilter_create(sir_compare, fdata)
+        unfilter = Likelihood(sir_compare, fdata)
         packer = Packer([:beta, :gamma]; fixed=(I0=10.0, N=1000.0))
 
         # ForwardDiff gradient through the unfilter
@@ -184,7 +184,7 @@ using Statistics
         end
 
         # Forward sensitivity gradient should match the ForwardDiff gradient direction
-        fwd_result = Odin.dust_unfilter_gradient(unfilter, pars, packer; method=:forward)
+        fwd_result = loglik_gradient(unfilter, pars, packer; method=:forward)
         for j in 1:2
             # Check same sign (direction)
             if abs(fd_grad[j]) > 1.0 && abs(fwd_result.gradient[j]) > 1.0

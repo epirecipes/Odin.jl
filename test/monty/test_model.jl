@@ -30,4 +30,13 @@ using Distributions
         val_combined = posterior([1.0, 2.0])
         @test val_sep ≈ val_combined
     end
+
+    @testset "Model combination aligns parameter order" begin
+        a = DensityModel(x -> 10x[1] + x[2]; parameters=["a", "b"])
+        b = DensityModel(x -> 100x[1] + x[2]; parameters=["b", "a"])
+        combined = a + b
+
+        @test combined.parameters == ["a", "b"]
+        @test combined([2.0, 5.0]) ≈ (10 * 2.0 + 5.0) + (100 * 5.0 + 2.0)
+    end
 end

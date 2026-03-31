@@ -5,6 +5,7 @@ format:
   html:
     code-fold: false
     toc: true
+  gfm: default
 engine: julia
 ---
 
@@ -107,7 +108,7 @@ the priors may be too narrow or misspecified.
 ## 2. Fit the model (simulated posterior)
 
 For this vignette, we simulate "posterior samples" by adding noise around
-the true parameters (in practice, you would use `monty_sample`):
+the true parameters (in practice, you would use `sample`):
 
 ```{julia}
 n_samples = 200

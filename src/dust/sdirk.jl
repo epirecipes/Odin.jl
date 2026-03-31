@@ -82,10 +82,14 @@ mutable struct SDIRKWorkspace{T}
     residual::Vector{T}
     delta::Vector{T}
     jac::Matrix{T}           # n × n Jacobian
+    w_matrix::Matrix{T}      # iteration matrix W = I - h*γ*J
     jac_lu::Any               # LU factorization cache
     f_tmp::Vector{T}          # temporary for Jacobian estimation
+    f_eval::Vector{T}         # initial derivative / reusable RHS buffer
     stage_rhs::Vector{T}      # right-hand side for implicit stage equation
     stage_val::Vector{T}      # current stage value (Newton iterate)
+    init_u1::Vector{T}        # initial step-size probe state
+    init_f1::Vector{T}        # initial step-size probe derivative
     n::Int
     jac_current::Bool         # is Jacobian up to date?
     jac_age::Int              # steps since last Jacobian recomputation
@@ -106,10 +110,14 @@ function SDIRKWorkspace(n::Int, ::Type{T}=Float64) where T
         Vector{T}(undef, n),      # residual
         Vector{T}(undef, n),      # delta
         Matrix{T}(undef, n, n),   # jac
+        Matrix{T}(undef, n, n),   # w_matrix
         nothing,                   # jac_lu
         Vector{T}(undef, n),      # f_tmp
+        Vector{T}(undef, n),      # f_eval
         Vector{T}(undef, n),      # stage_rhs
         Vector{T}(undef, n),      # stage_val
+        Vector{T}(undef, n),      # init_u1
+        Vector{T}(undef, n),      # init_f1
         n,
         false,                     # jac_current
         0,                         # jac_age
@@ -121,10 +129,12 @@ end
 function _ensure_workspace!(ws::SDIRKWorkspace{T}, n::Int) where T
     ws.n == n && return
     for f in (:u, :u_new, :k1, :k2, :k3, :k4, :k5,
-              :residual, :delta, :f_tmp, :stage_rhs, :stage_val)
+              :residual, :delta, :f_tmp, :f_eval, :stage_rhs, :stage_val,
+              :init_u1, :init_f1)
         resize!(getfield(ws, f), n)
     end
     ws.jac = Matrix{T}(undef, n, n)
+    ws.w_matrix = Matrix{T}(undef, n, n)
     ws.jac_lu = nothing
     ws.jac_current = false
     ws.jac_age = 0
@@ -201,7 +211,7 @@ function _sdirk_factorize!(ws::SDIRKWorkspace{T}, h::T) where T
     n = ws.n
     jac = ws.jac
     hg = h * T(_SDIRK_GAMMA)
-    W = Matrix{T}(undef, n, n)
+    W = ws.w_matrix
     @inbounds for j in 1:n
         for i in 1:n
             W[i, j] = -hg * jac[i, j]
@@ -336,11 +346,11 @@ function _sdirk_solve_core!(f!::F, u0::AbstractVector{T}, tspan::Tuple{T,T}, par
 
     # Evaluate initial derivative for step size estimation and Jacobian
     # f_eval must be separate from w.f_tmp (used in Newton iteration / Jacobian FD)
-    f_eval = Vector{T}(undef, n)
+    f_eval = w.f_eval
     f!(f_eval, u, pars, t0)
 
     # Estimate initial step size (order p = 4)
-    h = _sdirk_initial_step(f!, u, f_eval, pars, t0, tf, abstol, reltol, n)
+    h = _sdirk_initial_step(f!, u, f_eval, pars, t0, tf, abstol, reltol, n, w.init_u1, w.init_f1)
 
     # Compute initial Jacobian and factorize
     _sdirk_compute_jacobian!(w.jac, f!, f_eval, u, w.f_tmp, pars, t0, n;
@@ -547,7 +557,8 @@ end
 """Estimate initial step size (adapted from Hairer–Nørsett–Wanner, order p = 4)."""
 function _sdirk_initial_step(f!::F, u0::AbstractVector{T}, f0::AbstractVector{T},
                              pars, t0::T, tf::T,
-                             abstol::T, reltol::T, n::Int) where {F, T}
+                             abstol::T, reltol::T, n::Int,
+                             u1::AbstractVector{T}, f1::AbstractVector{T}) where {F, T}
     d0 = zero(T); d1 = zero(T)
     @inbounds for i in 1:n
         sc = abstol + reltol * abs(u0[i])
@@ -559,7 +570,6 @@ function _sdirk_initial_step(f!::F, u0::AbstractVector{T}, f0::AbstractVector{T}
     h0 = (d0 < T(1e-5) || d1 < T(1e-5)) ? T(1e-6) : T(0.01) * d0 / d1
     h0 = min(h0, tf - t0)
 
-    u1 = similar(u0); f1 = similar(u0)
     @inbounds for i in 1:n; u1[i] = u0[i] + h0 * f0[i]; end
     f!(f1, u1, pars, t0 + h0)
 

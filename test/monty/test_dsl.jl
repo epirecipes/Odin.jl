@@ -1,3 +1,7 @@
+using Test
+using Odin
+using Statistics
+
 @testset "Monty DSL" begin
 
     @testset "@prior basic" begin

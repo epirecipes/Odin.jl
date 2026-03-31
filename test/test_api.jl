@@ -91,6 +91,19 @@ using Odin
         pk2 = Packer([:beta]; fixed=(N=1000.0, I0=10.0))
         @test pk2 isa MontyPacker
         @test :N in keys(pk2.fixed)
+
+        gpk = GroupedPacker([:g1, :g2]; shared=[:beta], varied=[:gamma])
+        @test gpk isa MontyPackerGrouped
+        @test Odin.parameter_names(gpk) == ["beta", "gamma[g1]", "gamma[g2]"]
+
+        packed = Odin.pack(gpk, Dict(
+            :g1 => (beta=0.3, gamma=0.1),
+            :g2 => (beta=0.3, gamma=0.2),
+        ))
+        @test packed == [0.3, 0.1, 0.2]
+        unpacked = gpk(packed)
+        @test unpacked[:g1] == (beta=0.3, gamma=0.1)
+        @test unpacked[:g2] == (beta=0.3, gamma=0.2)
     end
 
     @testset "Samplers" begin

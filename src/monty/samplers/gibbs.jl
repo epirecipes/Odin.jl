@@ -74,6 +74,14 @@ function step!(sampler::MontyGibbsSampler, chain::ChainState, state::GibbsState,
         # Sync block chain with current full-chain values
         state.block_chains[b].pars .= chain.pars[idx]
         state.block_chains[b].density = state.block_models[b](chain.pars[idx])
+        if sampler.sub_samplers[b] isa MontyNUTSSampler
+            state.block_states[b] = initialise(
+                sampler.sub_samplers[b],
+                state.block_chains[b],
+                state.block_models[b],
+                rng,
+            )
+        end
 
         # One step of the sub-sampler on this block
         accepted = step!(

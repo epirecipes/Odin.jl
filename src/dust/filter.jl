@@ -68,21 +68,31 @@ function dust_likelihood_run!(filter::DustFilter, pars::NamedTuple;
     use_threads = np >= 4 && Threads.nthreads() > 1
     save_traj = filter.save_trajectories
     if use_threads
-        result = _filter_inner_threaded!(sys, sys.pars, filter.data, np, save_traj)
+        result = _filter_inner_threaded!(sys, sys.pars, filter.data, np, save_traj, save_snapshots)
     else
-        result = _filter_inner!(sys, sys.pars, filter.data, np, save_traj)
+        result = _filter_inner!(sys, sys.pars, filter.data, np, save_traj, save_snapshots)
     end
     if result isa NamedTuple
         filter._last_snapshots = get(result, :snapshots, nothing)
         filter._last_trajectories = get(result, :trajectories, nothing)
         return result.ll
     end
+    filter._last_snapshots = nothing
+    filter._last_trajectories = nothing
     return result
+end
+
+function dust_likelihood_run!(filter::DustFilter, pars_vec::AbstractVector{<:NamedTuple};
+                               save_snapshots::Union{Nothing, Vector{Float64}}=nothing)
+    filter.n_groups > 1 && filter.group_data !== nothing ||
+        throw(ArgumentError("Vector-of-parameters likelihoods require grouped filter data"))
+    return _run_grouped_filter!(filter, pars_vec; save_snapshots=save_snapshots)
 end
 
 """Type-stable inner loop of the particle filter."""
 function _filter_inner!(sys::DustSystem{M,T}, pars::P, data::FilterData{D},
-                        n_particles::Int, save_traj::Bool) where {M,T,P,D}
+                        n_particles::Int, save_traj::Bool,
+                        save_snapshots::Union{Nothing, Vector{Float64}}) where {M,T,P,D}
     n_data = length(data.times)
     n_state = sys.n_state
     log_likelihood = 0.0
@@ -101,6 +111,7 @@ function _filter_inner!(sys::DustSystem{M,T}, pars::P, data::FilterData{D},
 
     trajectories = save_traj ?
         zeros(T, n_state, n_particles, n_data) : nothing
+    snapshots = save_snapshots === nothing ? nothing : Dict{Float64, Matrix{T}}()
 
     for t_idx in 1:n_data
         target_time = data.times[t_idx]
@@ -159,14 +170,25 @@ function _filter_inner!(sys::DustSystem{M,T}, pars::P, data::FilterData{D},
         if trajectories !== nothing
             trajectories[:, :, t_idx] .= state
         end
+        if snapshots !== nothing
+            for st in save_snapshots
+                if abs(target_time - st) < 1e-10
+                    snapshots[st] = copy(state)
+                end
+            end
+        end
     end
 
+    if trajectories !== nothing || snapshots !== nothing
+        return (; ll=log_likelihood, snapshots=snapshots, trajectories=trajectories)
+    end
     return log_likelihood
 end
 
 """Type-stable threaded inner loop of the particle filter."""
 function _filter_inner_threaded!(sys::DustSystem{M,T}, pars::P, data::FilterData{D},
-                                 n_particles::Int, save_traj::Bool) where {M,T,P,D}
+                                 n_particles::Int, save_traj::Bool,
+                                 save_snapshots::Union{Nothing, Vector{Float64}}) where {M,T,P,D}
     n_data = length(data.times)
     n_state = sys.n_state
     log_likelihood = 0.0
@@ -188,6 +210,7 @@ function _filter_inner_threaded!(sys::DustSystem{M,T}, pars::P, data::FilterData
 
     trajectories = save_traj ?
         zeros(T, n_state, n_particles, n_data) : nothing
+    snapshots = save_snapshots === nothing ? nothing : Dict{Float64, Matrix{T}}()
 
     for t_idx in 1:n_data
         target_time = data.times[t_idx]
@@ -252,8 +275,18 @@ function _filter_inner_threaded!(sys::DustSystem{M,T}, pars::P, data::FilterData
         if trajectories !== nothing
             trajectories[:, :, t_idx] .= state
         end
+        if snapshots !== nothing
+            for st in save_snapshots
+                if abs(target_time - st) < 1e-10
+                    snapshots[st] = copy(state)
+                end
+            end
+        end
     end
 
+    if trajectories !== nothing || snapshots !== nothing
+        return (; ll=log_likelihood, snapshots=snapshots, trajectories=trajectories)
+    end
     return log_likelihood
 end
 
@@ -264,13 +297,17 @@ function _get_or_create_sys!(filter::DustFilter, pars::NamedTuple)
             filter.generator, pars;
             n_particles=filter.n_particles,
             dt=filter.dt,
+            time=filter.time_start,
             seed=filter.seed,
         )
+        if filter.seed !== nothing
+            sys._saved_rngs = [copy(r) for r in sys.rng]
+        end
         filter._cached_sys = sys
         return sys
     else
         sys = filter._cached_sys
-        _reset_system!(sys, pars, filter.seed)
+        _reset_system!(sys, pars, filter.seed; time=filter.time_start)
         return sys
     end
 end
@@ -301,14 +338,55 @@ end
 function _run_grouped_filter!(filter::DustFilter, pars::NamedTuple;
                               save_snapshots=nothing)
     total_ll = 0.0
+    filter._last_snapshots = nothing
+    filter._last_trajectories = nothing
     for g in 1:filter.n_groups
         gdata = filter.group_data[g]
-        sys = _get_or_create_sys!(filter, pars)
+        group_seed = filter.seed === nothing ? nothing : filter.seed + g - 1
+        sys = dust_system_create(
+            filter.generator, pars;
+            n_particles=filter.n_particles,
+            dt=filter.dt,
+            seed=group_seed,
+        )
         dust_system_set_state_initial!(sys)
         np = filter.n_particles
-        ll = _filter_inner!(sys, sys.pars, gdata, np, filter.save_trajectories)
+        ll = _filter_inner!(sys, sys.pars, gdata, np, filter.save_trajectories, save_snapshots)
         if ll isa NamedTuple
             total_ll += ll.ll
+            filter._last_snapshots = get(ll, :snapshots, nothing)
+            filter._last_trajectories = get(ll, :trajectories, nothing)
+        else
+            total_ll += ll
+        end
+    end
+    return total_ll
+end
+
+function _run_grouped_filter!(filter::DustFilter, pars_vec::AbstractVector{<:NamedTuple};
+                              save_snapshots=nothing)
+    length(pars_vec) == filter.n_groups ||
+        throw(ArgumentError("Expected $(filter.n_groups) parameter groups, got $(length(pars_vec))"))
+    total_ll = 0.0
+    filter._last_snapshots = nothing
+    filter._last_trajectories = nothing
+    for g in 1:filter.n_groups
+        gdata = filter.group_data[g]
+        group_seed = filter.seed === nothing ? nothing : filter.seed + g - 1
+        sys = dust_system_create(
+            filter.generator, pars_vec[g];
+            n_particles=filter.n_particles,
+            dt=filter.dt,
+            seed=group_seed,
+            time=filter.time_start,
+        )
+        dust_system_set_state_initial!(sys)
+        np = filter.n_particles
+        ll = _filter_inner!(sys, sys.pars, gdata, np, filter.save_trajectories, save_snapshots)
+        if ll isa NamedTuple
+            total_ll += ll.ll
+            filter._last_snapshots = get(ll, :snapshots, nothing)
+            filter._last_trajectories = get(ll, :trajectories, nothing)
         else
             total_ll += ll
         end

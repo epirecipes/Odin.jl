@@ -77,15 +77,29 @@ Combine two models by summing their log-densities (e.g., likelihood + prior).
 function monty_model_combine(a::MontyModel, b::MontyModel)
     # Combined parameters: union
     all_params = unique(vcat(a.parameters, b.parameters))
+    idx_a = [findfirst(==(p), all_params) for p in a.parameters]
+    idx_b = [findfirst(==(p), all_params) for p in b.parameters]
+    n = length(all_params)
+
+    _project = (x, idx) -> x[idx]
 
     combined_density = function(x)
-        return a.density(x) + b.density(x)
+        return a.density(_project(x, idx_a)) + b.density(_project(x, idx_b))
     end
 
     combined_gradient = nothing
     if a.gradient !== nothing && b.gradient !== nothing
         combined_gradient = function(x)
-            return a.gradient(x) .+ b.gradient(x)
+            grad = zeros(eltype(x), n)
+            grad_a = a.gradient(_project(x, idx_a))
+            grad_b = b.gradient(_project(x, idx_b))
+            for (i, idx) in enumerate(idx_a)
+                grad[idx] += grad_a[i]
+            end
+            for (i, idx) in enumerate(idx_b)
+                grad[idx] += grad_b[i]
+            end
+            return grad
         end
     elseif a.gradient !== nothing || b.gradient !== nothing
         # One model has gradient — use ForwardDiff on the combined density
@@ -97,25 +111,31 @@ function monty_model_combine(a::MontyModel, b::MontyModel)
     # Domain: intersection (tightest bounds)
     combined_domain = nothing
     if a.domain !== nothing && b.domain !== nothing
-        n = length(all_params)
         combined_domain = zeros(Float64, n, 2)
         combined_domain[:, 1] .= -Inf
         combined_domain[:, 2] .= Inf
-        # Use tightest bounds from each
-        na = length(a.parameters)
-        nb = length(b.parameters)
-        if na == n && a.domain !== nothing
-            combined_domain[:, 1] .= max.(combined_domain[:, 1], a.domain[:, 1])
-            combined_domain[:, 2] .= min.(combined_domain[:, 2], a.domain[:, 2])
+        for (i, idx) in enumerate(idx_a)
+            combined_domain[idx, 1] = max(combined_domain[idx, 1], a.domain[i, 1])
+            combined_domain[idx, 2] = min(combined_domain[idx, 2], a.domain[i, 2])
         end
-        if nb == n && b.domain !== nothing
-            combined_domain[:, 1] .= max.(combined_domain[:, 1], b.domain[:, 1])
-            combined_domain[:, 2] .= min.(combined_domain[:, 2], b.domain[:, 2])
+        for (i, idx) in enumerate(idx_b)
+            combined_domain[idx, 1] = max(combined_domain[idx, 1], b.domain[i, 1])
+            combined_domain[idx, 2] = min(combined_domain[idx, 2], b.domain[i, 2])
         end
     elseif a.domain !== nothing
-        combined_domain = a.domain
+        combined_domain = zeros(Float64, n, 2)
+        combined_domain[:, 1] .= -Inf
+        combined_domain[:, 2] .= Inf
+        for (i, idx) in enumerate(idx_a)
+            combined_domain[idx, :] .= a.domain[i, :]
+        end
     elseif b.domain !== nothing
-        combined_domain = b.domain
+        combined_domain = zeros(Float64, n, 2)
+        combined_domain[:, 1] .= -Inf
+        combined_domain[:, 2] .= Inf
+        for (i, idx) in enumerate(idx_b)
+            combined_domain[idx, :] .= b.domain[i, :]
+        end
     end
 
     combined_props = MontyModelProperties(
@@ -151,6 +171,22 @@ function dust_likelihood_monty(filter::DustFilter, packer::MontyPacker)
     )
 end
 
+function dust_likelihood_monty(filter::DustFilter, packer::MontyPackerGrouped)
+    param_names = parameter_names(packer)
+
+    density = function(x)
+        pars = unpack(packer, x)
+        pars_vec = NamedTuple[pars[g] for g in packer.groups]
+        return dust_likelihood_run!(filter, pars_vec)
+    end
+
+    return monty_model(
+        density;
+        parameters=param_names,
+        properties=MontyModelProperties(is_stochastic=true),
+    )
+end
+
 function dust_likelihood_monty(unfilter::DustUnfilter, packer::MontyPacker)
     param_names = parameter_names(packer)
 
@@ -162,6 +198,27 @@ function dust_likelihood_monty(unfilter::DustUnfilter, packer::MontyPacker)
     # ForwardDiff gradient through the ODE solver for deterministic likelihoods.
     # The generated _odin_rhs! and _odin_compare_data accept Dual numbers,
     # and DifferentialEquations.jl propagates them through the solver.
+    gradient = function(x)
+        return ForwardDiff.gradient(density, x)
+    end
+
+    return monty_model(
+        density;
+        parameters=param_names,
+        gradient=gradient,
+        properties=MontyModelProperties(is_stochastic=false, has_gradient=true),
+    )
+end
+
+function dust_likelihood_monty(unfilter::DustUnfilter, packer::MontyPackerGrouped)
+    param_names = parameter_names(packer)
+
+    density = function(x)
+        pars = unpack(packer, x)
+        pars_vec = NamedTuple[pars[g] for g in packer.groups]
+        return dust_unfilter_run!(unfilter, pars_vec)
+    end
+
     gradient = function(x)
         return ForwardDiff.gradient(density, x)
     end

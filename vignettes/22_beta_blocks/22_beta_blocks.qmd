@@ -210,7 +210,7 @@ end
 ### Posterior
 
 ```{julia}
-posterior = likelihood + prior
+posterior = likelihood + prior;
 ```
 
 ### Check likelihood at truth
@@ -365,7 +365,7 @@ println("  per step: ", round(t_mcmc / 1000 * 1e3, digits = 2), " ms")
    to represent time-varying transmission without specifying a parametric form.
 2. **Deterministic discrete-time models** with `n_particles = 1` give exact
    likelihoods — no particle filter noise.
-3. The **process function** in `monty_packer` bridges between scalar MCMC
+3. The **process function** in `Packer` bridges between scalar MCMC
    parameters and the array parameter expected by the model.
 4. With informative data, MCMC recovers the true β block values and captures
    the seasonal pattern.

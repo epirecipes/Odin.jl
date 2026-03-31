@@ -94,7 +94,8 @@ function dust_system_create(
         try
             n_output = _odin_n_output(model, full_pars)
             output_names = _odin_output_names(model, full_pars)
-        catch
+        catch e
+            e isa MethodError || rethrow(e)
         end
     end
 
@@ -105,8 +106,9 @@ function dust_system_create(
         for (k, v) in ze_ranges
             push!(ze, ZeroEveryEntry(k, v))
         end
-    catch
+    catch e
         # No zero_every method defined — that's fine
+        e isa MethodError || rethrow(e)
     end
 
     # Initialise RNGs
@@ -152,6 +154,9 @@ function dust_system_create(
 end
 
 function _merge_pars(model::AbstractOdinModel, user_pars::NamedTuple, dt::Float64)
+    if hasfield(typeof(model), :parameter_defaults)
+        user_pars = merge(getfield(model, :parameter_defaults), user_pars)
+    end
     # Add dt to pars if not present
     if !haskey(user_pars, :dt)
         user_pars = merge(user_pars, (dt=dt,))
@@ -160,14 +165,18 @@ function _merge_pars(model::AbstractOdinModel, user_pars::NamedTuple, dt::Float6
 end
 
 """Reset system in-place for reuse (avoids allocations in filter hot path)."""
-function _reset_system!(sys::DustSystem, pars::NamedTuple, seed::Union{Nothing, Int})
+function _reset_system!(sys::DustSystem, pars::NamedTuple, seed::Union{Nothing, Int};
+                        time::Union{Nothing, Float64}=nothing)
     model = sys.generator.model
     full_pars = _merge_pars(model, pars, sys.dt)
     if model.has_interpolation
         full_pars = _odin_setup_pars(model, full_pars)
     end
+    new_n_state = _odin_n_state(model, full_pars)
+    new_n_state == sys.n_state ||
+        throw(ArgumentError("Parameter change altered system state size from $(sys.n_state) to $(new_n_state); create a new system instead of resetting this one"))
     sys.pars = full_pars
-    sys.time = zero(sys.time)
+    sys.time = time === nothing ? zero(sys.time) : typeof(sys.time)(time)
 
     # Restore RNG states from saved snapshot (zero-alloc via copy!)
     if seed !== nothing
@@ -235,10 +244,18 @@ end
 
 Advance the system to the given time.
 """
-function dust_system_run_to_time!(sys::DustSystem, time::Float64)
+function dust_system_run_to_time!(sys::DustSystem, time::Float64;
+                                  solver::Symbol=:dp5,
+                                  events::Union{Nothing, EventSet}=nothing)
     model = sys.generator.model
     if model.is_continuous
-        _run_continuous!(sys, time)
+        result = dust_system_simulate(sys, Float64[time]; solver=solver, events=events)
+        @inbounds for p in 1:sys.n_particles
+            for j in 1:sys.n_state
+                sys.state[j, p] = result[j, p, 1]
+            end
+        end
+        sys.time = time
     else
         # Pass pars explicitly for type stability
         _run_discrete!(sys, sys.pars, time)

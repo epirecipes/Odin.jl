@@ -47,6 +47,11 @@ function monty_sample(
     observer::Union{Nothing, MontyObserver}=nothing,
 )
     n_pars = length(model.parameters)
+    n_steps > 0 || throw(ArgumentError("n_steps must be positive"))
+    n_chains > 0 || throw(ArgumentError("n_chains must be positive"))
+    n_burnin >= 0 || throw(ArgumentError("n_burnin must be non-negative"))
+    thinning > 0 || throw(ArgumentError("thinning must be positive"))
+    n_burnin <= n_steps || throw(ArgumentError("n_burnin must be <= n_steps"))
 
     # Generate initial positions
     if initial === nothing
@@ -60,6 +65,8 @@ function monty_sample(
             error("No initial parameters provided and model has no direct_sample")
         end
     end
+    size(initial, 1) == n_pars || throw(ArgumentError("initial must have $n_pars rows, got $(size(initial, 1))"))
+    size(initial, 2) == n_chains || throw(ArgumentError("initial must have $n_chains columns, got $(size(initial, 2))"))
 
     # Set up RNGs
     base_rng = seed === nothing ? Random.default_rng() : Random.MersenneTwister(seed)
@@ -101,7 +108,10 @@ function _run_chain(model, sampler, n_steps, n_burnin, thinning, n_samples, n_pa
                 pars_out[:, sample_idx] .= chain.pars
                 density_out[sample_idx] = chain.density
                 if observer !== nothing
-                    push!(chain_obs, observer.observe(model, rng))
+                    obs = applicable(observer.observe, model, chain, rng) ?
+                        observer.observe(model, chain, rng) :
+                        observer.observe(model, rng)
+                    push!(chain_obs, obs)
                 end
             end
         end
@@ -143,6 +153,11 @@ function _run_serial(model, sampler, n_steps, n_chains, n_burnin, thinning, n_sa
 end
 
 function _run_threaded(model, sampler, n_steps, n_chains, n_burnin, thinning, n_samples, n_pars, initial, chain_rngs, observer=nothing)
+    if model.properties.is_stochastic || model.gradient !== nothing
+        @warn "Threaded runner falling back to serial execution for models with mutable/shared likelihood state"
+        return _run_serial(model, sampler, n_steps, n_chains, n_burnin, thinning, n_samples, n_pars, initial, chain_rngs, observer)
+    end
+
     results = Vector{Any}(undef, n_chains)
 
     Threads.@threads for c in 1:n_chains
@@ -219,7 +234,10 @@ function _run_simultaneous(model, sampler, n_steps, n_chains, n_burnin, thinning
                     all_pars[:, sample_idx, c] .= chains[c].pars
                     all_density[sample_idx, c] = chains[c].density
                     if observer !== nothing
-                        push!(chain_obs[c], observer.observe(model, chain_rngs[c]))
+                        obs = applicable(observer.observe, model, chains[c], chain_rngs[c]) ?
+                            observer.observe(model, chains[c], chain_rngs[c]) :
+                            observer.observe(model, chain_rngs[c])
+                        push!(chain_obs[c], obs)
                     end
                 end
             end
@@ -244,6 +262,11 @@ end
 Falls back to threaded execution if no workers are available."""
 function _run_distributed(model, sampler, n_steps, n_chains, n_burnin, thinning,
                           n_samples, n_pars, initial, chain_rngs, observer=nothing)
+    if model.properties.is_stochastic || model.gradient !== nothing
+        @warn "Distributed runner falling back to serial execution for models with mutable/shared likelihood state"
+        return _run_serial(model, sampler, n_steps, n_chains, n_burnin, thinning, n_samples, n_pars, initial, chain_rngs, observer)
+    end
+
     # Dynamically check for Distributed module
     dist_mod = try
         Base.loaded_modules[Base.PkgId(Base.UUID("8ba89e20-285c-5b6f-9357-94700520ee1b"), "Distributed")]

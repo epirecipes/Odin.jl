@@ -1,5 +1,6 @@
 using Test
 using Odin
+using ForwardDiff
 using Random
 
 @testset "New features" begin
@@ -80,7 +81,7 @@ using Random
             (time=2.0, cases=15, group=1),
             (time=2.0, cases=25, group=2),
         ]
-        gd = Odin.dust_filter_data_grouped(data)
+        gd = ObservedData(data; group_field=:group)
         @test length(gd) == 2
         @test length(gd[1].times) == 2  # 2 time points for group 1
         @test length(gd[2].times) == 2  # 2 time points for group 2
@@ -119,8 +120,8 @@ using Random
         data_vec = [(time=Float64(t), cases=max(1.0, result[2,1,t])) for t in 1:10]
         fdata = ObservedData(data_vec)
 
-        uf = Odin.dust_unfilter_create(sir_ode, fdata)
-        ll = Odin.dust_unfilter_run!(uf, pars; save_snapshots=Float64[3.0, 6.0, 9.0])
+        uf = Likelihood(sir_ode, fdata)
+        ll = loglik(uf, pars; save_snapshots=Float64[3.0, 6.0, 9.0])
         @test isfinite(ll)
     end
 
@@ -131,8 +132,8 @@ using Random
         data_vec = [(time=Float64(t), cases=max(1.0, result[2,1,t])) for t in 1:5]
         fdata = ObservedData(data_vec)
 
-        uf = Odin.dust_unfilter_create(sir_ode, fdata)
-        ll = Odin.dust_unfilter_run!(uf, pars)
+        uf = Likelihood(sir_ode, fdata)
+        ll = loglik(uf, pars)
         @test isfinite(ll)
         trajs = last_trajectories(uf)
         # Trajectories are stored after run as state at each data point
@@ -144,13 +145,26 @@ using Random
         data_vec = [(time=Float64(t), cases=max(1.0, result[2,1,t])) for t in 1:10]
         fdata = ObservedData(data_vec)
 
-        uf = Odin.dust_unfilter_create(sir_ode, fdata)
-        ll = Odin.dust_unfilter_run!(uf, pars; save_snapshots=Float64[1.0, 5.0])
+        uf = Likelihood(sir_ode, fdata)
+        ll = loglik(uf, pars; save_snapshots=Float64[1.0, 5.0])
         @test isfinite(ll)
         trajs = last_trajectories(uf)
         @test trajs !== nothing
         @test size(trajs, 1) == 3   # n_state (S, I, R)
         @test size(trajs, 2) == 10  # n_data
+    end
+
+    @testset "Unfilter snapshot/trajectory with SDIRK" begin
+        pars = (beta=0.4, gamma=0.2, I0=10.0, N=1000.0)
+        result = simulate(sir_ode, pars, 1.0:1.0:10.0)
+        data_vec = [(time=Float64(t), cases=max(1.0, result[2,1,t])) for t in 1:10]
+        fdata = ObservedData(data_vec)
+
+        uf = Likelihood(sir_ode, fdata; ode_control=ODEControl(solver=:sdirk))
+        ll = loglik(uf, pars; save_snapshots=Float64[2.0, 4.0])
+        @test isfinite(ll)
+        @test last_snapshots(uf) !== nothing
+        @test last_trajectories(uf) !== nothing
     end
 
     # ═══════════════════════════════════════════════════════════
@@ -194,6 +208,15 @@ using Random
         @test s.observations !== nothing
         @test s.observations isa NamedTuple
         @test length(s.observations.step) == 20  # one per sample
+    end
+
+    @testset "Observer can inspect current chain state" begin
+        m = DensityModel(x -> -sum(x .^ 2); parameters=["a"])
+        obs = Observer((model, chain, rng) -> (x=chain.pars[1],))
+        s = sample(m, random_walk(reshape([0.1], 1, 1)), 10;
+                   n_chains=1, initial=reshape([0.5], 1, 1), observer=obs)
+        @test s.observations !== nothing
+        @test vec(s.pars[1, :, 1]) == vec(s.observations.x)
     end
 
     @testset "Observer without observer" begin
@@ -249,6 +272,76 @@ using Random
         # Densities should be identical since same seed + same algorithm
         @test s1.density ≈ s2.density
         @test s1.pars ≈ s2.pars
+    end
+
+    @testset "Parameter defaults are applied" begin
+        m = @odin begin
+            deriv(x) = -rate * x
+            initial(x) = x0
+            rate = parameter(0.1)
+            x0 = parameter(2.0)
+        end
+        sys = System(m, NamedTuple())
+        reset!(sys)
+        @test state(sys)[1, 1] ≈ 2.0
+        sim = simulate(m, NamedTuple(), [0.0, 1.0])
+        @test sim[1, 1, 1] ≈ 2.0
+    end
+
+    @testset "Initial intermediates are available" begin
+        m = @odin begin
+            tmp = 2 * x0
+            deriv(x) = -rate * x
+            initial(x) = tmp
+            rate = parameter(0.1)
+            x0 = parameter(1.5)
+        end
+        sys = System(m, NamedTuple())
+        reset!(sys)
+        @test state(sys)[1, 1] ≈ 3.0
+    end
+
+    @testset "Array shorthand x[] expands over dimensions" begin
+        m = @odin begin
+            dim(x) = 3
+            deriv(x[]) = -rate * x[i]
+            initial(x[]) = x0
+            rate = parameter(0.1)
+            x0 = parameter(1.0)
+        end
+        sim = simulate(m, NamedTuple(), [0.0, 1.0])
+        @test sim[:, 1, 1] ≈ fill(1.0, 3)
+        @test all(sim[:, 1, 2] .< 1.0)
+    end
+
+    @testset "Array intermediates support Dual numbers" begin
+        m = @odin begin
+            dim(x) = 2
+            dim(dx) = 2
+            deriv(x[i]) = dx[i]
+            dx[i] = -rate * x[i]
+            initial(x[i]) = 1.0
+            rate = parameter(0.1)
+        end
+        dstate = ForwardDiff.Dual.(zeros(2), (1.0, 1.0))
+        statev = ForwardDiff.Dual.(ones(2), (1.0, 1.0))
+        Odin._odin_rhs!(m.model, dstate, statev, (rate=0.1, dt=1.0), ForwardDiff.Dual(0.0, 0.0))
+        @test all(x -> x isa ForwardDiff.Dual, dstate)
+    end
+
+    @testset "Diffusion can use array intermediates" begin
+        m = @odin begin
+            dim(x) = 2
+            dim(sig) = 2
+            deriv(x[i]) = 0.0
+            diffusion(x[i]) = sig[i]
+            sig[i] = rate * x[i]
+            initial(x[i]) = 1.0
+            rate = parameter(0.1)
+        end
+        noise = zeros(2)
+        Odin._odin_diffusion!(m.model, noise, ones(2), (rate=0.1, dt=1.0), 0.0)
+        @test noise == fill(0.1, 2)
     end
 
 end

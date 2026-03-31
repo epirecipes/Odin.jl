@@ -235,7 +235,7 @@ using Statistics
         for pp in 1:n_part
             st[i_chain_idx_2_1, pp] = n_seed
         end
-        Odin.dust_system_set_state!(sys, st)
+        Odin.set_state!(sys, st)
         return Odin.simulate(sys, times)
     end
 
@@ -294,7 +294,7 @@ using Statistics
         Odin.reset!(sys)
         st = Odin.state(sys)
         st[i_chain_idx_2_1, 1] = n_seed
-        Odin.dust_system_set_state!(sys, st)
+        Odin.set_state!(sys, st)
         result = Odin.simulate(sys, short_times)
 
         # After 30 days, some E_chain stages beyond stage 1 should be populated
@@ -327,7 +327,7 @@ using Statistics
             Odin.reset!(sys)
             st = Odin.state(sys)
             st[i_chain_idx_k1, 1] = n_seed
-            Odin.dust_system_set_state!(sys, st)
+            Odin.set_state!(sys, st)
             r = Odin.simulate(sys, times)
             for t in 1:length(times)
                 I_mean_k1[t] += sum(r[idx_I_k1, 1, t])
@@ -359,7 +359,7 @@ using Statistics
                 Odin.reset!(sys)
                 st = Odin.state(sys)
                 st[ic_idx, 1] = n_seed
-                Odin.dust_system_set_state!(sys, st)
+                Odin.set_state!(sys, st)
                 r = Odin.simulate(sys, times)
                 peak = maximum([sum(r[idx_I_mod, 1, t]) for t in 1:length(times)])
                 push!(peaks, peak)

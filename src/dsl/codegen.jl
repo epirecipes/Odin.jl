@@ -154,6 +154,17 @@ function _gen_unpack(state_vars, dims, offsets, sizes; src=:state)
     return stmts
 end
 
+function _resolved_lhs_indices(ex::OdinExpr, cl::ModelClassification)
+    if haskey(ex.range_bounds, :__odin_implicit_all__)
+        rank = haskey(cl.dims, ex.name) ? _dim_rank(cl.dims[ex.name]) : 0
+        rank > 0 || error("Array shorthand $(ex.name)[] requires dim($(ex.name))")
+        idx_names = [:i, :j, :k, :l, :m, :n, :p, :q]
+        rank <= length(idx_names) || error("Array shorthand supports up to $(length(idx_names)) dimensions")
+        return idx_names[1:rank], Dict{Symbol, Tuple{Any, Any}}()
+    end
+    return ex.indices, ex.range_bounds
+end
+
 """Allocate local arrays for array intermediates."""
 function _gen_intermediate_arrays(intermediates, dims; use_workspace::Bool=false)
     stmts = Expr[]
@@ -169,16 +180,16 @@ function _gen_intermediate_arrays(intermediates, dims; use_workspace::Bool=false
                 dim_expr = ds[1]
                 push!(stmts, :($v = let _dim = $dim_expr
                     if haskey(model._workspace, $vq)
-                        _cached = model._workspace[$vq]::Vector{Float64}
-                        if length(_cached) == _dim
+                        _cached = model._workspace[$vq]
+                        if _cached isa Vector{T} && length(_cached) == _dim
                             _cached
                         else
-                            _v = Vector{Float64}(undef, _dim)
+                            _v = Vector{T}(undef, _dim)
                             model._workspace[$vq] = _v
                             _v
                         end
                     else
-                        _v = Vector{Float64}(undef, _dim)
+                        _v = Vector{T}(undef, _dim)
                         model._workspace[$vq] = _v
                         _v
                     end
@@ -188,16 +199,16 @@ function _gen_intermediate_arrays(intermediates, dims; use_workspace::Bool=false
                 dims_tuple = Expr(:tuple, ds...)
                 push!(stmts, :($v = let _dims = $dims_tuple
                     if haskey(model._workspace, $vq)
-                        _cached = model._workspace[$vq]::Array{Float64, $ndim}
-                        if size(_cached) == _dims
+                        _cached = model._workspace[$vq]
+                        if _cached isa Array{T, $ndim} && size(_cached) == _dims
                             _cached
                         else
-                            _v = Array{Float64}(undef, _dims...)
+                            _v = Array{T}(undef, _dims...)
                             model._workspace[$vq] = _v
                             _v
                         end
                     else
-                        _v = Array{Float64}(undef, _dims...)
+                        _v = Array{T}(undef, _dims...)
                         model._workspace[$vq] = _v
                         _v
                     end
@@ -205,9 +216,9 @@ function _gen_intermediate_arrays(intermediates, dims; use_workspace::Bool=false
             end
         else
             if length(ds) == 1
-                push!(stmts, :($v = Vector{Float64}(undef, $(ds[1]))))
+                push!(stmts, :($v = Vector{T}(undef, $(ds[1]))))
             else
-                push!(stmts, :($v = Array{Float64}(undef, $(ds...))))
+                push!(stmts, :($v = Array{T}(undef, $(ds...))))
             end
         end
     end
@@ -295,6 +306,13 @@ function generate_system(
     state_var_set = Set{Symbol}(classification.state_vars)
 
     param_names = Symbol[ex.name for ex in phases.create_eqs if ex.type == EXPR_PARAMETER]
+    param_default_pairs = Any[]
+    for name in param_names
+        pinfo = classification.parameters[name]
+        pinfo.default === nothing && continue
+        push!(param_default_pairs, Expr(:(=), name, pinfo.default))
+    end
+    param_defaults_expr = isempty(param_default_pairs) ? :(NamedTuple()) : Expr(:tuple, param_default_pairs...)
 
     # Generate method bodies
     n_state_body     = _gen_n_state_body(classification)
@@ -332,6 +350,7 @@ function generate_system(
             n_state::Int
             state_names::Vector{Symbol}
             parameter_names::Vector{Symbol}
+            parameter_defaults::NamedTuple
             is_continuous::Bool
             is_sde::Bool
             has_compare::Bool
@@ -398,8 +417,8 @@ function generate_system(
 
         $(if has_compare
             quote
-                function Odin._odin_compare_data(model::$model_name, state::AbstractVector,
-                                                 pars, data::NamedTuple, time)
+                function Odin._odin_compare_data(model::$model_name, state::AbstractVector{T},
+                                                 pars, data::NamedTuple, time) where {T}
                     @inbounds $compare_body
                 end
             end
@@ -457,6 +476,7 @@ function generate_system(
                 $n_state_fixed,
                 $(QuoteNode(classification.state_vars)),
                 $(QuoteNode(param_names)),
+                $param_defaults_expr,
                 $is_continuous,
                 $is_sde,
                 $has_compare,
@@ -652,25 +672,29 @@ function _gen_output(phases, cl, sv_set)
 
     # Allocate needed intermediate arrays
     needed_intermediates = [v for v in cl.intermediates if v in output_needs]
-    for v in needed_intermediates
-        haskey(dims, v) || continue
-        ds = _dim_each(dims[v])
-        if length(ds) == 1
-            push!(stmts, :($v = Vector{Float64}(undef, $(ds[1]))))
-        else
-            push!(stmts, :($v = Array{Float64}(undef, $(ds...))))
-        end
-    end
+    append!(stmts, _gen_intermediate_arrays(needed_intermediates, dims))
 
     # Evaluate needed intermediates (from dynamic_eqs, in order)
     for ex in phases.dynamic_eqs
-        ex.type == EXPR_ASSIGNMENT || continue
+        ex.type in (EXPR_ASSIGNMENT, EXPR_DELAY) || continue
         ex.name in output_needs || continue
-        rj = _translate_expr(ex.rhs, cl, sv_set, :pars)
-        if !isempty(ex.indices) && haskey(dims, ex.name)
-            assign = Expr(:(=), Expr(:ref, ex.name, ex.indices...), rj)
-            push!(stmts, _wrap_loop(assign, ex.indices, dims[ex.name]; range_bounds=ex.range_bounds))
+        idxs, range_bounds = _resolved_lhs_indices(ex, cl)
+        if ex.type == EXPR_DELAY
+            dinfo = ex.rhs::DelayInfo
+            state_sym = dinfo.expr
+            tau_expr = _translate_expr(dinfo.tau, cl, sv_set, :pars)
+            state_off = offs[state_sym]
+            state_idx = state_off isa Integer ? state_off + 1 : :($state_off + 1)
+            push!(stmts, :(begin
+                _dde_hist = (model._workspace[:_dde_history]::Vector{Odin.DDEHistory{T}})[1]
+                $(ex.name) = Odin.dde_history_eval(_dde_hist, time - $tau_expr, $state_idx)
+            end))
+        elseif !isempty(idxs) && haskey(dims, ex.name)
+            rj = _translate_expr(ex.rhs, cl, sv_set, :pars)
+            assign = Expr(:(=), Expr(:ref, ex.name, idxs...), rj)
+            push!(stmts, _wrap_loop(assign, idxs, dims[ex.name]; range_bounds=range_bounds))
         else
+            rj = _translate_expr(ex.rhs, cl, sv_set, :pars)
             push!(stmts, :($(ex.name) = $rj))
         end
     end
@@ -770,17 +794,56 @@ function _gen_initial(phases, cl, sv_set)
     # Use eltype(state) for conversion (supports Dual numbers from ForwardDiff)
     pushfirst!(stmts, :(T = eltype(state)))
 
+    initial_needs = Set{Symbol}()
+    for ex in phases.initial_eqs
+        ex.type == EXPR_INITIAL || continue
+        rhs_e = ex.rhs isa NamedTuple ? ex.rhs.rhs : ex.rhs
+        union!(initial_needs, find_dependencies(rhs_e))
+    end
+    intermediate_set = Set{Symbol}(cl.intermediates)
+    changed = true
+    while changed
+        changed = false
+        for ex in phases.dynamic_eqs
+            ex.type == EXPR_ASSIGNMENT || continue
+            if ex.name in initial_needs && ex.name in intermediate_set
+                deps = find_dependencies(ex.rhs)
+                for d in deps
+                    if d in intermediate_set && !(d in initial_needs)
+                        push!(initial_needs, d)
+                        changed = true
+                    end
+                end
+            end
+        end
+    end
+
+    append!(stmts, _gen_intermediate_arrays([v for v in cl.intermediates if v in initial_needs], dims))
+    for ex in phases.dynamic_eqs
+        ex.type == EXPR_ASSIGNMENT || continue
+        ex.name in initial_needs || continue
+        idxs, range_bounds = _resolved_lhs_indices(ex, cl)
+        rj = _translate_expr(ex.rhs, cl, sv_set, :pars)
+        if !isempty(idxs) && haskey(dims, ex.name)
+            assign = Expr(:(=), Expr(:ref, ex.name, idxs...), rj)
+            push!(stmts, _wrap_loop(assign, idxs, dims[ex.name]; range_bounds=range_bounds))
+        else
+            push!(stmts, :($(ex.name) = $rj))
+        end
+    end
+
     for ex in phases.initial_eqs
         ex.type == EXPR_INITIAL || continue
         rd = ex.rhs
         rhs_e = rd isa NamedTuple ? rd.rhs : rd
         off = offs[ex.name]
         rj = _translate_expr(rhs_e, cl, sv_set, :pars)
+        idxs, range_bounds = _resolved_lhs_indices(ex, cl)
 
-        if !isempty(ex.indices) && haskey(dims, ex.name)
-            li = _linear_idx(ex.indices, dims[ex.name])
+        if !isempty(idxs) && haskey(dims, ex.name)
+            li = _linear_idx(idxs, dims[ex.name])
             assign = :(state[$off + $li] = convert(T, $rj))
-            push!(stmts, _wrap_loop(assign, ex.indices, dims[ex.name]; range_bounds=ex.range_bounds))
+            push!(stmts, _wrap_loop(assign, idxs, dims[ex.name]; range_bounds=range_bounds))
         else
             push!(stmts, :(state[$off + 1] = convert(T, $rj)))
         end
@@ -827,9 +890,10 @@ function _gen_rhs(phases, cl, sv_set)
     for ex in phases.dynamic_eqs
         ex.type == EXPR_ASSIGNMENT || continue
         rj = _translate_expr(ex.rhs, cl, sv_set, :pars)
-        if !isempty(ex.indices) && haskey(dims, ex.name)
-            assign = Expr(:(=), Expr(:ref, ex.name, ex.indices...), rj)
-            push!(stmts, _wrap_loop(assign, ex.indices, dims[ex.name]; range_bounds=ex.range_bounds))
+        idxs, range_bounds = _resolved_lhs_indices(ex, cl)
+        if !isempty(idxs) && haskey(dims, ex.name)
+            assign = Expr(:(=), Expr(:ref, ex.name, idxs...), rj)
+            push!(stmts, _wrap_loop(assign, idxs, dims[ex.name]; range_bounds=range_bounds))
         else
             push!(stmts, :($(ex.name) = $rj))
         end
@@ -854,10 +918,11 @@ function _gen_rhs(phases, cl, sv_set)
         ex.type == EXPR_DERIV || continue
         off = offs[ex.name]
         rj  = _translate_expr(ex.rhs, cl, sv_set, :pars)
-        if !isempty(ex.indices) && haskey(dims, ex.name)
-            li = _linear_idx(ex.indices, dims[ex.name])
+        idxs, range_bounds = _resolved_lhs_indices(ex, cl)
+        if !isempty(idxs) && haskey(dims, ex.name)
+            li = _linear_idx(idxs, dims[ex.name])
             assign = :(dstate[$off + $li] = $rj)
-            push!(stmts, _wrap_loop(assign, ex.indices, dims[ex.name]; range_bounds=ex.range_bounds))
+            push!(stmts, _wrap_loop(assign, idxs, dims[ex.name]; range_bounds=range_bounds))
         else
             push!(stmts, :(dstate[$off + 1] = $rj))
         end
@@ -875,6 +940,7 @@ function _gen_diffusion(phases, cl, sv_set)
     ls, offs, szs = _gen_layout(cl.state_vars, dims)
     append!(stmts, ls)
     append!(stmts, _gen_unpack(cl.state_vars, dims, offs, szs))
+    append!(stmts, _gen_intermediate_arrays([ex.name for ex in phases.diffusion_eqs if ex.type == EXPR_ASSIGNMENT], dims; use_workspace=true))
 
     # Zero out noise_out first (states without diffusion get zero noise)
     push!(stmts, :(fill!(noise_out, zero(T))))
@@ -883,9 +949,10 @@ function _gen_diffusion(phases, cl, sv_set)
     for ex in phases.diffusion_eqs
         ex.type == EXPR_ASSIGNMENT || continue
         rj = _translate_expr(ex.rhs, cl, sv_set, :pars)
-        if !isempty(ex.indices) && haskey(dims, ex.name)
-            assign = Expr(:(=), Expr(:ref, ex.name, ex.indices...), rj)
-            push!(stmts, _wrap_loop(assign, ex.indices, dims[ex.name]; range_bounds=ex.range_bounds))
+        idxs, range_bounds = _resolved_lhs_indices(ex, cl)
+        if !isempty(idxs) && haskey(dims, ex.name)
+            assign = Expr(:(=), Expr(:ref, ex.name, idxs...), rj)
+            push!(stmts, _wrap_loop(assign, idxs, dims[ex.name]; range_bounds=range_bounds))
         else
             push!(stmts, :($(ex.name) = $rj))
         end
@@ -896,10 +963,11 @@ function _gen_diffusion(phases, cl, sv_set)
         ex.type == EXPR_DIFFUSION || continue
         off = offs[ex.name]
         rj  = _translate_expr(ex.rhs, cl, sv_set, :pars)
-        if !isempty(ex.indices) && haskey(dims, ex.name)
-            li = _linear_idx(ex.indices, dims[ex.name])
+        idxs, range_bounds = _resolved_lhs_indices(ex, cl)
+        if !isempty(idxs) && haskey(dims, ex.name)
+            li = _linear_idx(idxs, dims[ex.name])
             assign = :(noise_out[$off + $li] = $rj)
-            push!(stmts, _wrap_loop(assign, ex.indices, dims[ex.name]; range_bounds=ex.range_bounds))
+            push!(stmts, _wrap_loop(assign, idxs, dims[ex.name]; range_bounds=range_bounds))
         else
             push!(stmts, :(noise_out[$off + 1] = $rj))
         end
@@ -920,9 +988,10 @@ function _gen_update(phases, cl, sv_set)
     for ex in phases.dynamic_eqs
         ex.type == EXPR_ASSIGNMENT || continue
         rj = _translate_expr(ex.rhs, cl, sv_set, :pars)
-        if !isempty(ex.indices) && haskey(dims, ex.name)
-            assign = Expr(:(=), Expr(:ref, ex.name, ex.indices...), rj)
-            push!(stmts, _wrap_loop(assign, ex.indices, dims[ex.name]; range_bounds=ex.range_bounds))
+        idxs, range_bounds = _resolved_lhs_indices(ex, cl)
+        if !isempty(idxs) && haskey(dims, ex.name)
+            assign = Expr(:(=), Expr(:ref, ex.name, idxs...), rj)
+            push!(stmts, _wrap_loop(assign, idxs, dims[ex.name]; range_bounds=range_bounds))
         else
             push!(stmts, :($(ex.name) = $rj))
         end
@@ -933,10 +1002,11 @@ function _gen_update(phases, cl, sv_set)
         ex.type == EXPR_UPDATE || continue
         off = offs[ex.name]
         rj  = _translate_expr(ex.rhs, cl, sv_set, :pars)
-        if !isempty(ex.indices) && haskey(dims, ex.name)
-            li = _linear_idx(ex.indices, dims[ex.name])
+        idxs, range_bounds = _resolved_lhs_indices(ex, cl)
+        if !isempty(idxs) && haskey(dims, ex.name)
+            li = _linear_idx(idxs, dims[ex.name])
             assign = :(state_next[$off + $li] = convert(T, $rj))
-            push!(stmts, _wrap_loop(assign, ex.indices, dims[ex.name]; range_bounds=ex.range_bounds))
+            push!(stmts, _wrap_loop(assign, idxs, dims[ex.name]; range_bounds=range_bounds))
         else
             push!(stmts, :(state_next[$off + 1] = convert(T, $rj)))
         end
@@ -987,30 +1057,34 @@ function _gen_compare(phases, cl, sv_set)
 
     # Allocate only needed intermediate arrays
     needed_intermediates = [v for v in cl.intermediates if v in compare_needs]
-    for v in needed_intermediates
-        haskey(dims, v) || continue
-        ds = _dim_each(dims[v])
-        if length(ds) == 1
-            push!(stmts, :($v = Vector{Float64}(undef, $(ds[1]))))
-        else
-            push!(stmts, :($v = Array{Float64}(undef, $(ds...))))
-        end
-    end
+    append!(stmts, _gen_intermediate_arrays(needed_intermediates, dims))
 
     # Only evaluate needed intermediates
     for ex in phases.dynamic_eqs
-        ex.type == EXPR_ASSIGNMENT || continue
+        ex.type in (EXPR_ASSIGNMENT, EXPR_DELAY) || continue
         ex.name in compare_needs || continue
-        rj = _translate_expr(ex.rhs, cl, sv_set, :pars)
-        if !isempty(ex.indices) && haskey(dims, ex.name)
-            assign = Expr(:(=), Expr(:ref, ex.name, ex.indices...), rj)
-            push!(stmts, _wrap_loop(assign, ex.indices, dims[ex.name]; range_bounds=ex.range_bounds))
+        idxs, range_bounds = _resolved_lhs_indices(ex, cl)
+        if ex.type == EXPR_DELAY
+            dinfo = ex.rhs::DelayInfo
+            state_sym = dinfo.expr
+            tau_expr = _translate_expr(dinfo.tau, cl, sv_set, :pars)
+            state_off = offs[state_sym]
+            state_idx = state_off isa Integer ? state_off + 1 : :($state_off + 1)
+            push!(stmts, :(begin
+                _dde_hist = (model._workspace[:_dde_history]::Vector{Odin.DDEHistory{T}})[1]
+                $(ex.name) = Odin.dde_history_eval(_dde_hist, time - $tau_expr, $state_idx)
+            end))
+        elseif !isempty(idxs) && haskey(dims, ex.name)
+            rj = _translate_expr(ex.rhs, cl, sv_set, :pars)
+            assign = Expr(:(=), Expr(:ref, ex.name, idxs...), rj)
+            push!(stmts, _wrap_loop(assign, idxs, dims[ex.name]; range_bounds=range_bounds))
         else
+            rj = _translate_expr(ex.rhs, cl, sv_set, :pars)
             push!(stmts, :($(ex.name) = $rj))
         end
     end
 
-    push!(stmts, :(ll = 0.0))
+    push!(stmts, :(ll = zero(T)))
 
     # Map distribution names to fast inline logpdf functions
     _FAST_LOGPDF = Dict{Symbol, Symbol}(

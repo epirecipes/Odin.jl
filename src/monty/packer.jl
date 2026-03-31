@@ -76,24 +76,10 @@ function unpack(packer::MontyPacker, x::AbstractVector{T}) where {T}
 
     # Fast path: scalar-only with no process function (common case: 2-5 params)
     if isempty(packer.array_names) && packer.process === nothing
-        # Build NamedTuple directly without intermediate Pair array
-        all_names = packer.scalar_names
-        n_scalar = length(all_names)
-        fixed_keys = keys(packer.fixed)
-        n_fixed = length(fixed_keys)
-        n_total = n_scalar + n_fixed
-
-        vals = Vector{Any}(undef, n_total)
-        names = Vector{Symbol}(undef, n_total)
-        @inbounds for i in 1:n_scalar
-            names[i] = all_names[i]
-            vals[i] = x[first(packer.index[all_names[i]])]
-        end
-        @inbounds for (j, k) in enumerate(fixed_keys)
-            names[n_scalar + j] = k
-            vals[n_scalar + j] = packer.fixed[k]
-        end
-        return NamedTuple{Tuple(names)}(Tuple(vals))
+        scalar_names = Tuple(packer.scalar_names)
+        scalar_vals = ntuple(i -> x[first(packer.index[packer.scalar_names[i]])], length(packer.scalar_names))
+        scalar_nt = NamedTuple{scalar_names}(scalar_vals)
+        return isempty(keys(packer.fixed)) ? scalar_nt : merge(scalar_nt, packer.fixed)
     end
 
     # General path with arrays and/or process function
@@ -172,6 +158,16 @@ function parameter_names(packer::MontyPacker)
     return names
 end
 
+function _group_varied_parameter_names(packer)
+    names = String[]
+    for g in packer.groups
+        for name in packer.varied_names
+            push!(names, string(name, "[", g, "]"))
+        end
+    end
+    return names
+end
+
 # ── Grouped packer ──────────────────────────────────────────
 
 """
@@ -210,6 +206,52 @@ function monty_packer_grouped(
     base = monty_packer(vcat(shared, varied); fixed=fixed, process=process)
 
     return MontyPackerGrouped(groups, shared, varied, base, len, n_shared, n_varied)
+end
+
+function (packer::MontyPackerGrouped)(x::AbstractVector)
+    return unpack(packer, x)
+end
+
+"""
+    parameter_names(packer::MontyPackerGrouped) -> Vector{String}
+
+Return the flattened grouped parameter names with shared parameters first,
+followed by group-specific parameters in group order.
+"""
+function parameter_names(packer::MontyPackerGrouped)
+    return vcat(string.(packer.shared_names), _group_varied_parameter_names(packer))
+end
+
+function pack(packer::MontyPackerGrouped, nt::AbstractDict{Symbol, <:NamedTuple})
+    length(nt) == length(packer.groups) ||
+        throw(ArgumentError("Expected $(length(packer.groups)) groups, got $(length(nt))"))
+
+    x = zeros(Float64, packer.len)
+    first_group = packer.groups[1]
+    haskey(nt, first_group) || throw(KeyError(first_group))
+    first_nt = nt[first_group]
+
+    for (i, name) in enumerate(packer.shared_names)
+        shared_val = Float64(getfield(first_nt, name))
+        x[i] = shared_val
+        for g in packer.groups[2:end]
+            haskey(nt, g) || throw(KeyError(g))
+            other_val = Float64(getfield(nt[g], name))
+            other_val == shared_val ||
+                throw(ArgumentError("Shared parameter :$name must have the same value in every group"))
+        end
+    end
+
+    offset = packer.n_shared
+    for g in packer.groups
+        group_nt = nt[g]
+        for name in packer.varied_names
+            offset += 1
+            x[offset] = Float64(getfield(group_nt, name))
+        end
+    end
+
+    return x
 end
 
 function unpack(packer::MontyPackerGrouped, x::AbstractVector)

@@ -44,7 +44,7 @@ sir = @odin begin
 end
 ```
 
-    Odin.DustSystemGenerator{var"##OdinModel#277"}(var"##OdinModel#277"(3, [:S, :I, :R], [:beta, :gamma, :I0, :N], true, false, false, true, false, Dict{Symbol, Array}()))
+    Odin.DustSystemGenerator{var"##OdinModel#278"}(var"##OdinModel#278"(3, [:S, :I, :R], [:beta, :gamma, :I0, :N], (beta = 0.5, gamma = 0.1, I0 = 10, N = 1000), true, false, false, true, false, false, Dict{Symbol, Array}()))
 
 ## Generate synthetic data
 
@@ -119,7 +119,7 @@ predictive range, the priors may be too narrow or misspecified.
 ## 2. Fit the model (simulated posterior)
 
 For this vignette, we simulate “posterior samples” by adding noise
-around the true parameters (in practice, you would use `monty_sample`):
+around the true parameters (in practice, you would use `sample`):
 
 ``` julia
 n_samples = 200

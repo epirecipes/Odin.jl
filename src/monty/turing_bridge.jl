@@ -336,7 +336,15 @@ function _infer_domain(model::DynamicPPL.Model, vi, n_pars::Int, nt_builder)
     base_vals = Float64[vi[vn] for vn in vn_keys]
 
     for i in 1:n_pars
-        # Test small negative value
+        x_zero = copy(base_vals)
+        x_zero[i] = 0.0
+        lj_zero = try
+            DynamicPPL.logjoint(model, nt_builder(x_zero))
+        catch
+            -Inf
+        end
+        zero_valid = isfinite(lj_zero)
+
         x_test = copy(base_vals)
         x_test[i] = -1e-10
         lj = try
@@ -344,20 +352,25 @@ function _infer_domain(model::DynamicPPL.Model, vi, n_pars::Int, nt_builder)
         catch
             -Inf
         end
-        if isinf(lj) && lj < 0
-            domain[i, 1] = 0.0
-        end
+        neg_invalid = isinf(lj) && lj < 0
 
-        # Test value > 1 to detect [0,1] bounded
         x_pos = copy(base_vals)
         x_pos[i] = 1.0 + 1e-10
-        lj2 = try
+        lj_pos = try
             DynamicPPL.logjoint(model, nt_builder(x_pos))
         catch
             -Inf
         end
-        if isinf(lj2) && lj2 < 0 && domain[i, 1] >= 0.0
-            domain[i, 2] = 1.0
+        pos_invalid = isinf(lj_pos) && lj_pos < 0
+
+        if zero_valid && neg_invalid
+            domain[i, 1] = 0.0
+            if pos_invalid
+                0.0 <= base_vals[i] <= 1.0 || return nothing
+                domain[i, 2] = 1.0
+            end
+        elseif neg_invalid || pos_invalid
+            return nothing
         end
     end
 

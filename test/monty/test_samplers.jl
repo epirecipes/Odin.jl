@@ -2,6 +2,7 @@ using Test
 using Odin
 using Distributions
 using LinearAlgebra
+using Statistics
 
 @testset "Monty Samplers" begin
     # Simple 2D Gaussian target for testing samplers
@@ -43,6 +44,15 @@ using LinearAlgebra
         mean_est = mean(samples.pars[:, :, :], dims=(2, 3))[:, 1, 1]
         @test mean_est[1] ≈ target_mean[1] atol=0.5
         @test mean_est[2] ≈ target_mean[2] atol=0.5
+    end
+
+    @testset "HMC uses supplied gradient without ForwardDiffing density" begin
+        density_bad = x -> -Float64(x[1]^2)
+        gradient_ok = x -> [-2 * x[1]]
+        model = DensityModel(density_bad; parameters=["x"], gradient=gradient_ok)
+        sampler = hmc(0.05, 5)
+        samples = sample(model, sampler, 20; n_chains=1, initial=reshape([0.5], 1, 1), n_burnin=0, seed=7)
+        @test size(samples.pars) == (1, 20, 1)
     end
 
     @testset "Adaptive sampler" begin

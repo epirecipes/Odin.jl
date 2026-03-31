@@ -99,7 +99,7 @@ export OdinModel, Samples, ObservedData, ODEControl
 export DustSystem, DustFilter, DustUnfilter, MontyModel
 
 # Simulation
-export simulate, System, reset!, state, run_to!
+export simulate, System, reset!, state, set_state!, run_to!, compare_data
 
 # Likelihood
 export Likelihood, loglik, loglik_pointwise, loglik_gradient, as_model

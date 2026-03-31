@@ -79,7 +79,7 @@ using Statistics
         @test var_est[2] ≈ target_cov[2, 2] atol=0.8
     end
 
-    @testset "Slice sampler — integration with monty_sample" begin
+    @testset "Slice sampler — integration with sample" begin
         sampler = slice()
         initial = zeros(Float64, 2, 2)
         samples = sample(model_no_grad, sampler, 500;
@@ -153,7 +153,7 @@ using Statistics
         @test mala_err < 2.0
     end
 
-    @testset "MALA — integration with monty_sample" begin
+    @testset "MALA — integration with sample" begin
         sampler = mala(0.2)
         initial = zeros(Float64, 2, 2)
         samples = sample(model_with_grad, sampler, 500;
@@ -240,7 +240,7 @@ using Statistics
         @test mean_est[2] ≈ target_mean[2] atol=1.0
     end
 
-    @testset "Gibbs — integration with monty_sample" begin
+    @testset "Gibbs — integration with sample" begin
         blocks = [[1], [2]]
         sub_samplers = [slice(), slice()]
         sampler = gibbs(blocks, sub_samplers)

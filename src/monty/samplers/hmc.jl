@@ -78,13 +78,17 @@ function _hmc_density_gradient(model::MontyModel, q_unconstrained::Vector{Float6
         return target, zeros(length(q_unconstrained))
     end
 
-    # Gradient in unconstrained space via ForwardDiff
-    grad = ForwardDiff.gradient(q_unconstrained) do y
-        if inv_bij !== nothing
-            x = inv_bij(y)
-            model.density(x) + _stacked_inv_logabsdetjac(inv_bij, y)
-        else
-            model.density(y)
+    grad = if inv_bij === nothing && model.gradient !== nothing
+        model.gradient(q_unconstrained)
+    else
+        # Gradient in unconstrained space via ForwardDiff
+        ForwardDiff.gradient(q_unconstrained) do y
+            if inv_bij !== nothing
+                x = inv_bij(y)
+                model.density(x) + _stacked_inv_logabsdetjac(inv_bij, y)
+            else
+                model.density(y)
+            end
         end
     end
 

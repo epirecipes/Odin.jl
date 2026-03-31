@@ -856,6 +856,8 @@ function dust_unfilter_gradient(
 )
     gen = unfilter.generator
     model = gen.model
+    _odin_has_delay(model) &&
+        throw(ArgumentError("Delay models are not supported by deterministic likelihood gradients yet"))
     data = unfilter.data
 
     # Determine which parameters to differentiate

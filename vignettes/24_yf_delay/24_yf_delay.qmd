@@ -395,7 +395,7 @@ i_chain_idx_2_1 = i_chain_offset + 2  # I_chain[2, 1] in column-major
 for p in 1:n_particles
     state[i_chain_idx_2_1, p] = n_seed
 end
-Odin.dust_system_set_state!(sys, state)
+Odin.set_state!(sys, state)
 
 # Simulate
 result = Odin.simulate(sys, sim_times)
@@ -681,7 +681,7 @@ st1 = Odin.state(sys_c1)
 ic_off1 = N_age + N_age + N_age * 1
 st1[ic_off1 + 2, 1] = n_seed
 st1[N_age + 2, 1] -= n_seed
-Odin.dust_system_set_state!(sys_c1, st1)
+Odin.set_state!(sys_c1, st1)
 r1 = Odin.simulate(sys_c1, compare_times)
 I_exp = [sum(r1[(ic_off1+1):(ic_off1+N_age*1), 1, t]) for t in 1:length(compare_times)]
 
@@ -697,7 +697,7 @@ st2 = Odin.state(sys_c2)
 ic_off2 = N_age + N_age + N_age * 4
 st2[ic_off2 + 2, 1] = n_seed
 st2[N_age + 2, 1] -= n_seed
-Odin.dust_system_set_state!(sys_c2, st2)
+Odin.set_state!(sys_c2, st2)
 r2 = Odin.simulate(sys_c2, compare_times)
 I_erl = [sum(r2[(ic_off2+1):(ic_off2+N_age*3), 1, t]) for t in 1:length(compare_times)]
 
@@ -730,7 +730,7 @@ st_nv = Odin.state(sys_nv)
 for p in 1:n_particles
     st_nv[i_chain_idx_2_1, p] = n_seed
 end
-Odin.dust_system_set_state!(sys_nv, st_nv)
+Odin.set_state!(sys_nv, st_nv)
 result_nv = Odin.simulate(sys_nv, sim_times)
 
 I_vacc = vec(mean(sum(result[idx_I, :, :], dims=1), dims=2))

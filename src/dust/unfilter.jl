@@ -54,16 +54,25 @@ Run the deterministic unfilter and return the log-likelihood.
 Uses lightweight DP5 or SDIRK4 for Float64, DifferentialEquations.jl for AD (Dual numbers).
 """
 function dust_unfilter_run!(unfilter::DustUnfilter, pars::NamedTuple;
-                                save_snapshots::Union{Nothing, Vector{Float64}}=nothing)
+                                 save_snapshots::Union{Nothing, Vector{Float64}}=nothing)
     if unfilter.n_groups > 1 && unfilter.group_data !== nothing
         return _run_grouped_unfilter!(unfilter, pars; save_snapshots=save_snapshots)
     end
     return _unfilter_run_single!(unfilter, pars; save_snapshots=save_snapshots)
 end
 
+function dust_unfilter_run!(unfilter::DustUnfilter, pars_vec::AbstractVector{<:NamedTuple};
+                                save_snapshots::Union{Nothing, Vector{Float64}}=nothing)
+    unfilter.n_groups > 1 && unfilter.group_data !== nothing ||
+        throw(ArgumentError("Vector-of-parameters likelihoods require grouped unfilter data"))
+    return _run_grouped_unfilter!(unfilter, pars_vec; save_snapshots=save_snapshots)
+end
+
 function _unfilter_run_single!(unfilter::DustUnfilter, pars::NamedTuple;
                                 save_snapshots::Union{Nothing, Vector{Float64}}=nothing)
     model = unfilter.generator.model
+    _odin_has_delay(model) &&
+        throw(ArgumentError("Delay models are not supported by deterministic likelihoods yet"))
     n_state = model.n_state
     n_data = length(unfilter.data.times)
 
@@ -98,6 +107,8 @@ function _unfilter_run_single!(unfilter::DustUnfilter, pars::NamedTuple;
     t_end = data_times[end]
 
     rhs_fn! = (du, u, p, t) -> _odin_rhs!(model, du, u, p, t)
+    unfilter._last_snapshots = nothing
+    unfilter._last_trajectories = nothing
 
     # For Float64 path, use lightweight solvers (no DiffEq overhead)
     if T_el === Float64
@@ -119,6 +130,17 @@ function _unfilter_run_single!(unfilter::DustUnfilter, pars::NamedTuple;
                 data_t = unfilter.data.data[t_idx]
                 ll_t = _odin_compare_data(model, state_t, full_pars, data_t, data_times[t_idx])
                 log_likelihood += ll_t
+            end
+            unfilter._last_trajectories = copy(ws.result_matrix[:, 1:n_data])
+            if save_snapshots !== nothing
+                snap_dict = Dict{Float64, Vector{Float64}}()
+                for st in save_snapshots
+                    idx = findfirst(t -> abs(t - st) < 1e-10, data_times)
+                    if idx !== nothing
+                        snap_dict[st] = copy(ws.result_matrix[:, idx])
+                    end
+                end
+                unfilter._last_snapshots = snap_dict
             end
             return log_likelihood
         else
@@ -148,7 +170,7 @@ function _unfilter_run_single!(unfilter::DustUnfilter, pars::NamedTuple;
                 for st in save_snapshots
                     idx = findfirst(t -> abs(t - st) < 1e-10, data_times)
                     if idx !== nothing
-                        snap_dict[st] = ws.result_matrix[:, idx]
+                        snap_dict[st] = copy(ws.result_matrix[:, idx])
                     end
                 end
                 unfilter._last_snapshots = snap_dict
@@ -209,15 +231,39 @@ function _run_grouped_unfilter!(unfilter::DustUnfilter, pars::NamedTuple;
     total_ll = 0.0
     orig_data = unfilter.data
     orig_saveat = unfilter._saveat_cache
-    for g in 1:unfilter.n_groups
-        gdata = unfilter.group_data[g]
-        unfilter.data = gdata
-        unfilter._saveat_cache = collect(Float64, gdata.times)
-        ll = _unfilter_run_single!(unfilter, pars; save_snapshots=save_snapshots)
-        total_ll += ll
+    try
+        for g in 1:unfilter.n_groups
+            gdata = unfilter.group_data[g]
+            unfilter.data = gdata
+            unfilter._saveat_cache = gdata.times
+            ll = _unfilter_run_single!(unfilter, pars; save_snapshots=save_snapshots)
+            total_ll += ll
+        end
+    finally
+        unfilter.data = orig_data
+        unfilter._saveat_cache = orig_saveat
     end
-    unfilter.data = orig_data
-    unfilter._saveat_cache = orig_saveat
+    return total_ll
+end
+
+function _run_grouped_unfilter!(unfilter::DustUnfilter, pars_vec::AbstractVector{<:NamedTuple};
+                                save_snapshots=nothing)
+    length(pars_vec) == unfilter.n_groups ||
+        throw(ArgumentError("Expected $(unfilter.n_groups) parameter groups, got $(length(pars_vec))"))
+    total_ll = 0.0
+    orig_data = unfilter.data
+    orig_saveat = unfilter._saveat_cache
+    try
+        for g in 1:unfilter.n_groups
+            gdata = unfilter.group_data[g]
+            unfilter.data = gdata
+            unfilter._saveat_cache = gdata.times
+            total_ll += _unfilter_run_single!(unfilter, pars_vec[g]; save_snapshots=save_snapshots)
+        end
+    finally
+        unfilter.data = orig_data
+        unfilter._saveat_cache = orig_saveat
+    end
     return total_ll
 end
 

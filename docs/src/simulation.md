@@ -26,7 +26,7 @@ state = state(sys)
 ## Creating Systems
 
 A [`OdinModel`](@ref) is the compiled model factory returned by [`@odin`](@ref).
-Pass it to [`dust_system_create`](@ref) along with parameters to get a running [`DustSystem`](@ref):
+Pass it to [`System`](@ref) along with parameters to get a running [`DustSystem`](@ref):
 
 ```julia
 pars = (beta=0.5, gamma=0.1, N=1000.0, I0=10.0)
@@ -52,23 +52,22 @@ reset!(sys)
 state = state(sys)
 
 # Manually set state (vector broadcasts to all particles)
-dust_system_set_state!(sys, [990.0, 10.0, 0.0])
+set_state!(sys, [990.0, 10.0, 0.0])
 
 # Or set per-particle state (matrix)
-dust_system_set_state!(sys, state_matrix)
+set_state!(sys, state_matrix)
 ```
 
 ## Running Simulations
 
 ### Full trajectory
 
-[`dust_system_simulate`](@ref) collects output at specified times:
+[`simulate`](@ref) collects output at specified times:
 
 ```julia
 times = 0.0:1.0:100.0
 result = simulate(sys, times)
-# For 1 particle:  n_state × n_times matrix
-# For N particles: n_state × n_times × n_particles array
+# Returns n_state × n_particles × n_times
 ```
 
 For continuous models the built-in [DP5 or SDIRK4 solvers](@ref "ODE Solvers") are used;
@@ -88,7 +87,7 @@ state = state(sys)
 If the model has `compare_data` expressions (e.g. `cases ~ Poisson(I)`), evaluate per-particle log-likelihoods at the current time:
 
 ```julia
-ll = Odin.dust_system_compare_data(sys, data_at_t)
+ll = compare_data(sys, data_at_t)
 # Returns a vector of length n_particles
 ```
 
@@ -113,12 +112,12 @@ See [ODE Solvers](@ref) for details on the DP5 and SDIRK4 solvers.
 
 ```@docs
 Odin.OdinModel
+Odin.System
 Odin.DustSystem
-Odin.dust_system_create
-Odin.dust_system_simulate
-Odin.dust_system_run_to_time!
-Odin.dust_system_state
-Odin.dust_system_set_state!
-Odin.dust_system_set_state_initial!
-Odin.dust_system_compare_data
+Odin.simulate
+Odin.reset!
+Odin.state
+Odin.set_state!
+Odin.run_to!
+Odin.compare_data
 ```
