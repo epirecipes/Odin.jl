@@ -125,15 +125,29 @@ function _run_chain(model, sampler, n_steps, n_burnin, thinning, n_samples, n_pa
     return pars_out, density_out, acceptance_rate, obs_result
 end
 
+function _prepare_chain_models(model::MontyModel, n_chains::Int; require_isolation::Bool=false)
+    if _has_shared_state(model)
+        if model.clone === nothing
+            require_isolation && return nothing
+            return fill(model, n_chains)
+        end
+        return [_clone_model(model) for _ in 1:n_chains]
+    elseif model.clone !== nothing
+        return [_clone_model(model) for _ in 1:n_chains]
+    end
+    return fill(model, n_chains)
+end
+
 function _run_serial(model, sampler, n_steps, n_chains, n_burnin, thinning, n_samples, n_pars, initial, chain_rngs, observer=nothing)
     all_pars = zeros(Float64, n_pars, n_samples, n_chains)
     all_density = zeros(Float64, n_samples, n_chains)
     details = Dict{Symbol, Any}(:acceptance_rate => zeros(Float64, n_chains))
+    chain_models = _prepare_chain_models(model, n_chains)
 
     chain_observations = []
     for c in 1:n_chains
         pars_c, density_c, acc_rate, obs_c = _run_chain(
-            model, sampler, n_steps, n_burnin, thinning, n_samples, n_pars,
+            chain_models[c], sampler, n_steps, n_burnin, thinning, n_samples, n_pars,
             initial[:, c], chain_rngs[c], observer,
         )
         all_pars[:, :, c] .= pars_c
@@ -153,8 +167,9 @@ function _run_serial(model, sampler, n_steps, n_chains, n_burnin, thinning, n_sa
 end
 
 function _run_threaded(model, sampler, n_steps, n_chains, n_burnin, thinning, n_samples, n_pars, initial, chain_rngs, observer=nothing)
-    if model.properties.is_stochastic || model.gradient !== nothing
-        @warn "Threaded runner falling back to serial execution for models with mutable/shared likelihood state"
+    chain_models = _prepare_chain_models(model, n_chains; require_isolation=true)
+    if chain_models === nothing
+        @warn "Threaded runner falling back to serial execution for models with shared mutable state that cannot be isolated per chain"
         return _run_serial(model, sampler, n_steps, n_chains, n_burnin, thinning, n_samples, n_pars, initial, chain_rngs, observer)
     end
 
@@ -162,7 +177,7 @@ function _run_threaded(model, sampler, n_steps, n_chains, n_burnin, thinning, n_
 
     Threads.@threads for c in 1:n_chains
         results[c] = _run_chain(
-            model, sampler, n_steps, n_burnin, thinning, n_samples, n_pars,
+            chain_models[c], sampler, n_steps, n_burnin, thinning, n_samples, n_pars,
             initial[:, c], chain_rngs[c], observer,
         )
     end
@@ -212,8 +227,9 @@ end
 """Run all chains simultaneously in lock-step."""
 function _run_simultaneous(model, sampler, n_steps, n_chains, n_burnin, thinning,
                            n_samples, n_pars, initial, chain_rngs, observer=nothing)
-    chains = [ChainState(copy(initial[:, c]), model(initial[:, c])) for c in 1:n_chains]
-    sampler_states = [initialise(sampler, chains[c], model, chain_rngs[c]) for c in 1:n_chains]
+    chain_models = _prepare_chain_models(model, n_chains)
+    chains = [ChainState(copy(initial[:, c]), chain_models[c](initial[:, c])) for c in 1:n_chains]
+    sampler_states = [initialise(sampler, chains[c], chain_models[c], chain_rngs[c]) for c in 1:n_chains]
 
     all_pars = zeros(Float64, n_pars, n_samples, n_chains)
     all_density = zeros(Float64, n_samples, n_chains)
@@ -223,7 +239,7 @@ function _run_simultaneous(model, sampler, n_steps, n_chains, n_burnin, thinning
 
     for step_i in 1:n_steps
         for c in 1:n_chains
-            accepted = step!(sampler, chains[c], sampler_states[c], model, chain_rngs[c])
+            accepted = step!(sampler, chains[c], sampler_states[c], chain_models[c], chain_rngs[c])
             accepted && (n_accepted[c] += 1)
         end
 
@@ -234,9 +250,10 @@ function _run_simultaneous(model, sampler, n_steps, n_chains, n_burnin, thinning
                     all_pars[:, sample_idx, c] .= chains[c].pars
                     all_density[sample_idx, c] = chains[c].density
                     if observer !== nothing
-                        obs = applicable(observer.observe, model, chains[c], chain_rngs[c]) ?
-                            observer.observe(model, chains[c], chain_rngs[c]) :
-                            observer.observe(model, chain_rngs[c])
+                        chain_model = chain_models[c]
+                        obs = applicable(observer.observe, chain_model, chains[c], chain_rngs[c]) ?
+                            observer.observe(chain_model, chains[c], chain_rngs[c]) :
+                            observer.observe(chain_model, chain_rngs[c])
                         push!(chain_obs[c], obs)
                     end
                 end
@@ -262,8 +279,9 @@ end
 Falls back to threaded execution if no workers are available."""
 function _run_distributed(model, sampler, n_steps, n_chains, n_burnin, thinning,
                           n_samples, n_pars, initial, chain_rngs, observer=nothing)
-    if model.properties.is_stochastic || model.gradient !== nothing
-        @warn "Distributed runner falling back to serial execution for models with mutable/shared likelihood state"
+    chain_models = _prepare_chain_models(model, n_chains; require_isolation=true)
+    if chain_models === nothing
+        @warn "Distributed runner falling back to serial execution for models with shared mutable state that cannot be isolated per chain"
         return _run_serial(model, sampler, n_steps, n_chains, n_burnin, thinning, n_samples, n_pars, initial, chain_rngs, observer)
     end
 
@@ -296,7 +314,7 @@ function _run_distributed(model, sampler, n_steps, n_chains, n_burnin, thinning,
         chain_rng = chain_rngs[c]
         futures[c] = dist_mod.remotecall(
             _run_chain, worker_id,
-            model, sampler, n_steps, n_burnin, thinning,
+            chain_models[c], sampler, n_steps, n_burnin, thinning,
             n_samples, n_pars, chain_init, chain_rng, observer
         )
     end

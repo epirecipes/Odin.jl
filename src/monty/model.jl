@@ -10,6 +10,7 @@ struct MontyModelProperties
     has_direct_sample::Bool
     is_stochastic::Bool
     allow_multiple_parameters::Bool
+    has_shared_state::Bool
 end
 
 MontyModelProperties(;
@@ -17,21 +18,32 @@ MontyModelProperties(;
     has_direct_sample=false,
     is_stochastic=false,
     allow_multiple_parameters=false,
-) = MontyModelProperties(has_gradient, has_direct_sample, is_stochastic, allow_multiple_parameters)
+    has_shared_state=false,
+) = MontyModelProperties(
+    has_gradient,
+    has_direct_sample,
+    is_stochastic,
+    allow_multiple_parameters,
+    has_shared_state,
+)
 
 """
     MontyModel
 
 A model for MCMC sampling: wraps a log-density function and optional gradient.
 """
-struct MontyModel{D<:Function, G, S, Dom}
+struct MontyModel{D<:Function, G, S, Dom, C}
     parameters::Vector{String}
     density::D
     gradient::G                 # nothing or Function
     direct_sample::S            # nothing or Function
     domain::Dom                 # nothing or Matrix{Float64} (n_pars × 2, each row [lo, hi])
     properties::MontyModelProperties
+    clone::C                    # nothing or Function returning an isolated equivalent model
 end
+
+MontyModel(parameters, density, gradient, direct_sample, domain, properties) =
+    MontyModel(parameters, density, gradient, direct_sample, domain, properties, nothing)
 
 """
     monty_model(density; parameters, gradient, direct_sample, domain, properties)
@@ -44,13 +56,18 @@ function monty_model(
     gradient::Union{Nothing, Function}=nothing,
     direct_sample::Union{Nothing, Function}=nothing,
     domain::Union{Nothing, Matrix{Float64}}=nothing,
+    clone::Union{Nothing, Function}=nothing,
     properties::MontyModelProperties=MontyModelProperties(
         has_gradient=gradient !== nothing,
         has_direct_sample=direct_sample !== nothing,
     ),
 )
-    return MontyModel(parameters, density, gradient, direct_sample, domain, properties)
+    return MontyModel(parameters, density, gradient, direct_sample, domain, properties, clone)
 end
+
+_has_shared_state(model::MontyModel) = model.properties.has_shared_state
+_can_isolate_model(model::MontyModel) = !_has_shared_state(model) || model.clone !== nothing
+_clone_model(model::MontyModel) = model.clone === nothing ? model : model.clone()
 
 """
     (model::MontyModel)(x::AbstractVector) -> Float64
@@ -143,13 +160,68 @@ function monty_model_combine(a::MontyModel, b::MontyModel)
         has_direct_sample=false,
         is_stochastic=a.properties.is_stochastic || b.properties.is_stochastic,
         allow_multiple_parameters=false,
+        has_shared_state=a.properties.has_shared_state || b.properties.has_shared_state,
     )
 
-    return MontyModel(all_params, combined_density, combined_gradient, nothing, combined_domain, combined_props)
+    combined_clone = nothing
+    if (a.clone !== nothing || b.clone !== nothing || combined_props.has_shared_state) &&
+       _can_isolate_model(a) && _can_isolate_model(b)
+        combined_clone = () -> monty_model_combine(_clone_model(a), _clone_model(b))
+    end
+
+    return MontyModel(
+        all_params,
+        combined_density,
+        combined_gradient,
+        nothing,
+        combined_domain,
+        combined_props,
+        combined_clone,
+    )
 end
 
 # Operator overload: model1 + model2
 Base.:+(a::MontyModel, b::MontyModel) = monty_model_combine(a, b)
+
+function _clone_likelihood(filter::DustFilter)
+    if filter.n_groups > 1 && filter.group_data !== nothing
+        return dust_filter_create(
+            filter.generator,
+            filter.group_data;
+            time_start=Float64(filter.time_start),
+            n_particles=filter.n_particles,
+            dt=Float64(filter.dt),
+            seed=filter.seed,
+            save_trajectories=filter.save_trajectories,
+        )
+    end
+    return dust_filter_create(
+        filter.generator,
+        filter.data;
+        time_start=Float64(filter.time_start),
+        n_particles=filter.n_particles,
+        dt=Float64(filter.dt),
+        seed=filter.seed,
+        save_trajectories=filter.save_trajectories,
+    )
+end
+
+function _clone_likelihood(unfilter::DustUnfilter)
+    if unfilter.n_groups > 1 && unfilter.group_data !== nothing
+        return dust_unfilter_create(
+            unfilter.generator,
+            unfilter.group_data;
+            time_start=Float64(unfilter.time_start),
+            ode_control=unfilter.ode_control,
+        )
+    end
+    return dust_unfilter_create(
+        unfilter.generator,
+        unfilter.data;
+        time_start=Float64(unfilter.time_start),
+        ode_control=unfilter.ode_control,
+    )
+end
 
 """
     dust_likelihood_monty(filter_or_unfilter, packer) -> MontyModel
@@ -167,7 +239,8 @@ function dust_likelihood_monty(filter::DustFilter, packer::MontyPacker)
     return monty_model(
         density;
         parameters=param_names,
-        properties=MontyModelProperties(is_stochastic=true),
+        clone=() -> dust_likelihood_monty(_clone_likelihood(filter), packer),
+        properties=MontyModelProperties(is_stochastic=true, has_shared_state=true),
     )
 end
 
@@ -183,7 +256,8 @@ function dust_likelihood_monty(filter::DustFilter, packer::MontyPackerGrouped)
     return monty_model(
         density;
         parameters=param_names,
-        properties=MontyModelProperties(is_stochastic=true),
+        clone=() -> dust_likelihood_monty(_clone_likelihood(filter), packer),
+        properties=MontyModelProperties(is_stochastic=true, has_shared_state=true),
     )
 end
 
@@ -206,7 +280,12 @@ function dust_likelihood_monty(unfilter::DustUnfilter, packer::MontyPacker)
         density;
         parameters=param_names,
         gradient=gradient,
-        properties=MontyModelProperties(is_stochastic=false, has_gradient=true),
+        clone=() -> dust_likelihood_monty(_clone_likelihood(unfilter), packer),
+        properties=MontyModelProperties(
+            is_stochastic=false,
+            has_gradient=true,
+            has_shared_state=true,
+        ),
     )
 end
 
@@ -227,6 +306,11 @@ function dust_likelihood_monty(unfilter::DustUnfilter, packer::MontyPackerGroupe
         density;
         parameters=param_names,
         gradient=gradient,
-        properties=MontyModelProperties(is_stochastic=false, has_gradient=true),
+        clone=() -> dust_likelihood_monty(_clone_likelihood(unfilter), packer),
+        properties=MontyModelProperties(
+            is_stochastic=false,
+            has_gradient=true,
+            has_shared_state=true,
+        ),
     )
 end
