@@ -193,6 +193,83 @@ using Statistics
         end
     end
 
+    @testset "Likelihood gradients respect nonzero time_start" begin
+        sir_compare = @odin begin
+            deriv(S) = -beta * S * I / N
+            deriv(I) = beta * S * I / N - gamma * I
+            deriv(R) = gamma * I
+            initial(S) = N - I0
+            initial(I) = I0
+            initial(R) = 0
+            obs = data()
+            obs ~ Poisson(max(I, 1e-6))
+            beta = parameter(0.45)
+            gamma = parameter(0.12)
+            I0 = parameter(12)
+            N = parameter(1000)
+        end
+
+        offset_pars = (beta=0.45, gamma=0.12, I0=12.0, N=1000.0)
+        obs_times = collect(3.0:4.0:27.0)
+        sim = simulate(sir_compare, offset_pars; times=obs_times)
+        data_vec = [(time=obs_times[i], obs=max(1.0, round(sim[2, 1, i])))
+                    for i in 1:length(obs_times)]
+        fdata = Odin.ObservedData(data_vec)
+
+        lik = Likelihood(sir_compare, fdata; time_start=-2.0)
+        expected_lik = Likelihood(sir_compare, fdata; time_start=-2.0)
+        expected_ll = loglik(expected_lik, offset_pars)
+        packer = Packer([:beta, :gamma]; fixed=(I0=12.0, N=1000.0))
+
+        fwd = loglik_gradient(lik, offset_pars, packer; method=:forward)
+        adj = loglik_gradient(lik, offset_pars, packer; method=:adjoint)
+
+        @test fwd.log_likelihood ≈ expected_ll atol=1e-4
+        @test adj.log_likelihood ≈ expected_ll atol=1e-4
+        @test fwd.log_likelihood ≈ adj.log_likelihood atol=1e-4
+    end
+
+    @testset "Likelihood gradients include direct compare_data parameter effects" begin
+        sir_scaled = @odin begin
+            deriv(S) = -beta * S * I / N
+            deriv(I) = beta * S * I / N - gamma * I
+            deriv(R) = gamma * I
+            initial(S) = N - I0
+            initial(I) = I0
+            initial(R) = 0
+            report_scale = parameter(1.2, differentiate = true)
+            obs = data()
+            obs ~ Poisson(max(report_scale * I, 1e-6))
+            beta = parameter(0.4, differentiate = true)
+            gamma = parameter(0.1)
+            I0 = parameter(10)
+            N = parameter(1000)
+        end
+
+        scaled_pars = (beta=0.4, gamma=0.1, I0=10.0, N=1000.0, report_scale=1.2)
+        scaled_times = collect(5.0:5.0:30.0)
+        sim = simulate(sir_scaled, scaled_pars; times=scaled_times)
+        data_vec = [(time=scaled_times[i], obs=max(1.0, round(1.2 * sim[2, 1, i])))
+                    for i in 1:length(scaled_times)]
+        lik = Likelihood(sir_scaled, Odin.ObservedData(data_vec))
+        packer = Packer([:beta, :report_scale]; fixed=(gamma=0.1, I0=10.0, N=1000.0))
+
+        fwd = loglik_gradient(lik, scaled_pars, packer; method=:forward)
+        adj = loglik_gradient(lik, scaled_pars, packer; method=:adjoint)
+
+        eps_fd = 1e-5
+        fd = zeros(2)
+        for (j, pname) in enumerate((:beta, :report_scale))
+            pv = scaled_pars[pname]
+            p_plus = merge(scaled_pars, NamedTuple{(pname,)}((pv + eps_fd,)))
+            p_minus = merge(scaled_pars, NamedTuple{(pname,)}((pv - eps_fd,)))
+            fd[j] = (loglik(lik, p_plus) - loglik(lik, p_minus)) / (2 * eps_fd)
+        end
+
+        @test fwd.gradient ≈ fd rtol=0.15 atol=5.0
+        @test adj.gradient ≈ fd rtol=0.15 atol=5.0
+    end
+
     @testset "Array adjoint sensitivity matches finite differences" begin
         sir_array = @odin begin
             dim(S) = n_age

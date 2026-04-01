@@ -136,6 +136,69 @@ using Odin
         @test ll_time5 > ll_time0
     end
 
+    @testset "Unfilter handles parameter-dependent array dimensions" begin
+        # Regression: models with dim(X)=n where n=parameter() have
+        # model.n_state==0 at construction; the unfilter must resize its
+        # state cache at runtime once actual parameters are supplied.
+        sir_age = @odin begin
+            dim(S) = n_age
+            dim(I) = n_age
+            dim(R) = n_age
+            dim(cases) = n_age
+            deriv(S[i]) = -beta * S[i] * sum(I) / N
+            deriv(I[i]) = beta * S[i] * sum(I) / N - gamma * I[i]
+            deriv(R[i]) = gamma * I[i]
+            initial(S[i]) = S0[i]
+            initial(I[i]) = I0[i]
+            initial(R[i]) = 0
+            cases[i] = data()
+            cases[i] ~ Poisson(max(I[i], 1e-6))
+            dim(S0) = n_age
+            dim(I0) = n_age
+            S0[i] = parameter(330)
+            I0[i] = parameter(5)
+            n_age = parameter(3)
+            beta = parameter(0.5)
+            gamma = parameter(0.1)
+            N = parameter(1000)
+        end
+
+        @test sir_age.model.n_state == 0  # static size unknown
+
+        pars = (n_age=3, beta=0.5, gamma=0.1, N=1000.0,
+                S0=[330.0, 330.0, 330.0], I0=[5.0, 3.0, 2.0])
+
+        # Simulate and build synthetic data
+        sim_times = collect(1.0:1.0:20.0)
+        sim = simulate(sir_age, pars; times=sim_times, seed=42)
+        @test size(sim, 1) == 9  # 3 S + 3 I + 3 R
+        obs_times = collect(5.0:5.0:20.0)
+        data_vec = NamedTuple[]
+        for t in obs_times
+            ti = findfirst(==(t), sim_times)
+            I_vals = sim[4:6, 1, ti]
+            obs = max.(round.(I_vals), 1.0)
+            push!(data_vec, (time=t, cases=obs))
+        end
+        fdata = ObservedData(data_vec)
+
+        uf = Likelihood(sir_age, fdata; time_start=0.0)
+        ll = loglik(uf, pars)
+        @test isfinite(ll)
+
+        # Verify trajectory shape is correct (n_state × n_obs)
+        traj = last_trajectories(uf.inner)
+        @test traj !== nothing
+        @test size(traj, 1) == 9
+        @test size(traj, 2) == length(obs_times)
+
+        # Verify trajectory matches independent simulation at obs times
+        sim_full = simulate(sir_age, pars; times=obs_times, seed=42)
+        for (j, _) in enumerate(obs_times)
+            @test traj[:, j] ≈ sim_full[:, 1, j] atol=1e-6
+        end
+    end
+
     @testset "Grouped packer works with grouped likelihood" begin
         model = @odin begin
             deriv(x) = -rate * x

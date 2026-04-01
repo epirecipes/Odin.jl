@@ -440,6 +440,24 @@ _odin_vjp_params!, and the _odin_has_symbolic_jacobian flag.
 Returns `nothing` if symbolic differentiation is not possible for this model.
 """
 function _gen_symbolic_jacobian(phases, cl, sv_set, model_name)
+    # Guard: bail out for large models where symbolic differentiation
+    # would take unreasonable time.  The runtime falls back to numerical
+    # (ForwardDiff-based) Jacobian when no symbolic version is available.
+    n_sv_estimate = length(sv_set)
+    if _has_arrays(cl)
+        for v in sv_set
+            if haskey(cl.dims, v)
+                dim_size = _resolve_static_dims(cl.dims[v], cl)
+                if dim_size !== nothing
+                    n_sv_estimate += prod(dim_size) - 1
+                end
+            end
+        end
+    end
+    if n_sv_estimate > 15
+        return nothing
+    end
+
     result = _build_symbolic_rhs(phases, cl, sv_set)
     if result === nothing
         return nothing

@@ -73,14 +73,12 @@ function _unfilter_run_single!(unfilter::DustUnfilter, pars::NamedTuple;
     model = unfilter.generator.model
     _odin_has_delay(model) &&
         throw(ArgumentError("Delay models are not supported by deterministic likelihoods yet"))
-    n_state = model.n_state
-    n_data = length(unfilter.data.times)
-
-    # Merge dt into pars (compare_data may reference it)
     full_pars = _merge_pars(model, pars, 1.0)
     if model.has_interpolation
         full_pars = _odin_setup_pars(model, full_pars)
     end
+    n_state = _odin_n_state(model, full_pars)
+    n_data = length(unfilter.data.times)
 
     # Determine element type from parameters (supports ForwardDiff Dual numbers)
     T_el = Float64
@@ -93,6 +91,9 @@ function _unfilter_run_single!(unfilter::DustUnfilter, pars::NamedTuple;
     # Create initial state — reuse cache for Float64 path, allocate for AD
     if T_el === Float64
         state = unfilter._state_cache
+        if length(state) != n_state
+            resize!(state, n_state)
+        end
         fill!(state, zero(Float64))
         rng = unfilter._rng_cache
     else

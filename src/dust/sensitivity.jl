@@ -71,7 +71,7 @@ end
 
 """
     dust_sensitivity_forward(gen, pars; times, params_of_interest, solver=:dp5,
-                             ode_control=DustODEControl())
+                             ode_control=DustODEControl(), time_start=0.0)
 
 Compute forward sensitivities ∂u/∂p by solving the augmented variational system.
 
@@ -95,6 +95,7 @@ function dust_sensitivity_forward(
     params_of_interest::Vector{Symbol},
     solver::Symbol=:dp5,
     ode_control::DustODEControl=DustODEControl(),
+    time_start::Float64=0.0,
 )
     model = gen.model
     @assert model.is_continuous "Forward sensitivity requires a continuous (ODE) model"
@@ -140,7 +141,7 @@ function dust_sensitivity_forward(
                                              n_state, n_params)
 
     # Solve the augmented system
-    t_start = 0.0
+    t_start = time_start
     t_end = last(times)
 
     if solver === :sdirk
@@ -249,7 +250,7 @@ end
 """
     dust_sensitivity_adjoint(gen, pars, loss_fn; times, params_of_interest,
                              solver=:dp5, ode_control=DustODEControl(),
-                             n_checkpoints=50)
+                             n_checkpoints=50, time_start=0.0)
 
 Compute the gradient ∂L/∂p of a scalar loss function using the adjoint method.
 
@@ -278,6 +279,7 @@ function dust_sensitivity_adjoint(
     adjoint_solver::Union{Symbol,Nothing}=nothing,
     ode_control::DustODEControl=DustODEControl(),
     n_checkpoints::Int=50,
+    time_start::Float64=0.0,
 )
     adj_solver = something(adjoint_solver, solver)
     model = gen.model
@@ -294,16 +296,16 @@ function dust_sensitivity_adjoint(
     n_aug = n_state + n_params  # augmented system: [λ; grad_p]
 
     # ── Step 1: Forward solve and store trajectory at data times ──
-    # Include t=0 so we have forward state for the [0, times[1]] interval
+    # Include the solve start time so we have the forward state for the first interval.
     u0 = zeros(Float64, n_state)
     _odin_initial!(model, u0, full_pars, Random.Xoshiro())
 
     rhs_fn! = (du, u, p, t) -> _odin_rhs!(model, du, u, p, t)
 
-    t_start = 0.0
+    t_start = time_start
     t_end = last(times)
-    all_saveat = vcat(0.0, collect(times))
-    # Remove duplicate if times[1] == 0
+    all_saveat = vcat(time_start, collect(times))
+    # Remove duplicate if the first observation is at the solve start time.
     unique!(all_saveat)
     sort!(all_saveat)
     n_all = length(all_saveat)
@@ -518,10 +520,31 @@ function _add_loss_gradient!(lambda, loss_fn, fwd_traj, ti, times, n_state)
 end
 
 """Accumulate discrete parameter gradient contribution at time `ti`."""
-function _accumulate_param_gradient!(grad_p, lambda, model, full_pars, fwd_traj, ti,
-                                      times, params_of_interest, n_state, n_params,
-                                      du_buf, du_buf2, eps_jac)
-    # No continuous accumulation at a discrete point — handled by the integral
+function _accumulate_param_gradient!(
+    grad_p,
+    model,
+    full_pars,
+    state_t,
+    data_t,
+    t,
+    params_of_interest,
+)
+    eps_param = 1e-7
+    for (jp, pname) in enumerate(params_of_interest)
+        pv = Float64(full_pars[pname])
+        h_p = eps_param * max(abs(pv), 1.0)
+
+        pars_plus = merge(full_pars, NamedTuple{(pname,)}((pv + h_p,)))
+        pars_minus = merge(full_pars, NamedTuple{(pname,)}((pv - h_p,)))
+        if model.has_interpolation
+            pars_plus = _odin_setup_pars(model, pars_plus)
+            pars_minus = _odin_setup_pars(model, pars_minus)
+        end
+
+        ll_plus = _odin_compare_data(model, state_t, pars_plus, data_t, t)
+        ll_minus = _odin_compare_data(model, state_t, pars_minus, data_t, t)
+        grad_p[jp] += (ll_plus - ll_minus) / (2 * h_p)
+    end
     return nothing
 end
 
@@ -860,6 +883,9 @@ function dust_unfilter_gradient(
         throw(ArgumentError("Delay models are not supported by deterministic likelihood gradients yet"))
     data = unfilter.data
 
+    exact_ll = dust_unfilter_run!(unfilter, pars)
+    trajectories = last_trajectories(unfilter)
+
     # Determine which parameters to differentiate
     param_names = packer.names
 
@@ -869,9 +895,31 @@ function dust_unfilter_gradient(
     end
 
     if method === :forward
-        return _unfilter_gradient_forward(gen, model, full_pars, data, param_names, solver, ode_control)
+        return _unfilter_gradient_forward(
+            gen,
+            model,
+            full_pars,
+            data,
+            param_names,
+            solver,
+            ode_control,
+            unfilter.time_start,
+            exact_ll,
+            trajectories,
+        )
     elseif method === :adjoint
-        return _unfilter_gradient_adjoint(gen, model, full_pars, data, param_names, solver, ode_control)
+        return _unfilter_gradient_adjoint(
+            gen,
+            model,
+            full_pars,
+            data,
+            param_names,
+            solver,
+            ode_control,
+            unfilter.time_start,
+            exact_ll,
+            trajectories,
+        )
     else
         error("Unknown gradient method: $method. Use :forward or :adjoint.")
     end
@@ -912,9 +960,25 @@ function dust_unfilter_gradient(
     return (log_likelihood=total_ll, gradient=total_grad)
 end
 
-function _unfilter_gradient_forward(gen, model, full_pars, data, param_names, solver, ode_control)
+function _unfilter_gradient_forward(
+    gen,
+    model,
+    full_pars,
+    data,
+    param_names,
+    solver,
+    ode_control,
+    time_start,
+    exact_ll,
+    trajectories,
+)
     fwd = dust_sensitivity_forward(gen, full_pars;
-        times=data.times, params_of_interest=collect(param_names), solver=solver, ode_control=ode_control)
+        times=data.times,
+        params_of_interest=collect(param_names),
+        solver=solver,
+        ode_control=ode_control,
+        time_start=time_start,
+    )
 
     n_state = size(fwd.trajectory, 1)
     n_params = length(param_names)
@@ -926,7 +990,7 @@ function _unfilter_gradient_forward(gen, model, full_pars, data, param_names, so
 
     eps_ll = 1e-7
     for ti in 1:n_times
-        state_t = fwd.trajectory[:, ti]
+        state_t = trajectories === nothing ? fwd.trajectory[:, ti] : @view trajectories[:, ti]
         data_t = data.data[ti]
         t = data.times[ti]
 
@@ -948,12 +1012,25 @@ function _unfilter_gradient_forward(gen, model, full_pars, data, param_names, so
                 grad[jp] += dll_du[i] * fwd.sensitivities[i, jp, ti]
             end
         end
+
+        _accumulate_param_gradient!(grad, model, full_pars, state_t, data_t, t, param_names)
     end
 
-    return (log_likelihood=ll, gradient=grad)
+    return (log_likelihood=exact_ll, gradient=grad)
 end
 
-function _unfilter_gradient_adjoint(gen, model, full_pars, data, param_names, solver, ode_control)
+function _unfilter_gradient_adjoint(
+    gen,
+    model,
+    full_pars,
+    data,
+    param_names,
+    solver,
+    ode_control,
+    time_start,
+    exact_ll,
+    trajectories,
+)
     loss_fn = (state, t) -> begin
         # Find the data point closest to time t
         ti = findfirst(τ -> abs(τ - t) < 1e-10, data.times)
@@ -963,9 +1040,19 @@ function _unfilter_gradient_adjoint(gen, model, full_pars, data, param_names, so
 
     result = dust_sensitivity_adjoint(gen, full_pars, loss_fn;
         times=data.times, params_of_interest=collect(param_names),
-        solver=solver, ode_control=ode_control)
+        solver=solver, ode_control=ode_control, time_start=time_start)
 
-    return (log_likelihood=result.loss_value, gradient=result.gradient)
+    grad = copy(result.gradient)
+    if trajectories !== nothing
+        for ti in eachindex(data.times)
+            state_t = @view trajectories[:, ti]
+            data_t = data.data[ti]
+            t = data.times[ti]
+            _accumulate_param_gradient!(grad, model, full_pars, state_t, data_t, t, param_names)
+        end
+    end
+
+    return (log_likelihood=exact_ll, gradient=grad)
 end
 
 # Helper: compute mean of a vector

@@ -182,10 +182,237 @@ data.frame(
 )
 ```
 
+## DZA real-data slice
+
+We also vendor a processed slice of the DZA example data plus the associated
+intervention multiplier into this vignette directory so the benchmark can run
+without depending on the external `mpoxseir` checkout.
+
+```{r}
+dza_daily <- read.csv(file.path("..", "data", "dza_daily.csv"))
+dza_intervention <- read.csv(file.path("..", "data", "dza_intervention.csv"))
+
+obs_dza <- data.frame(
+  time = dza_daily$day,
+  cases = dza_daily$cases,
+  deaths = dza_daily$deaths
+)
+
+summary(obs_dza)
+```
+
+## DZA interpolation model
+
+```{r}
+mpox_det_dza <- odin({
+  contact_multiplier <- interpolate(contact_time, contact_value, "constant")
+  total_I <- I_mild + I_hosp + I_ICU
+  force <- beta * contact_multiplier * S * total_I / N
+  cases_rate <- case_scale * gamma * E
+  deaths_rate <- death_scale * mu * total_I
+
+  deriv(S) <- -force
+  deriv(E) <- force - gamma * E
+  deriv(I_mild) <- p_mild * gamma * E - sigma * I_mild - mu * I_mild
+  deriv(I_hosp) <- p_hosp * gamma * E - sigma * I_hosp - mu * I_hosp
+  deriv(I_ICU) <- p_ICU * gamma * E - sigma * I_ICU - mu * I_ICU
+  deriv(R) <- sigma * total_I
+  deriv(D) <- deaths_rate
+
+  N <- S + E + I_mild + I_hosp + I_ICU + R + D
+
+  cases <- data()
+  deaths <- data()
+  cases ~ Poisson(max(cases_rate, 1e-6))
+  deaths ~ Poisson(max(deaths_rate, 1e-6))
+
+  initial(S) <- S0
+  initial(E) <- E0
+  initial(I_mild) <- I_mild0
+  initial(I_hosp) <- I_hosp0
+  initial(I_ICU) <- I_ICU0
+  initial(R) <- R0
+  initial(D) <- D0
+
+  contact_time[] <- parameter()
+  contact_value[] <- parameter()
+  dim(contact_time, contact_value) <- parameter(rank = 1)
+
+  S0 <- parameter(500000)
+  E0 <- parameter(40)
+  I_mild0 <- parameter(10)
+  I_hosp0 <- parameter(3)
+  I_ICU0 <- parameter(1)
+  R0 <- parameter(0)
+  D0 <- parameter(0)
+  gamma <- parameter(1 / 7)
+  sigma <- parameter(1 / 10)
+  mu <- parameter(0.004)
+  p_mild <- parameter(0.85)
+  p_hosp <- parameter(0.10)
+  p_ICU <- parameter(0.05)
+  beta <- parameter(0.38)
+  case_scale <- parameter(8)
+  death_scale <- parameter(2.5)
+})
+```
+
+## DZA likelihood and finite-difference benchmark
+
+```{r}
+dza_pars <- list(
+  contact_time = dza_intervention$day,
+  contact_value = dza_intervention$contact_multiplier,
+  S0 = 500000, E0 = 40, I_mild0 = 10, I_hosp0 = 3, I_ICU0 = 1, R0 = 0, D0 = 0,
+  gamma = 1 / 7, sigma = 1 / 10, mu = 0.004, p_mild = 0.85, p_hosp = 0.10, p_ICU = 0.05,
+  beta = 0.38, case_scale = 8, death_scale = 2.5
+)
+
+dza_lik <- dust_unfilter_create(mpox_det_dza, time_start = -1, data = obs_dza)
+dza_ll <- dust_likelihood_run(dza_lik, dza_pars)
+dza_ll
+```
+
+```{r}
+fd_gradient_dza <- function(pars, eps = 1e-5) {
+  target <- c("beta", "mu", "case_scale", "death_scale")
+  g <- numeric(length(target))
+  names(g) <- target
+
+  for (i in seq_along(target)) {
+    nm <- target[i]
+    p_plus <- pars
+    p_minus <- pars
+    p_plus[[nm]] <- p_plus[[nm]] + eps
+    p_minus[[nm]] <- p_minus[[nm]] - eps
+    g[i] <- (
+      dust_likelihood_run(dza_lik, p_plus) -
+      dust_likelihood_run(dza_lik, p_minus)
+    ) / (2 * eps)
+  }
+
+  g
+}
+
+fd_gradient_dza(dza_pars)
+```
+
+```{r}
+dza_simulation_ms <- system.time(replicate(20, {
+  s <- dust_system_create(
+    mpox_det_dza,
+    dza_pars,
+    n_particles = 1L,
+    preserve_particle_dimension = TRUE
+  )
+  dust_system_set_state_initial(s)
+  dust_system_simulate(s, 0:max(dza_daily$day))
+}))[["elapsed"]] / 20 * 1000
+
+dza_likelihood_ms <- system.time(replicate(20, {
+  dust_likelihood_run(dza_lik, dza_pars)
+}))[["elapsed"]] / 20 * 1000
+
+dza_fd_ms <- system.time(replicate(5, {
+  fd_gradient_dza(dza_pars)
+}))[["elapsed"]] / 5 * 1000
+
+data.frame(
+  simulation_ms = dza_simulation_ms,
+  likelihood_ms = dza_likelihood_ms,
+  finite_difference_gradient_ms = dza_fd_ms,
+  fd_over_likelihood = dza_fd_ms / dza_likelihood_ms
+)
+```
+
+## DZA point fit
+
+For a small deterministic fitting step, we use the same log-space backtracking
+ascent idea as the Julia vignette. Here the gradient comes from the finite-
+difference baseline, which makes the runtime gap between the two ecosystems
+explicit while still keeping the overall optimisation logic comparable.
+
+```{r}
+fit_logspace_fd <- function(lik, fixed_pars, initial_free,
+                            target = c("beta", "case_scale", "death_scale"),
+                            step = 0.2, max_iter = 40, min_step = 1e-6,
+                            eps = 1e-5) {
+  theta <- log(unlist(initial_free[target], use.names = FALSE))
+  names(theta) <- target
+
+  current_free <- as.list(stats::setNames(exp(theta), target))
+  current_pars <- modifyList(fixed_pars, current_free)
+  current_ll <- dust_likelihood_run(lik, current_pars)
+  current_grad <- fd_gradient_dza(current_pars, eps = eps)[target]
+  history <- current_ll
+
+  for (iter in seq_len(max_iter)) {
+    g_theta <- as.numeric(current_grad) * exp(theta)
+    grad_norm <- sqrt(sum(g_theta^2))
+    if (grad_norm == 0) {
+      break
+    }
+
+    accepted <- FALSE
+    trial_step <- step
+    while (trial_step >= min_step) {
+      theta_trial <- theta + trial_step * g_theta / max(grad_norm, 1)
+      free_trial <- as.list(stats::setNames(exp(theta_trial), target))
+      pars_trial <- modifyList(fixed_pars, free_trial)
+      ll_trial <- dust_likelihood_run(lik, pars_trial)
+
+      if (is.finite(ll_trial) && ll_trial > current_ll + 1e-6) {
+        theta <- theta_trial
+        current_free <- free_trial
+        current_pars <- pars_trial
+        current_ll <- ll_trial
+        current_grad <- fd_gradient_dza(current_pars, eps = eps)[target]
+        history <- c(history, current_ll)
+        accepted <- TRUE
+        break
+      }
+
+      trial_step <- trial_step / 2
+    }
+
+    if (!accepted) {
+      break
+    }
+  }
+
+  list(
+    free = current_free,
+    pars = current_pars,
+    log_likelihood = current_ll,
+    history = history
+  )
+}
+
+dza_fit_fixed <- modifyList(
+  dza_pars,
+  list(beta = NULL, case_scale = NULL, death_scale = NULL)
+)
+dza_fit_initial <- list(beta = 0.24, case_scale = 5.5, death_scale = 1.6)
+dza_fit_start_ll <- dust_likelihood_run(dza_lik, modifyList(dza_fit_fixed, dza_fit_initial))
+dza_fit <- fit_logspace_fd(dza_lik, dza_fit_fixed, dza_fit_initial)
+dza_fit_ms <- system.time({
+  fit_logspace_fd(dza_lik, dza_fit_fixed, dza_fit_initial)
+})[["elapsed"]] * 1000
+
+list(
+  start_loglik = dza_fit_start_ll,
+  final_loglik = dza_fit$log_likelihood,
+  fitted = dza_fit$free,
+  n_iterations = length(dza_fit$history) - 1,
+  point_fit_ms = dza_fit_ms
+)
+```
+
 ## Summary
 
-The R and Julia benchmark vignettes now use the same deterministic mpox model
-and the same synthetic data construction. In Julia, this is enough to compare
-forward and adjoint gradients directly. In the R companion, the matching
-baseline is finite differences, which makes the gradient cost gap visible even
-on a compact deterministic mpox example.
+The R and Julia benchmark vignettes now share both a compact synthetic mpox
+benchmark and a processed DZA real-data slice. In Julia, this is enough to
+compare forward and adjoint gradients directly. In the R companion, the
+matching baseline is finite differences, which makes the gradient cost gap
+visible on both the synthetic and real-data deterministic examples, including a
+small DZA point-fit workflow.

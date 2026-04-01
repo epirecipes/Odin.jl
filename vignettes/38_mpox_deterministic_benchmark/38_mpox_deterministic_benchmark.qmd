@@ -27,7 +27,9 @@ reference used elsewhere in this workspace.
 
 ```{julia}
 using BenchmarkTools
+using DelimitedFiles
 using Distributions
+using LinearAlgebra
 using Odin
 using Random
 using Statistics
@@ -151,6 +153,45 @@ carrying all parameter sensitivities through the solve.
 ```{julia}
 bench_ms(f; samples=20) = median(@benchmark $f() samples=samples evals=1).time / 1e6
 
+function fit_logspace(lik, packer, fixed_pars, initial_free; step=0.2, max_iter=40, min_step=1e-6)
+    theta = log.(Odin.pack(packer, initial_free))
+    current_free = Odin.unpack(packer, exp.(theta))
+    current_pars = merge(fixed_pars, current_free)
+    current_ll = loglik(lik, current_pars)
+    current_grad = loglik_gradient(lik, current_pars, packer; method=:adjoint).gradient
+    history = Float64[current_ll]
+
+    for _ in 1:max_iter
+        grad_theta = current_grad .* exp.(theta)
+        grad_norm = norm(grad_theta)
+        grad_norm == 0 && break
+
+        accepted = false
+        trial_step = step
+        while trial_step >= min_step
+            theta_trial = theta .+ trial_step .* grad_theta ./ max(grad_norm, 1.0)
+            free_trial = Odin.unpack(packer, exp.(theta_trial))
+            pars_trial = merge(fixed_pars, free_trial)
+            ll_trial = loglik(lik, pars_trial)
+            if isfinite(ll_trial) && ll_trial > current_ll + 1e-6
+                theta = theta_trial
+                current_free = free_trial
+                current_pars = pars_trial
+                current_ll = ll_trial
+                current_grad = loglik_gradient(lik, current_pars, packer; method=:adjoint).gradient
+                push!(history, current_ll)
+                accepted = true
+                break
+            end
+            trial_step *= 0.5
+        end
+
+        accepted || break
+    end
+
+    (; free=current_free, pars=current_pars, log_likelihood=current_ll, history=history)
+end
+
 simulation_ms = bench_ms(() -> simulate(mpox_det, true_pars; times=times, seed=123))
 likelihood_ms = bench_ms(() -> loglik(lik, candidate_pars))
 forward_ms = bench_ms(() -> loglik_gradient(lik, candidate_pars, packer; method=:forward))
@@ -168,6 +209,178 @@ benchmark_summary = (
 benchmark_summary
 ```
 
+## DZA real-data slice
+
+The synthetic benchmark above is a fast smoke test. To move one step closer to
+the production `mpoxseir` workflow, this vignette also vendors a processed
+example DZA data slice and the corresponding intervention multiplier:
+
+```{julia}
+dza_daily, _ = readdlm("data/dza_daily.csv", ',', Float64, '\n', header=true)
+dza_intervention, _ = readdlm("data/dza_intervention.csv", ',', Float64, '\n', header=true)
+
+dza_obs = ObservedData([
+    (time=row[1], cases=round(Int, row[2]), deaths=round(Int, row[3]))
+    for row in eachrow(dza_daily)
+])
+
+(;
+    n_observations = size(dza_daily, 1),
+    first_day = dza_daily[1, 1],
+    last_day = dza_daily[end, 1],
+    peak_cases = maximum(dza_daily[:, 2]),
+    peak_deaths = maximum(dza_daily[:, 3]),
+)
+```
+
+## DZA interpolation model
+
+```{julia}
+mpox_det_dza = @odin begin
+    contact_multiplier = interpolate(contact_time, contact_value, :constant)
+    total_I = I_mild + I_hosp + I_ICU
+    force = beta * contact_multiplier * S * total_I / N
+    cases_rate = case_scale * gamma * E
+    deaths_rate = death_scale * mu * total_I
+
+    deriv(S) = -force
+    deriv(E) = force - gamma * E
+    deriv(I_mild) = p_mild * gamma * E - sigma * I_mild - mu * I_mild
+    deriv(I_hosp) = p_hosp * gamma * E - sigma * I_hosp - mu * I_hosp
+    deriv(I_ICU) = p_ICU * gamma * E - sigma * I_ICU - mu * I_ICU
+    deriv(R) = sigma * total_I
+    deriv(D) = deaths_rate
+
+    N = S + E + I_mild + I_hosp + I_ICU + R + D
+
+    output(cases_rate_out) = cases_rate
+    output(deaths_rate_out) = deaths_rate
+
+    cases = data()
+    deaths = data()
+    cases ~ Poisson(max(cases_rate, 1e-6))
+    deaths ~ Poisson(max(deaths_rate, 1e-6))
+
+    initial(S) = S0
+    initial(E) = E0
+    initial(I_mild) = I_mild0
+    initial(I_hosp) = I_hosp0
+    initial(I_ICU) = I_ICU0
+    initial(R) = R0
+    initial(D) = D0
+
+    contact_time = parameter(rank=1)
+    contact_value = parameter(rank=1)
+    S0 = parameter(500_000.0)
+    E0 = parameter(40.0)
+    I_mild0 = parameter(10.0)
+    I_hosp0 = parameter(3.0)
+    I_ICU0 = parameter(1.0)
+    R0 = parameter(0.0)
+    D0 = parameter(0.0)
+    gamma = parameter(1 / 7)
+    sigma = parameter(1 / 10)
+    mu = parameter(0.004, differentiate = true)
+    p_mild = parameter(0.85)
+    p_hosp = parameter(0.10)
+    p_ICU = parameter(0.05)
+    beta = parameter(0.38, differentiate = true)
+    case_scale = parameter(8.0, differentiate = true)
+    death_scale = parameter(2.5, differentiate = true)
+end
+```
+
+This is still deliberately compact, but it adds two useful parity features:
+
+1. a time-varying contact multiplier via `interpolate(..., :constant)`, and
+2. a two-stream deterministic likelihood over cases and deaths.
+
+## DZA likelihood and gradient benchmark
+
+```{julia}
+dza_pars = (
+    contact_time=dza_intervention[:, 1],
+    contact_value=dza_intervention[:, 2],
+    S0=500_000.0, E0=40.0, I_mild0=10.0, I_hosp0=3.0, I_ICU0=1.0, R0=0.0, D0=0.0,
+    gamma=1 / 7, sigma=1 / 10, mu=0.004, p_mild=0.85, p_hosp=0.10, p_ICU=0.05,
+    beta=0.38, case_scale=8.0, death_scale=2.5,
+)
+
+dza_lik = Likelihood(mpox_det_dza, dza_obs; time_start=-1.0)
+dza_packer = Packer([:beta, :mu, :case_scale, :death_scale])
+
+dza_forward = loglik_gradient(dza_lik, dza_pars, dza_packer; method=:forward)
+dza_adjoint = loglik_gradient(dza_lik, dza_pars, dza_packer; method=:adjoint)
+
+(;
+    loglik_forward = dza_forward.log_likelihood,
+    loglik_adjoint = dza_adjoint.log_likelihood,
+    gradient_forward = dza_forward.gradient,
+    gradient_adjoint = dza_adjoint.gradient,
+)
+```
+
+```{julia}
+dza_simulation_ms = bench_ms(() -> simulate(
+    mpox_det_dza,
+    dza_pars;
+    times=collect(0.0:1.0:maximum(dza_daily[:, 1])),
+    seed=123,
+))
+dza_likelihood_ms = bench_ms(() -> loglik(dza_lik, dza_pars))
+dza_forward_ms = bench_ms(() -> loglik_gradient(dza_lik, dza_pars, dza_packer; method=:forward))
+dza_adjoint_ms = bench_ms(() -> loglik_gradient(dza_lik, dza_pars, dza_packer; method=:adjoint))
+
+(;
+    simulation_ms = dza_simulation_ms,
+    likelihood_ms = dza_likelihood_ms,
+    forward_gradient_ms = dza_forward_ms,
+    adjoint_gradient_ms = dza_adjoint_ms,
+    forward_over_likelihood = dza_forward_ms / dza_likelihood_ms,
+    adjoint_over_likelihood = dza_adjoint_ms / dza_likelihood_ms,
+)
+```
+
+## DZA point fit
+
+The corrected deterministic gradients are now good enough to support a small
+real-data point fit. To keep this compact example well-behaved, we fit
+`beta`, `case_scale`, and `death_scale` in log-space while keeping `mu` fixed;
+in this benchmark, `mu` and `death_scale` are otherwise too confounded to make
+the fit especially informative.
+
+```{julia}
+dza_fit_fixed = (
+    contact_time=dza_intervention[:, 1],
+    contact_value=dza_intervention[:, 2],
+    S0=500_000.0, E0=40.0, I_mild0=10.0, I_hosp0=3.0, I_ICU0=1.0, R0=0.0, D0=0.0,
+    gamma=1 / 7, sigma=1 / 10, mu=0.004, p_mild=0.85, p_hosp=0.10, p_ICU=0.05,
+)
+dza_fit_initial = (beta=0.24, case_scale=5.5, death_scale=1.6)
+dza_fit_packer = Packer([:beta, :case_scale, :death_scale])
+dza_fit_start_ll = loglik(dza_lik, merge(dza_fit_fixed, dza_fit_initial))
+dza_fit = fit_logspace(dza_lik, dza_fit_packer, dza_fit_fixed, dza_fit_initial)
+
+(;
+    start_loglik = dza_fit_start_ll,
+    final_loglik = dza_fit.log_likelihood,
+    fitted = dza_fit.free,
+    n_iterations = length(dza_fit.history) - 1,
+)
+```
+
+```{julia}
+dza_fit_ms = bench_ms(
+    () -> fit_logspace(dza_lik, dza_fit_packer, dza_fit_fixed, dza_fit_initial);
+    samples=5,
+)
+
+(;
+    point_fit_ms = dza_fit_ms,
+    loglik_gain = dza_fit.log_likelihood - dza_fit_start_ll,
+)
+```
+
 ## Summary
 
 This deterministic mpox model is intentionally much smaller than the full
@@ -178,8 +391,10 @@ trade-off:
 2. deterministic likelihood evaluation is still fast,
 3. gradients cost more than a single likelihood evaluation,
 4. adjoint mode gives a practical route to gradient-based inference for richer
-   deterministic mpox models.
+   deterministic mpox models, including a simple real-data point fit on the DZA
+   slice.
 
-The R companion vignette in `R/38_mpox_deterministic_benchmark.qmd` uses the
-same model structure and synthetic data recipe so the trajectory and likelihood
-outputs remain directly comparable.
+The R companion vignette in `R/38_mpox_deterministic_benchmark.qmd` now uses the
+same compact synthetic benchmark and the same processed DZA real-data slice, so
+the trajectory, likelihood, and intervention-driven benchmark outputs remain
+directly comparable across Julia and R.
