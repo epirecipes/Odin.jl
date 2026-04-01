@@ -416,3 +416,252 @@ compare forward and adjoint gradients directly. In the R companion, the
 matching baseline is finite differences, which makes the gradient cost gap
 visible on both the synthetic and real-data deterministic examples, including a
 small DZA point-fit workflow.
+
+## Age-structured extension
+
+This section adds a 3-age-group SEIRD model that matches the Julia vignette's
+age-structured slice. The model uses split latent stages, age-specific
+susceptibility and CFR, and per-age Poisson case/death observations.
+
+```{r}
+mpox_age <- odin({
+    n_age <- parameter(3)
+
+    dim(susc) <- n_age
+    susc[] <- parameter()
+    dim(cfr) <- n_age
+    cfr[] <- parameter()
+
+    dim(I_total) <- n_age
+    I_total[] <- Ir[i] + Id[i]
+    total_I <- sum(I_total)
+    dim(lambda) <- n_age
+    lambda[] <- beta * susc[i] * total_I / N
+
+    dim(S) <- n_age
+    dim(Ea) <- n_age
+    dim(Eb) <- n_age
+    dim(Ir) <- n_age
+    dim(Id) <- n_age
+    dim(R) <- n_age
+    dim(D) <- n_age
+
+    deriv(S[])  <- -lambda[i] * S[i]
+    deriv(Ea[]) <-  lambda[i] * S[i] - 2 * gamma_E * Ea[i]
+    deriv(Eb[]) <-  2 * gamma_E * Ea[i] - 2 * gamma_E * Eb[i]
+    deriv(Ir[]) <- (1 - cfr[i]) * 2 * gamma_E * Eb[i] - sigma * Ir[i]
+    deriv(Id[]) <-  cfr[i]      * 2 * gamma_E * Eb[i] - mu * Id[i]
+    deriv(R[])  <-  sigma * Ir[i]
+    deriv(D[])  <-  mu * Id[i]
+
+    N <- sum(S) + sum(Ea) + sum(Eb) + sum(Ir) + sum(Id) + sum(R) + sum(D)
+
+    dim(cases_rate) <- n_age
+    dim(deaths_rate) <- n_age
+    cases_rate[]  <- case_scale  * 2 * gamma_E * Eb[i]
+    deaths_rate[] <- death_scale * mu * Id[i]
+
+    dim(cases) <- n_age
+    dim(deaths) <- n_age
+    cases[] <- data()
+    deaths[] <- data()
+    cases[] ~ Poisson(max(cases_rate[i], 1e-6))
+    deaths[] ~ Poisson(max(deaths_rate[i], 1e-6))
+
+    dim(S0) <- n_age
+    dim(Ea0) <- n_age
+    S0[] <- parameter()
+    Ea0[] <- parameter()
+    initial(S[])  <- S0[i]
+    initial(Ea[]) <- Ea0[i]
+    initial(Eb[]) <- 0
+    initial(Ir[]) <- 0
+    initial(Id[]) <- 0
+    initial(R[])  <- 0
+    initial(D[])  <- 0
+
+    beta        <- parameter(0.065)
+    gamma_E     <- parameter(1 / 10)
+    sigma       <- parameter(1 / 14)
+    mu          <- parameter(1 / 7)
+    case_scale  <- parameter(6.0)
+    death_scale <- parameter(2.0)
+})
+```
+
+### Simulation and synthetic data
+
+```{r}
+age_pars <- list(
+    n_age = 3,
+    susc = c(1.0, 1.2, 0.8),
+    cfr  = c(0.005, 0.02, 0.08),
+    S0   = c(4000, 3500, 2500),
+    Ea0  = c(8, 6, 4),
+    beta = 0.065, gamma_E = 1/10, sigma = 1/14, mu = 1/7,
+    case_scale = 6.0, death_scale = 2.0
+)
+
+age_sys <- dust_system_create(mpox_age, age_pars, deterministic = TRUE)
+age_sim_times <- seq(0, 120, by = 1)
+dust_system_set_state_initial(age_sys)
+age_sim <- dust_system_simulate(age_sys, age_sim_times)
+dim(age_sim)
+```
+
+```{r}
+age_state_names <- rownames(age_sim)
+idx_Eb <- grep("^Eb\\[", age_state_names)
+idx_Id <- grep("^Id\\[", age_state_names)
+cat("Eb indices:", idx_Eb, "\nId indices:", idx_Id, "\n")
+cat("age_sim dimensions:", paste(dim(age_sim), collapse=" x "), "\n")
+
+set.seed(77)
+age_obs_times <- seq(7, 112, by = 7)
+
+# Handle both 2D (state × time) and 3D (state × particle × time) output
+get_state <- function(sim, rows, ti) {
+    if (length(dim(sim)) == 3) {
+        sim[rows, 1, ti]
+    } else {
+        sim[rows, ti]
+    }
+}
+
+age_obs_list <- lapply(age_obs_times, function(t) {
+    ti <- which(age_sim_times == t)
+    c_rate <- age_pars$case_scale * 2 * age_pars$gamma_E * get_state(age_sim, idx_Eb, ti)
+    d_rate <- age_pars$death_scale * age_pars$mu * get_state(age_sim, idx_Id, ti)
+    list(
+        cases  = pmax(1, rpois(3, pmax(c_rate, 1e-6))),
+        deaths = pmax(1, rpois(3, pmax(d_rate, 1e-6)))
+    )
+})
+
+age_data <- data.frame(
+    time   = age_obs_times,
+    cases  = I(lapply(age_obs_list, function(x) x$cases)),
+    deaths = I(lapply(age_obs_list, function(x) x$deaths))
+)
+head(age_data)
+```
+
+### Deterministic likelihood
+
+```{r}
+age_filter <- dust_unfilter_create(mpox_age, age_data, time_start = 0)
+age_ll <- dust_likelihood_run(age_filter, age_pars)
+cat("Age-structured log-likelihood:", age_ll, "\n")
+
+age_ll_ms <- median(replicate(10, {
+    system.time(dust_likelihood_run(age_filter, age_pars))[["elapsed"]]
+})) * 1000
+cat("Loglik median time:", round(age_ll_ms, 2), "ms\n")
+```
+
+### Finite-difference gradients
+
+```{r}
+age_fd_gradient <- function(lik, pars, param_names, eps = 1e-5) {
+    base_ll <- dust_likelihood_run(lik, pars)
+    grad <- numeric(length(param_names))
+    for (j in seq_along(param_names)) {
+        pars_plus <- pars
+        pars_plus[[param_names[j]]] <- pars_plus[[param_names[j]]] + eps
+        grad[j] <- (dust_likelihood_run(lik, pars_plus) - base_ll) / eps
+    }
+    list(gradient = grad, log_likelihood = base_ll)
+}
+
+age_fd <- age_fd_gradient(age_filter, age_pars,
+                          c("beta", "case_scale", "death_scale"))
+cat("FD gradient:", round(age_fd$gradient, 4), "\n")
+
+age_fd_ms <- median(replicate(5, {
+    system.time(age_fd_gradient(age_filter, age_pars,
+        c("beta", "case_scale", "death_scale")))[["elapsed"]]
+})) * 1000
+cat("FD gradient median time:", round(age_fd_ms, 2), "ms\n")
+```
+
+### Point fit
+
+```{r}
+age_fit_fixed <- modifyList(age_pars, list(
+    beta = NULL, case_scale = NULL, death_scale = NULL
+))
+age_fit_initial <- list(beta = 0.04, case_scale = 4.0, death_scale = 1.0)
+age_fit_start_ll <- dust_likelihood_run(age_filter,
+    modifyList(age_fit_fixed, age_fit_initial))
+
+# Simple FD gradient ascent in log-space
+age_fit_logspace <- function(lik, fixed, initial,
+                             step = 0.15, max_iter = 30, min_step = 1e-6) {
+    theta <- log(unlist(initial))
+    pnames <- names(initial)
+    current_pars <- modifyList(fixed, as.list(exp(theta)))
+    names(current_pars[[pnames[1]]]) <- NULL
+    current_ll <- dust_likelihood_run(lik, current_pars)
+    history <- current_ll
+    eps <- 1e-5
+
+    for (iter in seq_len(max_iter)) {
+        grad_raw <- numeric(length(theta))
+        for (j in seq_along(pnames)) {
+            tp <- theta
+            tp[j] <- tp[j] + eps
+            pp <- modifyList(fixed, as.list(setNames(exp(tp), pnames)))
+            grad_raw[j] <- (dust_likelihood_run(lik, pp) - current_ll) / eps
+        }
+        gnorm <- sqrt(sum(grad_raw^2))
+        if (gnorm == 0) break
+
+        accepted <- FALSE
+        trial <- step
+        while (trial >= min_step) {
+            tt <- theta + trial * grad_raw / max(gnorm, 1)
+            pp <- modifyList(fixed, as.list(setNames(exp(tt), pnames)))
+            ll <- dust_likelihood_run(lik, pp)
+            if (is.finite(ll) && ll > current_ll + 1e-6) {
+                theta <- tt
+                current_pars <- pp
+                current_ll <- ll
+                history <- c(history, ll)
+                accepted <- TRUE
+                break
+            }
+            trial <- trial * 0.5
+        }
+        if (!accepted) break
+    }
+
+    list(
+        free = as.list(setNames(exp(theta), pnames)),
+        log_likelihood = current_ll,
+        history = history
+    )
+}
+
+age_fit <- age_fit_logspace(age_filter, age_fit_fixed, age_fit_initial)
+
+list(
+    start_loglik = age_fit_start_ll,
+    final_loglik = age_fit$log_likelihood,
+    fitted       = age_fit$free,
+    improvement  = age_fit$log_likelihood - age_fit_start_ll,
+    n_iterations = length(age_fit$history) - 1
+)
+```
+
+## Full summary
+
+This vignette covers three progressively richer deterministic mpox models:
+
+1. **Compact synthetic** — scalar SEIRD with piecewise intervention,
+2. **DZA real-data slice** — scalar SEIRD with interpolated contact multiplier
+   and real weekly observations,
+3. **Age-structured slice** — 3-age-group SEIRD with split latent stages,
+   age-specific susceptibility/CFR, and per-age Poisson case/death streams.
+
+The R companion matches the Julia vignette layout, using finite-difference
+gradients where Julia uses forward/adjoint analytical gradients.
