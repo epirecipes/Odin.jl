@@ -219,6 +219,30 @@ function dust_unfilter_run_pointwise!(unfilter::DustUnfilter, pars::NamedTuple)
     return pointwise_ll
 end
 
+function dust_unfilter_run_pointwise!(unfilter::DustUnfilter, pars_vec::AbstractVector{<:NamedTuple})
+    unfilter.n_groups > 1 && unfilter.group_data !== nothing ||
+        throw(ArgumentError("Vector-of-parameters pointwise likelihoods require grouped unfilter data"))
+    length(pars_vec) == unfilter.n_groups ||
+        throw(ArgumentError("Expected $(unfilter.n_groups) parameter groups, got $(length(pars_vec))"))
+
+    orig_data = unfilter.data
+    orig_saveat = unfilter._saveat_cache
+    pieces = Vector{Vector{Float64}}(undef, unfilter.n_groups)
+    try
+        for g in 1:unfilter.n_groups
+            gdata = unfilter.group_data[g]
+            unfilter.data = gdata
+            unfilter._saveat_cache = gdata.times
+            pieces[g] = dust_unfilter_run_pointwise!(unfilter, pars_vec[g])
+        end
+    finally
+        unfilter.data = orig_data
+        unfilter._saveat_cache = orig_saveat
+    end
+
+    return reduce(vcat, pieces)
+end
+
 """
     dust_filter_run_pointwise!(filter, pars) -> Vector{Float64}
 
@@ -231,6 +255,30 @@ function dust_filter_run_pointwise!(filter::DustFilter, pars::NamedTuple)
     dust_system_set_state_initial!(sys)
     np = filter.n_particles
     return _filter_inner_pointwise!(sys, sys.pars, filter.data, np)
+end
+
+function dust_filter_run_pointwise!(filter::DustFilter, pars_vec::AbstractVector{<:NamedTuple})
+    filter.n_groups > 1 && filter.group_data !== nothing ||
+        throw(ArgumentError("Vector-of-parameters pointwise likelihoods require grouped filter data"))
+    length(pars_vec) == filter.n_groups ||
+        throw(ArgumentError("Expected $(filter.n_groups) parameter groups, got $(length(pars_vec))"))
+
+    pieces = Vector{Vector{Float64}}(undef, filter.n_groups)
+    for g in 1:filter.n_groups
+        gdata = filter.group_data[g]
+        group_seed = filter.seed === nothing ? nothing : filter.seed + g - 1
+        sys = dust_system_create(
+            filter.generator, pars_vec[g];
+            n_particles=filter.n_particles,
+            dt=filter.dt,
+            seed=group_seed,
+            time=filter.time_start,
+        )
+        dust_system_set_state_initial!(sys)
+        pieces[g] = _filter_inner_pointwise!(sys, sys.pars, gdata, filter.n_particles)
+    end
+
+    return reduce(vcat, pieces)
 end
 
 """Type-stable inner loop returning per-observation log-likelihoods."""

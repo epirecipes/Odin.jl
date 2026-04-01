@@ -304,6 +304,7 @@ function generate_system(
     n_state_fixed = has_arr ? 0 : length(classification.state_vars)
 
     state_var_set = Set{Symbol}(classification.state_vars)
+    _validate_print_expressions(phases, classification)
 
     param_names = Symbol[ex.name for ex in phases.create_eqs if ex.type == EXPR_PARAMETER]
     param_default_pairs = Any[]
@@ -489,6 +490,30 @@ function generate_system(
     end
 
     return code
+end
+
+function _validate_print_expressions(phases, classification::ModelClassification)
+    data_vars = Set(classification.data_vars)
+    isempty(data_vars) && return nothing
+
+    for ex in phases.dynamic_eqs
+        ex.type == EXPR_PRINT || continue
+        pinfo = ex.rhs::PrintInfo
+
+        bad_vars = [var for var in pinfo.variables if var in data_vars]
+        isempty(bad_vars) || throw(ArgumentError(
+            "Can't yet reference data from print(): " * join(string.(":" .* String.(bad_vars)), ", "),
+        ))
+
+        pinfo.condition === nothing && continue
+        cond_data = [var for var in find_dependencies(pinfo.condition) if var in data_vars]
+        isempty(cond_data) || throw(ArgumentError(
+            "Can't yet reference data from print() when= condition: " *
+            join(string.(":" .* String.(cond_data)), ", "),
+        ))
+    end
+
+    return nothing
 end
 
 # ── n_state / state_names generation ──────────────────────────

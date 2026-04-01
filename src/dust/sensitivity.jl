@@ -877,6 +877,41 @@ function dust_unfilter_gradient(
     end
 end
 
+function dust_unfilter_gradient(
+    unfilter::DustUnfilter,
+    pars_vec::AbstractVector{<:NamedTuple},
+    packer::MontyPackerGrouped;
+    kwargs...,
+)
+    unfilter.n_groups > 1 && unfilter.group_data !== nothing ||
+        throw(ArgumentError("Vector-of-parameters gradients require grouped unfilter data"))
+    length(pars_vec) == unfilter.n_groups ||
+        throw(ArgumentError("Expected $(unfilter.n_groups) parameter groups, got $(length(pars_vec))"))
+
+    total_grad = zeros(Float64, packer.len)
+    total_ll = 0.0
+    orig_data = unfilter.data
+    orig_saveat = unfilter._saveat_cache
+    try
+        for (g_idx, pars_g) in enumerate(pars_vec)
+            gdata = unfilter.group_data[g_idx]
+            unfilter.data = gdata
+            unfilter._saveat_cache = gdata.times
+            result = dust_unfilter_gradient(unfilter, pars_g, packer.base_packer; kwargs...)
+            total_ll += result.log_likelihood
+            total_grad[1:packer.n_shared] .+= result.gradient[1:packer.n_shared]
+            offset = packer.n_shared + (g_idx - 1) * packer.n_varied_per_group
+            total_grad[(offset + 1):(offset + packer.n_varied_per_group)] .=
+                result.gradient[(packer.n_shared + 1):end]
+        end
+    finally
+        unfilter.data = orig_data
+        unfilter._saveat_cache = orig_saveat
+    end
+
+    return (log_likelihood=total_ll, gradient=total_grad)
+end
+
 function _unfilter_gradient_forward(gen, model, full_pars, data, param_names, solver, ode_control)
     fwd = dust_sensitivity_forward(gen, full_pars;
         times=data.times, params_of_interest=collect(param_names), solver=solver, ode_control=ode_control)

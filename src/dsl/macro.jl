@@ -40,6 +40,9 @@ _odin_diff_param_names(::AbstractOdinModel) = Symbol[]
 """Default: zero differentiated parameters."""
 _odin_n_diff_params(::AbstractOdinModel) = 0
 
+"""Default: no fixed symbolic state length constraint."""
+_odin_symbolic_n_state(::AbstractOdinModel) = nothing
+
 """
     @odin(block)
 

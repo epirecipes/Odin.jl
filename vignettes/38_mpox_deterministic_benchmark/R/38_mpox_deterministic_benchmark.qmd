@@ -1,0 +1,191 @@
+---
+title: "Deterministic Mpox Inference Benchmark (R)"
+subtitle: "odin2/dust2/monty Companion to Odin.jl Vignette 38"
+format:
+  html:
+    toc: true
+    code-fold: false
+  gfm: default
+---
+
+## Introduction
+
+This companion vignette mirrors the Julia deterministic mpox benchmark with the
+same compact intervention model and the same synthetic data recipe. It focuses
+on two quantities that are directly comparable across the two ecosystems:
+
+1. deterministic trajectory simulation,
+2. deterministic likelihood evaluation.
+
+For gradients, this R version uses a simple finite-difference benchmark as a
+baseline.
+
+```{r}
+suppressPackageStartupMessages({
+  library(odin2)
+  library(dust2)
+  library(monty)
+})
+```
+
+## Model definition
+
+```{r}
+mpox_det <- odin({
+  total_I <- I_mild + I_hosp + I_ICU
+  beta <- if (time < intervention_day) beta_1 else beta_2
+  contact <- if (time < intervention_day) contact_1 else contact_2
+
+  deriv(S) <- -beta * contact * S * total_I / N
+  deriv(E) <- beta * contact * S * total_I / N - gamma * E
+  deriv(I_mild) <- p_mild * gamma * E - sigma * I_mild - mu * I_mild
+  deriv(I_hosp) <- p_hosp * gamma * E - sigma * I_hosp - mu * I_hosp
+  deriv(I_ICU) <- p_ICU * gamma * E - sigma * I_ICU - mu * I_ICU
+  deriv(R) <- sigma * total_I
+  deriv(D) <- mu * total_I
+
+  N <- S + E + I_mild + I_hosp + I_ICU + R + D
+
+  cases <- data()
+  cases ~ Poisson(max(total_I, 1e-6))
+
+  initial(S) <- S0
+  initial(E) <- E0
+  initial(I_mild) <- I_mild0
+  initial(I_hosp) <- I_hosp0
+  initial(I_ICU) <- I_ICU0
+  initial(R) <- R0
+  initial(D) <- D0
+
+  S0 <- parameter(9969)
+  E0 <- parameter(20)
+  I_mild0 <- parameter(8)
+  I_hosp0 <- parameter(2)
+  I_ICU0 <- parameter(1)
+  R0 <- parameter(0)
+  D0 <- parameter(0)
+
+  gamma <- parameter(1 / 10)
+  sigma <- parameter(1 / 7)
+  mu <- parameter(0.01)
+  p_mild <- parameter(0.85)
+  p_hosp <- parameter(0.10)
+  p_ICU <- parameter(0.05)
+
+  beta_1 <- parameter(0.9)
+  beta_2 <- parameter(0.45)
+  contact_1 <- parameter(1.0)
+  contact_2 <- parameter(0.65)
+  intervention_day <- parameter(40)
+})
+```
+
+## Simulation setup
+
+```{r}
+true_pars <- list(
+  S0 = 9969, E0 = 20, I_mild0 = 8, I_hosp0 = 2, I_ICU0 = 1, R0 = 0, D0 = 0,
+  gamma = 1 / 10, sigma = 1 / 7, mu = 0.01, p_mild = 0.85, p_hosp = 0.10, p_ICU = 0.05,
+  beta_1 = 0.9, beta_2 = 0.45, contact_1 = 1.0, contact_2 = 0.65, intervention_day = 40
+)
+
+times <- 0:90
+sys <- dust_system_create(
+  mpox_det,
+  true_pars,
+  n_particles = 1L,
+  preserve_particle_dimension = TRUE
+)
+dust_system_set_state_initial(sys)
+sim <- dust_system_simulate(sys, times)
+
+obs_times <- seq(10, 80, by = 5)
+obs_idx <- match(obs_times, times)
+
+set.seed(99)
+obs_cases <- sapply(obs_idx, function(i) {
+  rpois(1, lambda = max(sum(sim[3:5, 1, i]), 1e-6))
+})
+
+obs <- data.frame(time = obs_times, cases = obs_cases)
+obs
+```
+
+## Deterministic likelihood
+
+```{r}
+candidate_pars <- modifyList(true_pars, list(
+  beta_1 = 0.82,
+  beta_2 = 0.52,
+  contact_1 = 1.05,
+  contact_2 = 0.60
+))
+
+lik <- dust_unfilter_create(mpox_det, time_start = 0, data = obs)
+ll <- dust_likelihood_run(lik, candidate_pars)
+ll
+```
+
+## Finite-difference gradient baseline
+
+```{r}
+fd_gradient <- function(pars, eps = 1e-5) {
+  target <- c("beta_1", "beta_2", "contact_1", "contact_2")
+  g <- numeric(length(target))
+  names(g) <- target
+
+  for (i in seq_along(target)) {
+    nm <- target[i]
+    p_plus <- pars
+    p_minus <- pars
+    p_plus[[nm]] <- p_plus[[nm]] + eps
+    p_minus[[nm]] <- p_minus[[nm]] - eps
+    g[i] <- (
+      dust_likelihood_run(lik, p_plus) -
+      dust_likelihood_run(lik, p_minus)
+    ) / (2 * eps)
+  }
+
+  g
+}
+
+fd_gradient(candidate_pars)
+```
+
+## Benchmark summary
+
+```{r}
+simulation_ms <- system.time(replicate(20, {
+  s <- dust_system_create(
+    mpox_det,
+    true_pars,
+    n_particles = 1L,
+    preserve_particle_dimension = TRUE
+  )
+  dust_system_set_state_initial(s)
+  dust_system_simulate(s, times)
+}))[["elapsed"]] / 20 * 1000
+
+likelihood_ms <- system.time(replicate(20, {
+  dust_likelihood_run(lik, candidate_pars)
+}))[["elapsed"]] / 20 * 1000
+
+fd_ms <- system.time(replicate(5, {
+  fd_gradient(candidate_pars)
+}))[["elapsed"]] / 5 * 1000
+
+data.frame(
+  simulation_ms = simulation_ms,
+  likelihood_ms = likelihood_ms,
+  finite_difference_gradient_ms = fd_ms,
+  fd_over_likelihood = fd_ms / likelihood_ms
+)
+```
+
+## Summary
+
+The R and Julia benchmark vignettes now use the same deterministic mpox model
+and the same synthetic data construction. In Julia, this is enough to compare
+forward and adjoint gradients directly. In the R companion, the matching
+baseline is finite differences, which makes the gradient cost gap visible even
+on a compact deterministic mpox example.

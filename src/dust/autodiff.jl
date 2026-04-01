@@ -106,7 +106,9 @@ function compute_vjp_state!(model::AbstractOdinModel,
                              state::AbstractVector,
                              v::AbstractVector,
                              pars, t)
-    if _odin_has_symbolic_jacobian(model)
+    symbolic_n_state = _odin_symbolic_n_state(model)
+    if _odin_has_symbolic_jacobian(model) &&
+       (symbolic_n_state === nothing || length(state) == symbolic_n_state)
         _odin_vjp_state!(model, result, state, v, pars, t)
         return :symbolic
     else
@@ -126,7 +128,10 @@ function compute_vjp_params!(model::AbstractOdinModel,
                               v::AbstractVector,
                               pars, t,
                               param_names::Vector{Symbol})
-    if _odin_has_symbolic_jacobian(model) && param_names == _odin_diff_param_names(model)
+    symbolic_n_state = _odin_symbolic_n_state(model)
+    if _odin_has_symbolic_jacobian(model) &&
+       param_names == _odin_diff_param_names(model) &&
+       (symbolic_n_state === nothing || length(state) == symbolic_n_state)
         _odin_vjp_params!(model, result, state, v, pars, t)
         return :symbolic
     else

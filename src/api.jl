@@ -307,6 +307,10 @@ loglik(lik::Likelihood{<:DustUnfilter}, pars::NamedTuple; kwargs...) =
     dust_unfilter_run!(lik.inner, pars; kwargs...)
 loglik(lik::Likelihood{<:DustFilter}, pars::NamedTuple; kwargs...) =
     dust_likelihood_run!(lik.inner, pars; kwargs...)
+loglik(lik::Likelihood{<:DustUnfilter}, pars_vec::AbstractVector{<:NamedTuple}; kwargs...) =
+    dust_unfilter_run!(lik.inner, pars_vec; kwargs...)
+loglik(lik::Likelihood{<:DustFilter}, pars_vec::AbstractVector{<:NamedTuple}; kwargs...) =
+    dust_likelihood_run!(lik.inner, pars_vec; kwargs...)
 
 """
     loglik_pointwise(lik, pars)
@@ -317,6 +321,10 @@ loglik_pointwise(lik::Likelihood{<:DustUnfilter}, pars::NamedTuple) =
     dust_unfilter_run_pointwise!(lik.inner, pars)
 loglik_pointwise(lik::Likelihood{<:DustFilter}, pars::NamedTuple) =
     dust_filter_run_pointwise!(lik.inner, pars)
+loglik_pointwise(lik::Likelihood{<:DustUnfilter}, pars_vec::AbstractVector{<:NamedTuple}) =
+    dust_unfilter_run_pointwise!(lik.inner, pars_vec)
+loglik_pointwise(lik::Likelihood{<:DustFilter}, pars_vec::AbstractVector{<:NamedTuple}) =
+    dust_filter_run_pointwise!(lik.inner, pars_vec)
 
 """
     loglik_gradient(lik, pars)
@@ -329,6 +337,12 @@ function loglik_gradient(lik::Likelihood{<:DustUnfilter},
     dust_unfilter_gradient(lik.inner, pars, packer; kwargs...)
 end
 
+function loglik_gradient(lik::Likelihood{<:DustUnfilter},
+                         pars_vec::AbstractVector{<:NamedTuple},
+                         packer::MontyPackerGrouped; kwargs...)
+    dust_unfilter_gradient(lik.inner, pars_vec, packer; kwargs...)
+end
+
 function loglik_gradient(::Likelihood{<:DustUnfilter}, ::NamedTuple; kwargs...)
     throw(ArgumentError(
         "loglik_gradient for deterministic likelihoods requires a `Packer(...)` " *
@@ -339,12 +353,22 @@ end
 # ── Convenience: also work on bare DustUnfilter/DustFilter ────
 loglik(uf::DustUnfilter, pars::NamedTuple; kwargs...) = dust_unfilter_run!(uf, pars; kwargs...)
 loglik(f::DustFilter, pars::NamedTuple; kwargs...) = dust_likelihood_run!(f, pars; kwargs...)
+loglik(uf::DustUnfilter, pars_vec::AbstractVector{<:NamedTuple}; kwargs...) = dust_unfilter_run!(uf, pars_vec; kwargs...)
+loglik(f::DustFilter, pars_vec::AbstractVector{<:NamedTuple}; kwargs...) = dust_likelihood_run!(f, pars_vec; kwargs...)
 loglik_pointwise(uf::DustUnfilter, pars::NamedTuple) = dust_unfilter_run_pointwise!(uf, pars)
 loglik_pointwise(f::DustFilter, pars::NamedTuple) = dust_filter_run_pointwise!(f, pars)
+loglik_pointwise(uf::DustUnfilter, pars_vec::AbstractVector{<:NamedTuple}) = dust_unfilter_run_pointwise!(uf, pars_vec)
+loglik_pointwise(f::DustFilter, pars_vec::AbstractVector{<:NamedTuple}) = dust_filter_run_pointwise!(f, pars_vec)
 function loglik_gradient(uf::DustUnfilter,
                          pars::NamedTuple,
                          packer::MontyPacker; kwargs...)
     dust_unfilter_gradient(uf, pars, packer; kwargs...)
+end
+
+function loglik_gradient(uf::DustUnfilter,
+                         pars_vec::AbstractVector{<:NamedTuple},
+                         packer::MontyPackerGrouped; kwargs...)
+    dust_unfilter_gradient(uf, pars_vec, packer; kwargs...)
 end
 
 function loglik_gradient(::DustUnfilter, ::NamedTuple; kwargs...)

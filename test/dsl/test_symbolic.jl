@@ -304,8 +304,8 @@ using ForwardDiff
         end
     end
 
-    # ── Test 9: Symbolic fallback for array models ──
-    @testset "Array models fall back to ReverseDiff" begin
+    # ── Test 9: Array models with static dimensions use symbolic VJP ──
+    @testset "Array models use symbolic VJP" begin
         array_gen = @odin begin
             deriv(S[]) = -beta * S[i] * I_total / N
             deriv(I[]) = beta * S[i] * I_total / N - gamma * I[i]
@@ -322,8 +322,26 @@ using ForwardDiff
         end
 
         model = array_gen.model
-        # Array models can't be symbolically differentiated (yet)
-        @test !Odin._odin_has_symbolic_jacobian(model)
+        @test Odin._odin_has_symbolic_jacobian(model)
+        @test Odin._odin_diff_param_names(model) == [:beta, :gamma]
+
+        pars = (beta=0.3, gamma=0.1, I0=5.0, N=1000.0, n_age=3.0)
+        state = [328.3333333333, 328.3333333333, 328.3333333333, 5.0, 5.0, 5.0]
+        v = randn(6)
+
+        sym_state = zeros(6)
+        fd_state = zeros(6)
+        method_state = Odin.compute_vjp_state!(model, sym_state, state, v, pars, 0.0)
+        Odin._vjp_state_forwarddiff!(model, fd_state, state, v, pars, 0.0)
+        @test method_state == :symbolic
+        @test isapprox(sym_state, fd_state, atol=1e-9)
+
+        sym_params = zeros(2)
+        fd_params = zeros(2)
+        method_params = Odin.compute_vjp_params!(model, sym_params, state, v, pars, 0.0, [:beta, :gamma])
+        Odin._vjp_params_reversediff!(model, fd_params, state, v, pars, 0.0, [:beta, :gamma])
+        @test method_params == :symbolic
+        @test isapprox(sym_params, fd_params, atol=1e-8)
     end
 
     # ── Test 10: Multiple evaluation points ──

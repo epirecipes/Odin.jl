@@ -37,6 +37,7 @@ using Test
         "dsl/test_beta_blocks.jl",
         "dsl/test_orov.jl",
         "dsl/test_fitting_workflow.jl",
+        "dsl/test_mpox_deterministic.jl",
         "dsl/test_symbolic.jl",
         "dust/test_system.jl",
         "dust/test_simulate.jl",

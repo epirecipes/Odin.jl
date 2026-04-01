@@ -232,4 +232,44 @@ end
         @test occursin("t=", output)
         @test occursin("x=", output)
     end
+
+    @testset "Print rejects data references" begin
+        ex = quote
+            @odin begin
+                deriv(x) = -a * x
+                initial(x) = 1.0
+                a = parameter(0.5)
+                y = data()
+                print("y={y; .2f}")
+            end
+        end
+        err = try
+            eval(ex)
+            nothing
+        catch e
+            e
+        end
+        @test err isa LoadError
+        @test err.error isa ArgumentError
+    end
+
+    @testset "Print rejects data references in when= condition" begin
+        ex = quote
+            @odin begin
+                deriv(x) = -a * x
+                initial(x) = 1.0
+                a = parameter(0.5)
+                y = data()
+                print("x={x; .2f}", when = y > 0)
+            end
+        end
+        err = try
+            eval(ex)
+            nothing
+        catch e
+            e
+        end
+        @test err isa LoadError
+        @test err.error isa ArgumentError
+    end
 end

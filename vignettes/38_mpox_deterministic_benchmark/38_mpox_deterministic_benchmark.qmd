@@ -1,0 +1,185 @@
+---
+title: "Deterministic Mpox Inference Benchmark"
+subtitle: "Odin.jl Vignette 38"
+format:
+  html:
+    toc: true
+    code-fold: false
+  gfm: default
+engine: julia
+julia:
+  project: ".."
+---
+
+## Introduction
+
+Vignette 17 uses a stochastic age-structured mpox model. This companion vignette
+adds a **deterministic** mpox benchmark model that is small enough to run
+quickly, but still exercises the main inference path:
+
+1. piecewise transmission before and after an intervention,
+2. multiple infectious severity strata,
+3. deterministic likelihood evaluation,
+4. forward- and adjoint-based gradients.
+
+The model follows the same compartment layout as the simple deterministic mpox
+reference used elsewhere in this workspace.
+
+```{julia}
+using BenchmarkTools
+using Distributions
+using Odin
+using Random
+using Statistics
+```
+
+## Model definition
+
+```{julia}
+mpox_det = @odin begin
+    total_I = I_mild + I_hosp + I_ICU
+    beta = ifelse(time < intervention_day, beta_1, beta_2)
+    contact = ifelse(time < intervention_day, contact_1, contact_2)
+
+    deriv(S) = -beta * contact * S * total_I / N
+    deriv(E) = beta * contact * S * total_I / N - gamma * E
+    deriv(I_mild) = p_mild * gamma * E - sigma * I_mild - mu * I_mild
+    deriv(I_hosp) = p_hosp * gamma * E - sigma * I_hosp - mu * I_hosp
+    deriv(I_ICU) = p_ICU * gamma * E - sigma * I_ICU - mu * I_ICU
+    deriv(R) = sigma * total_I
+    deriv(D) = mu * total_I
+
+    N = S + E + I_mild + I_hosp + I_ICU + R + D
+
+    cases = data()
+    cases ~ Poisson(max(total_I, 1e-6))
+
+    initial(S) = S0
+    initial(E) = E0
+    initial(I_mild) = I_mild0
+    initial(I_hosp) = I_hosp0
+    initial(I_ICU) = I_ICU0
+    initial(R) = R0
+    initial(D) = D0
+
+    S0 = parameter(9_969.0)
+    E0 = parameter(20.0)
+    I_mild0 = parameter(8.0)
+    I_hosp0 = parameter(2.0)
+    I_ICU0 = parameter(1.0)
+    R0 = parameter(0.0)
+    D0 = parameter(0.0)
+
+    gamma = parameter(1 / 10)
+    sigma = parameter(1 / 7)
+    mu = parameter(0.01)
+    p_mild = parameter(0.85)
+    p_hosp = parameter(0.10)
+    p_ICU = parameter(0.05)
+
+    beta_1 = parameter(0.9, differentiate = true)
+    beta_2 = parameter(0.45, differentiate = true)
+    contact_1 = parameter(1.0, differentiate = true)
+    contact_2 = parameter(0.65, differentiate = true)
+    intervention_day = parameter(40.0)
+end
+```
+
+## Simulation setup
+
+```{julia}
+true_pars = (
+    S0=9_969.0, E0=20.0, I_mild0=8.0, I_hosp0=2.0, I_ICU0=1.0, R0=0.0, D0=0.0,
+    gamma=1 / 10, sigma=1 / 7, mu=0.01, p_mild=0.85, p_hosp=0.10, p_ICU=0.05,
+    beta_1=0.9, beta_2=0.45, contact_1=1.0, contact_2=0.65, intervention_day=40.0,
+)
+
+times = collect(0.0:1.0:90.0)
+sim = simulate(mpox_det, true_pars; times=times, seed=123)
+
+obs_times = collect(10.0:5.0:80.0)
+obs_idx = [findfirst(==(t), times) for t in obs_times]
+
+rng = Xoshiro(99)
+obs_cases = [
+    rand(rng, Poisson(max(sum(sim[3:5, 1, i]), 1e-6)))
+    for i in obs_idx
+]
+
+obs = ObservedData([(time=t, cases=y) for (t, y) in zip(obs_times, obs_cases)])
+obs
+```
+
+The daily infectious burden is the sum of the mild, hospitalised, and ICU
+compartments, which occupy rows 3:5 in this model.
+
+## Deterministic likelihood
+
+```{julia}
+candidate_pars = merge(true_pars, (
+    beta_1=0.82,
+    beta_2=0.52,
+    contact_1=1.05,
+    contact_2=0.60,
+))
+
+lik = Likelihood(mpox_det, obs; time_start=0.0)
+ll = loglik(lik, candidate_pars)
+ll
+```
+
+## Gradient benchmark
+
+```{julia}
+packer = Packer([:beta_1, :beta_2, :contact_1, :contact_2])
+
+grad_forward = loglik_gradient(lik, candidate_pars, packer; method=:forward)
+grad_adjoint = loglik_gradient(lik, candidate_pars, packer; method=:adjoint)
+
+(;
+    loglik_forward = grad_forward.log_likelihood,
+    loglik_adjoint = grad_adjoint.log_likelihood,
+    gradient_forward = grad_forward.gradient,
+    gradient_adjoint = grad_adjoint.gradient,
+)
+```
+
+The forward and adjoint gradients agree closely on this compact deterministic
+problem, with the adjoint path giving the same derivative information without
+carrying all parameter sensitivities through the solve.
+
+```{julia}
+bench_ms(f; samples=20) = median(@benchmark $f() samples=samples evals=1).time / 1e6
+
+simulation_ms = bench_ms(() -> simulate(mpox_det, true_pars; times=times, seed=123))
+likelihood_ms = bench_ms(() -> loglik(lik, candidate_pars))
+forward_ms = bench_ms(() -> loglik_gradient(lik, candidate_pars, packer; method=:forward))
+adjoint_ms = bench_ms(() -> loglik_gradient(lik, candidate_pars, packer; method=:adjoint))
+
+benchmark_summary = (
+    simulation_ms = simulation_ms,
+    likelihood_ms = likelihood_ms,
+    forward_gradient_ms = forward_ms,
+    adjoint_gradient_ms = adjoint_ms,
+    forward_over_likelihood = forward_ms / likelihood_ms,
+    adjoint_over_likelihood = adjoint_ms / likelihood_ms,
+)
+
+benchmark_summary
+```
+
+## Summary
+
+This deterministic mpox model is intentionally much smaller than the full
+`mpoxseir` application, but it is already large enough to show the main runtime
+trade-off:
+
+1. simulation is cheap,
+2. deterministic likelihood evaluation is still fast,
+3. gradients cost more than a single likelihood evaluation,
+4. adjoint mode gives a practical route to gradient-based inference for richer
+   deterministic mpox models.
+
+The R companion vignette in `R/38_mpox_deterministic_benchmark.qmd` uses the
+same model structure and synthetic data recipe so the trajectory and likelihood
+outputs remain directly comparable.

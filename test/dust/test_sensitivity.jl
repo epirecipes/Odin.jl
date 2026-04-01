@@ -193,6 +193,47 @@ using Statistics
         end
     end
 
+    @testset "Array adjoint sensitivity matches finite differences" begin
+        sir_array = @odin begin
+            dim(S) = n_age
+            dim(I) = n_age
+            deriv(S[i]) = -beta * S[i] * I_total / N
+            deriv(I[i]) = beta * S[i] * I_total / N - gamma * I[i]
+            I_total = sum(I)
+            initial(S[i]) = N / n_age - I0
+            initial(I[i]) = I0
+            beta = parameter(0.3, differentiate = true)
+            gamma = parameter(0.1, differentiate = true)
+            I0 = parameter(5.0)
+            N = parameter(1000.0)
+            n_age = parameter(3)
+        end
+
+        array_pars = (beta=0.3, gamma=0.1, I0=5.0, N=1000.0, n_age=3.0)
+        array_times = collect(1.0:3.0:18.0)
+        final_time = array_times[end]
+        loss_fn = (state, t) -> isapprox(t, final_time; atol=1e-12) ? sum(state[end-2:end]) : 0.0
+
+        adj = sensitivity(sir_array, array_pars, loss_fn;
+            times=array_times, params_of_interest=[:beta, :gamma])
+
+        function total_loss(p)
+            sys = System(sir_array, p)
+            reset!(sys)
+            traj = simulate(sys, array_times)
+            return sum(loss_fn(traj[:, 1, ti], array_times[ti]) for ti in eachindex(array_times))
+        end
+
+        eps_fd = 1e-5
+        for (jp, pname) in enumerate([:beta, :gamma])
+            pv = array_pars[pname]
+            p_plus = merge(array_pars, NamedTuple{(pname,)}((pv + eps_fd,)))
+            p_minus = merge(array_pars, NamedTuple{(pname,)}((pv - eps_fd,)))
+            fd_grad = (total_loss(p_plus) - total_loss(p_minus)) / (2 * eps_fd)
+            @test isapprox(adj.gradient[jp], fd_grad, rtol=0.05, atol=1e-4)
+        end
+    end
+
     # ──────────────────────────────────────────────────────────
     @testset "Sobol indices identify important parameters" begin
         pars_ranges = Dict(

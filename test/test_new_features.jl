@@ -105,7 +105,19 @@ using Random
 
         lik = Likelihood(sir_ode, [fd1, fd2])
         ll = loglik(lik, pars1)
+        ll_vec = loglik(lik, [pars1, pars2])
         @test isfinite(ll)
+        @test isfinite(ll_vec)
+
+        pw = loglik_pointwise(lik, [pars1, pars2])
+        @test length(pw) == 10
+        @test all(isfinite, pw)
+
+        gpk = GroupedPacker([:g1, :g2]; shared=[:N], varied=[:beta, :gamma, :I0])
+        grad = loglik_gradient(lik, [pars1, pars2], gpk; method=:forward)
+        @test isfinite(grad.log_likelihood)
+        @test length(grad.gradient) == gpk.len
+        @test all(isfinite, grad.gradient)
     end
 
     # ═══════════════════════════════════════════════════════════
