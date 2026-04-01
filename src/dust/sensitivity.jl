@@ -66,6 +66,40 @@ struct MorrisResult
 end
 
 # ────────────────────────────────────────────────────────────────
+# Helper: perturb a scalar or array-element parameter
+# ────────────────────────────────────────────────────────────────
+
+"""Perturb a single parameter (scalar or array element) by `eps`."""
+function _perturb_par(pars::NamedTuple, name::Symbol, idx::Int, eps::Float64)
+    if idx == 0
+        # Scalar parameter
+        pv = Float64(pars[name]) + eps
+        return merge(pars, NamedTuple{(name,)}((pv,)))
+    else
+        # Array parameter — copy and perturb one element
+        arr = collect(Float64, pars[name])
+        arr[idx] += eps
+        return merge(pars, NamedTuple{(name,)}((arr,)))
+    end
+end
+
+"""Build flat (name, element_index) pairs for a list of parameter names."""
+function _flatten_param_indices(pars::NamedTuple, param_names)
+    flat = Tuple{Symbol,Int}[]
+    for k in param_names
+        v = pars[k]
+        if v isa AbstractVector
+            for idx in eachindex(v)
+                push!(flat, (k, idx))
+            end
+        else
+            push!(flat, (k, 0))
+        end
+    end
+    return flat
+end
+
+# ────────────────────────────────────────────────────────────────
 # Forward sensitivity analysis
 # ────────────────────────────────────────────────────────────────
 
@@ -106,23 +140,35 @@ function dust_sensitivity_forward(
     end
 
     n_state = _odin_n_state(model, full_pars)
-    n_params = length(params_of_interest)
-    n_aug = n_state + n_state * n_params  # [u; vec(S)]
 
-    # Extract nominal parameter values as a vector
-    p_vals = Float64[Float64(full_pars[k]) for k in params_of_interest]
+    # Flatten parameter values — expand array-valued parameters into scalars
+    flat_param_names = Symbol[]
+    flat_param_indices = Tuple{Symbol,Int}[]  # (original_name, element_index) or (name, 0) for scalar
+    for k in params_of_interest
+        v = full_pars[k]
+        if v isa AbstractVector
+            for idx in eachindex(v)
+                push!(flat_param_names, Symbol(k, "[", idx, "]"))
+                push!(flat_param_indices, (k, idx))
+            end
+        else
+            push!(flat_param_names, k)
+            push!(flat_param_indices, (k, 0))
+        end
+    end
+    n_flat_params = length(flat_param_names)
+    n_aug = n_state + n_state * n_flat_params  # [u; vec(S)]
 
     # Initial state
     u0 = zeros(Float64, n_state)
     _odin_initial!(model, u0, full_pars, Random.Xoshiro())
 
     # Check if initial conditions depend on parameters via finite differences
-    S0 = zeros(Float64, n_state, n_params)
+    S0 = zeros(Float64, n_state, n_flat_params)
     eps_fd = 1e-7
-    for j in 1:n_params
-        pname = params_of_interest[j]
-        pv_plus = Float64(full_pars[pname]) + eps_fd
-        pars_plus = merge(full_pars, NamedTuple{(pname,)}((pv_plus,)))
+    for j in 1:n_flat_params
+        pname, pidx = flat_param_indices[j]
+        pars_plus = _perturb_par(full_pars, pname, pidx, eps_fd)
         if model.has_interpolation
             pars_plus = _odin_setup_pars(model, pars_plus)
         end
@@ -137,8 +183,8 @@ function dust_sensitivity_forward(
     aug0[n_state+1:end] .= vec(S0)
 
     # Build augmented RHS using ForwardDiff for Jacobians
-    aug_rhs! = _build_forward_augmented_rhs(model, full_pars, params_of_interest,
-                                             n_state, n_params)
+    aug_rhs! = _build_forward_augmented_rhs(model, full_pars, flat_param_indices,
+                                             n_state, n_flat_params)
 
     # Solve the augmented system
     t_start = time_start
@@ -159,19 +205,19 @@ function dust_sensitivity_forward(
     # Unpack results
     n_times = length(times)
     trajectory = zeros(Float64, n_state, n_times)
-    sensitivities = zeros(Float64, n_state, n_params, n_times)
+    sensitivities = zeros(Float64, n_state, n_flat_params, n_times)
 
     for ti in 1:n_times
         trajectory[:, ti] .= result_mat[1:n_state, ti]
         S_flat = result_mat[n_state+1:end, ti]
-        sensitivities[:, :, ti] .= reshape(S_flat, n_state, n_params)
+        sensitivities[:, :, ti] .= reshape(S_flat, n_state, n_flat_params)
     end
 
-    return ForwardSensitivityResult(trajectory, sensitivities, collect(times), params_of_interest)
+    return ForwardSensitivityResult(trajectory, sensitivities, collect(times), flat_param_names)
 end
 
 """Build the augmented RHS for forward sensitivity: d[u;S]/dt = [f; df/du*S + df/dp]."""
-function _build_forward_augmented_rhs(model, full_pars, params_of_interest, n_state, n_params)
+function _build_forward_augmented_rhs(model, full_pars, flat_param_indices, n_state, n_params)
     # Pre-allocate work buffers for Jacobian computation
     du_buf = zeros(Float64, n_state)
     du_buf2 = zeros(Float64, n_state)
@@ -187,14 +233,7 @@ function _build_forward_augmented_rhs(model, full_pars, params_of_interest, n_st
             d_aug[i] = du_buf[i]
         end
 
-        # Compute Jacobian ∂f/∂u using ForwardDiff (column by column)
-        # J_u[:, j] = ∂f/∂u_j
-        # We compute J_u * S + J_p columnwise to avoid allocating the full Jacobian
-
         S = reshape(S_flat, n_state, n_params)
-
-        # For each parameter column j, compute: dS[:,j]/dt = J_u * S[:,j] + J_p[:,j]
-        # First compute J_u * S for all columns, then add J_p
 
         # Compute J_u via finite differences (more robust than ForwardDiff for generated code)
         eps_jac = 1e-8
@@ -223,11 +262,12 @@ function _build_forward_augmented_rhs(model, full_pars, params_of_interest, n_st
                 end
             end
 
-            # J_p[:, jp] via finite difference on the parameter
-            pname = params_of_interest[jp]
-            pv = Float64(full_pars[pname])
+            # J_p[:, jp] via finite difference on the parameter element
+            pname, pidx = flat_param_indices[jp]
+            pars_plus = _perturb_par(full_pars, pname, pidx, eps_jac)
+            pv = pidx == 0 ? Float64(full_pars[pname]) : Float64(full_pars[pname][pidx])
             h_p = eps_jac * max(abs(pv), 1.0)
-            pars_plus = merge(full_pars, NamedTuple{(pname,)}((pv + h_p,)))
+            pars_plus = _perturb_par(full_pars, pname, pidx, h_p)
             if model.has_interpolation
                 pars_plus = _odin_setup_pars(model, pars_plus)
             end
@@ -291,9 +331,13 @@ function dust_sensitivity_adjoint(
     end
 
     n_state = _odin_n_state(model, full_pars)
-    n_params = length(params_of_interest)
     n_times = length(times)
-    n_aug = n_state + n_params  # augmented system: [λ; grad_p]
+
+    # Flatten array parameters into scalar entries
+    flat_param_indices = _flatten_param_indices(full_pars, params_of_interest)
+    flat_param_names = Symbol[pidx == 0 ? pn : Symbol(pn, "[", pidx, "]")
+                              for (pn, pidx) in flat_param_indices]
+    n_flat_params = length(flat_param_indices)
 
     # ── Step 1: Forward solve and store trajectory at data times ──
     # Include the solve start time so we have the forward state for the first interval.
@@ -343,18 +387,18 @@ function dust_sensitivity_adjoint(
     #   dλ/dτ = +(∂f/∂y)^T λ              (adjoint)
     #   dg/dτ = +(∂f/∂θ)^T λ              (param gradient accumulator)
 
-    n_aug = 2 * n_state + n_params
+    n_aug = 2 * n_state + n_flat_params
 
     # Pre-allocate VJP buffers (shared across all intervals)
     vjp_state_buf = zeros(Float64, n_state)
-    vjp_params_buf = zeros(Float64, n_params)
+    vjp_params_buf = zeros(Float64, n_flat_params)
     du_fwd = zeros(Float64, n_state)
 
     eps_jac = 1e-8
 
     # Start with λ = 0 at t = T, then add terminal condition
     lambda = zeros(Float64, n_state)
-    grad_p = zeros(Float64, n_params)
+    grad_p = zeros(Float64, n_flat_params)
 
     _add_loss_gradient!(lambda, loss_fn, fwd_traj, n_times, times, n_state)
 
@@ -383,11 +427,11 @@ function dust_sensitivity_adjoint(
             dz[n_state + i] = vjp_state_buf[i]
         end
 
-        # dg/dτ = +(∂f/∂θ)^T * λ
+        # dg/dτ = +(∂f/∂θ)^T * λ  (per flat-param finite differences)
         fill!(vjp_params_buf, 0.0)
-        compute_vjp_params!(model, vjp_params_buf, u_cur, lambda_cur,
-                           full_pars, t_real, params_of_interest)
-        @inbounds for jp in 1:n_params
+        _compute_vjp_params_flat!(model, vjp_params_buf, u_cur, lambda_cur,
+                                  full_pars, t_real, flat_param_indices, du_fwd)
+        @inbounds for jp in 1:n_flat_params
             dz[2*n_state + jp] = vjp_params_buf[jp]
         end
         return nothing
@@ -413,7 +457,7 @@ function dust_sensitivity_adjoint(
             z0[i] = fwd_traj[i, ti]          # forward state at t_hi
             z0[n_state + i] = lambda[i]       # adjoint
         end
-        @inbounds for jp in 1:n_params
+        @inbounds for jp in 1:n_flat_params
             z0[2*n_state + jp] = 0.0          # param grad accumulator
         end
 
@@ -437,7 +481,7 @@ function dust_sensitivity_adjoint(
         @inbounds for i in 1:n_state
             lambda[i] = z_end[n_state + i]
         end
-        @inbounds for jp in 1:n_params
+        @inbounds for jp in 1:n_flat_params
             grad_p[jp] += z_end[2*n_state + jp]
         end
 
@@ -456,7 +500,7 @@ function dust_sensitivity_adjoint(
             z0[i] = fwd_traj[i, 1]           # u(times[1])
             z0[n_state + i] = lambda[i]       # current λ
         end
-        @inbounds for jp in 1:n_params
+        @inbounds for jp in 1:n_flat_params
             z0[2*n_state + jp] = 0.0
         end
 
@@ -478,30 +522,55 @@ function dust_sensitivity_adjoint(
         @inbounds for i in 1:n_state
             lambda[i] = z_end[n_state + i]
         end
-        @inbounds for jp in 1:n_params
+        @inbounds for jp in 1:n_flat_params
             grad_p[jp] += z_end[2*n_state + jp]
         end
     end
 
     # Handle initial condition dependence on parameters
-    for jp in 1:n_params
-        pname = params_of_interest[jp]
-        pv = Float64(full_pars[pname])
+    u0_base = zeros(Float64, n_state)
+    _odin_initial!(model, u0_base, full_pars, Random.Xoshiro())
+    for jp in 1:n_flat_params
+        pname, pidx = flat_param_indices[jp]
+        pv = pidx == 0 ? Float64(full_pars[pname]) : Float64(full_pars[pname][pidx])
         h_p = eps_jac * max(abs(pv), 1.0)
-        pars_plus = merge(full_pars, NamedTuple{(pname,)}((pv + h_p,)))
+        pars_plus = _perturb_par(full_pars, pname, pidx, h_p)
         if model.has_interpolation
             pars_plus = _odin_setup_pars(model, pars_plus)
         end
         u0_plus = zeros(Float64, n_state)
         _odin_initial!(model, u0_plus, pars_plus, Random.Xoshiro())
-        u0_base = zeros(Float64, n_state)
-        _odin_initial!(model, u0_base, full_pars, Random.Xoshiro())
         for i in 1:n_state
             grad_p[jp] += lambda[i] * (u0_plus[i] - u0_base[i]) / h_p
         end
     end
 
-    return AdjointSensitivityResult(grad_p, params_of_interest, total_loss)
+    return AdjointSensitivityResult(grad_p, flat_param_names, total_loss)
+end
+
+"""Compute (∂f/∂θ)^T * v using finite differences with flat (name, index) pairs."""
+function _compute_vjp_params_flat!(
+    model, result, state, v, full_pars, t,
+    flat_param_indices::Vector{Tuple{Symbol,Int}}, du_base::Vector{Float64},
+)
+    n_state = length(state)
+    eps_jac = 1e-8
+    du_pert = Vector{Float64}(undef, n_state)
+    for (jp, (pname, pidx)) in enumerate(flat_param_indices)
+        pv = pidx == 0 ? Float64(full_pars[pname]) : Float64(full_pars[pname][pidx])
+        h_p = eps_jac * max(abs(pv), 1.0)
+        pars_plus = _perturb_par(full_pars, pname, pidx, h_p)
+        if model.has_interpolation
+            pars_plus = _odin_setup_pars(model, pars_plus)
+        end
+        _odin_rhs!(model, du_pert, state, pars_plus, t)
+        g = 0.0
+        @inbounds for i in 1:n_state
+            g += v[i] * (du_pert[i] - du_base[i]) / h_p
+        end
+        result[jp] = g
+    end
+    return nothing
 end
 
 """Add ∂loss/∂u to λ at time index `ti` (finite differences)."""
@@ -527,15 +596,15 @@ function _accumulate_param_gradient!(
     state_t,
     data_t,
     t,
-    params_of_interest,
+    flat_param_indices::Vector{Tuple{Symbol,Int}},
 )
     eps_param = 1e-7
-    for (jp, pname) in enumerate(params_of_interest)
-        pv = Float64(full_pars[pname])
+    for (jp, (pname, pidx)) in enumerate(flat_param_indices)
+        pv = pidx == 0 ? Float64(full_pars[pname]) : Float64(full_pars[pname][pidx])
         h_p = eps_param * max(abs(pv), 1.0)
 
-        pars_plus = merge(full_pars, NamedTuple{(pname,)}((pv + h_p,)))
-        pars_minus = merge(full_pars, NamedTuple{(pname,)}((pv - h_p,)))
+        pars_plus = _perturb_par(full_pars, pname, pidx, h_p)
+        pars_minus = _perturb_par(full_pars, pname, pidx, -h_p)
         if model.has_interpolation
             pars_plus = _odin_setup_pars(model, pars_plus)
             pars_minus = _odin_setup_pars(model, pars_minus)
@@ -981,12 +1050,15 @@ function _unfilter_gradient_forward(
     )
 
     n_state = size(fwd.trajectory, 1)
-    n_params = length(param_names)
+    n_flat_params = size(fwd.sensitivities, 2)
     n_times = length(data.times)
+
+    # Build flat_param_indices matching the forward sensitivity result
+    flat_param_indices = _flatten_param_indices(full_pars, param_names)
 
     # Compute log-likelihood and its gradient via chain rule
     ll = 0.0
-    grad = zeros(Float64, n_params)
+    grad = zeros(Float64, n_flat_params)
 
     eps_ll = 1e-7
     for ti in 1:n_times
@@ -1007,13 +1079,13 @@ function _unfilter_gradient_forward(
         end
 
         # Chain rule: ∂ll_t/∂p = ∂ll_t/∂u * ∂u/∂p
-        for jp in 1:n_params
+        for jp in 1:n_flat_params
             for i in 1:n_state
                 grad[jp] += dll_du[i] * fwd.sensitivities[i, jp, ti]
             end
         end
 
-        _accumulate_param_gradient!(grad, model, full_pars, state_t, data_t, t, param_names)
+        _accumulate_param_gradient!(grad, model, full_pars, state_t, data_t, t, flat_param_indices)
     end
 
     return (log_likelihood=exact_ll, gradient=grad)
@@ -1044,11 +1116,12 @@ function _unfilter_gradient_adjoint(
 
     grad = copy(result.gradient)
     if trajectories !== nothing
+        flat_param_indices = _flatten_param_indices(full_pars, param_names)
         for ti in eachindex(data.times)
             state_t = @view trajectories[:, ti]
             data_t = data.data[ti]
             t = data.times[ti]
-            _accumulate_param_gradient!(grad, model, full_pars, state_t, data_t, t, param_names)
+            _accumulate_param_gradient!(grad, model, full_pars, state_t, data_t, t, flat_param_indices)
         end
     end
 

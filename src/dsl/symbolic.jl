@@ -237,8 +237,13 @@ function _build_symbolic_rhs(phases, cl, sv_set)
             dims_ex = resolved_dims[ex.name]
             envs = _lhs_index_envs(ex, cl, dims_ex)
             envs === nothing && return nothing
-            vals = length(dims_ex) == 1 ? Vector{Any}(undef, dims_ex[1]) : Array{Any}(undef, dims_ex...)
+            # Reuse existing array for per-element assignments (e.g. cfr[1]=...; cfr[2]=...)
+            vals = get(intermediates, ex.name, nothing)
+            if vals === nothing
+                vals = length(dims_ex) == 1 ? Vector{Any}(undef, dims_ex[1]) : Array{Any}(undef, dims_ex...)
+            end
             for (idx_vals, env) in envs
+                isempty(idx_vals) && return nothing
                 val = _symbolify_expr(ex.rhs, state_map, sym_params, intermediates, sym_time, env, cl)
                 val === nothing && return nothing
                 vals[idx_vals...] = val

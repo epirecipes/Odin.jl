@@ -194,12 +194,23 @@ function _parse_indexed_assignment(lhs::Expr, rhs_expr, src::LineNumberNode)
     varname = lhs.args[1]
     indices = Symbol[]
     range_bounds = Dict{Symbol, Tuple{Any, Any}}()
+    _index_names = [:i, :j, :k, :l, :m, :n, :p, :q]
     if length(lhs.args) == 1
         range_bounds[:__odin_implicit_all__] = (nothing, nothing)
     end
-    for a in lhs.args[2:end]
+    for (dim_pos, a) in enumerate(lhs.args[2:end])
         if a isa Symbol
             push!(indices, a)
+        elseif a isa Integer
+            idx_var = dim_pos <= length(_index_names) ? _index_names[dim_pos] : Symbol("idx_$dim_pos")
+            push!(indices, idx_var)
+            range_bounds[idx_var] = (a, a)
+        elseif a isa Expr && a.head == :call && a.args[1] == :(:)
+            lo = a.args[2]
+            hi = a.args[3]
+            idx_var = dim_pos <= length(_index_names) ? _index_names[dim_pos] : Symbol("idx_$dim_pos")
+            push!(indices, idx_var)
+            range_bounds[idx_var] = (lo, hi)
         end
     end
 

@@ -390,4 +390,108 @@ using ForwardDiff
         end
     end
 
+    # ── Per-element literal-indexed array constants ──
+    @testset "Per-element literal-indexed array constants" begin
+        m = @odin begin
+            dim(cfr) = 3
+            cfr[1] = 0.01; cfr[2] = 0.02; cfr[3] = 0.05
+            dim(S) = 3; dim(I) = 3
+            total_I = sum(I)
+            deriv(S[i]) = -beta * cfr[i] * S[i] * total_I / N
+            deriv(I[i]) = beta * cfr[i] * S[i] * total_I / N - gamma * I[i]
+            initial(S[i]) = 990.0; initial(I[i]) = 10.0
+            beta = parameter(0.5, differentiate = true)
+            gamma = parameter(0.1, differentiate = true)
+            N = parameter(3000)
+        end
+        model = m.model
+        @test Odin._odin_has_symbolic_jacobian(model)
+        @test Odin._odin_diff_param_names(model) == [:beta, :gamma]
+
+        # Check VJP agrees with ForwardDiff
+        pars = (beta=0.5, gamma=0.1, N=3000.0, dt=1.0)
+        state = [980.0, 985.0, 970.0, 15.0, 12.0, 20.0]
+        v = ones(6)
+        n_state = 6
+        result_sym = zeros(n_state)
+        Odin._odin_vjp_state!(model, result_sym, state, v, pars, 5.0)
+
+        # ForwardDiff reference
+        result_fd = zeros(n_state)
+        Odin.compute_vjp_state!(model, result_fd, state, v, pars, 5.0)
+        @test isapprox(result_sym, result_fd, atol=1e-6)
+    end
+
+    # ── 2D contact matrix with sum(j, C[i,j] * I[j]) ──
+    @testset "2D contact matrix symbolic Jacobian" begin
+        m = @odin begin
+            dim(C) = c(3, 3)
+            C[1,1] = 3.0; C[1,2] = 0.5; C[1,3] = 0.2
+            C[2,1] = 0.5; C[2,2] = 3.0; C[2,3] = 0.5
+            C[3,1] = 0.2; C[3,2] = 0.5; C[3,3] = 3.0
+            dim(S) = 3; dim(I) = 3; dim(R) = 3
+            dim(foi) = 3
+            foi[i] = beta * sum(j, C[i,j] * I[j]) / N
+            deriv(S[i]) = -foi[i] * S[i]
+            deriv(I[i]) = foi[i] * S[i] - gamma * I[i]
+            deriv(R[i]) = gamma * I[i]
+            initial(S[i]) = 990.0; initial(I[i]) = 10.0; initial(R[i]) = 0.0
+            beta = parameter(0.3, differentiate = true)
+            gamma = parameter(0.1, differentiate = true)
+            N = parameter(3000)
+        end
+        model = m.model
+        @test Odin._odin_has_symbolic_jacobian(model)
+
+        pars = (beta=0.3, gamma=0.1, N=3000.0, dt=1.0)
+        sim = Odin.simulate(m, pars; times=collect(0.0:1.0:30.0), seed=42)
+        @test size(sim, 1) == 9  # 3 S + 3 I + 3 R
+
+        # VJP state check: symbolic vs ForwardDiff
+        state = Float64[980, 985, 970, 15, 12, 20, 5, 3, 10]
+        v = ones(9)
+        r_sym = zeros(9)
+        Odin._odin_vjp_state!(model, r_sym, state, v, pars, 5.0)
+        r_fd = zeros(9)
+        Odin.compute_vjp_state!(model, r_fd, state, v, pars, 5.0)
+        @test isapprox(r_sym, r_fd, atol=1e-6)
+    end
+
+    # ── Array-valued packer parameters in gradients ──
+    @testset "Array-valued packer parameters in gradients" begin
+        m = @odin begin
+            dim(S) = 3; dim(I) = 3
+            dim(susc) = 3
+            susc = parameter(rank = 1)
+            total_I = sum(I)
+            deriv(S[i]) = -beta * susc[i] * S[i] * total_I / N
+            deriv(I[i]) = beta * susc[i] * S[i] * total_I / N - gamma * I[i]
+            initial(S[i]) = 990.0; initial(I[i]) = 10.0
+            cases ~ Poisson(max(beta * total_I, 1e-6))
+            beta = parameter(0.5, differentiate = true)
+            gamma = parameter(0.1, differentiate = true)
+            N = parameter(3000)
+        end
+        pars = (beta=0.5, gamma=0.1, N=3000.0, susc=[1.0, 0.8, 0.5])
+        times = [10.0, 20.0, 30.0]
+        cases_data = [(cases=50.0,), (cases=100.0,), (cases=30.0,)]
+        data = Odin.FilterData(times, cases_data)
+        uf = Odin.dust_unfilter_create(m, data; time_start=0.0)
+        packer = Odin.monty_packer([:beta, :gamma])
+
+        fwd = Odin.dust_unfilter_gradient(uf, pars, packer; method=:forward)
+        adj = Odin.dust_unfilter_gradient(uf, pars, packer; method=:adjoint)
+        @test length(fwd.gradient) == 2
+        @test length(adj.gradient) == 2
+        @test isapprox(fwd.gradient, adj.gradient, atol=0.5)
+
+        # Test with array parameter in packer
+        packer_arr = Odin.monty_packer([:beta]; array=Dict(:susc => (3,)))
+        fwd2 = Odin.dust_unfilter_gradient(uf, pars, packer_arr; method=:forward)
+        adj2 = Odin.dust_unfilter_gradient(uf, pars, packer_arr; method=:adjoint)
+        @test length(fwd2.gradient) == 4  # beta + susc[1:3]
+        @test length(adj2.gradient) == 4
+        @test isapprox(fwd2.gradient, adj2.gradient, atol=0.5)
+    end
+
 end
