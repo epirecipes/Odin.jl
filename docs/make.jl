@@ -67,6 +67,7 @@ makedocs(;
                 "Stochastic Differential Equations" => "vignettes/35_sde.md",
                 "Model Selection" => "vignettes/36_model_selection.md",
                 "Model Validation" => "vignettes/37_model_validation.md",
+                "Mpox Deterministic Benchmark" => "vignettes/38_mpox_deterministic_benchmark.md",
             ],
         ],
         "API Reference" => "api.md",

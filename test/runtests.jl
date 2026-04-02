@@ -61,6 +61,7 @@ using Test
         "test_api.jl",
         "test-validate.jl",
         "test_new_features.jl",
+        "crosslang/test_crosslang.jl",
     ]
 
     for testfile in testfiles

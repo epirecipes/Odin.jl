@@ -30,6 +30,7 @@ estimator. Features:
 - **Adaptive step-size control** using the standard embedded error formula
 - **Dense output** via Hairer's free 4th-order interpolation for efficient `saveat`
 - **Pre-allocated workspaces** — zero allocations in the inner loop after warmup
+- **FSAL (First Same As Last)** — the 7th stage evaluation is reused as the first stage of the next step
 
 The Butcher tableau follows Dormand & Prince (1980). The dense output
 coefficients follow Hairer, Norsett & Wanner (*Solving ODEs I*, §II.6).
@@ -39,6 +40,41 @@ coefficients follow Hairer, Norsett & Wanner (*Solving ODEs I*, §II.6).
 - Standard compartmental models (SIR, SEIR, etc.)
 - Models without extremely different timescales
 - When you need maximum throughput for non-stiff systems
+
+### Example: Comparing DP5 with DifferentialEquations.jl
+
+```julia
+using Odin
+
+sir = @odin begin
+    deriv(S) = -beta * S * I / N
+    deriv(I) = beta * S * I / N - gamma * I
+    deriv(R) = gamma * I
+    initial(S) = N - I0
+    initial(I) = I0
+    initial(R) = 0
+    beta = parameter(0.5)
+    gamma = parameter(0.1)
+    I0 = parameter(10)
+    N = parameter(1000)
+end
+
+pars = (beta=0.5, gamma=0.1, I0=10.0, N=1000.0)
+times = collect(0.0:1.0:365.0)
+
+# DP5 (default — used automatically)
+sys = System(sir, pars; ode_control=ODEControl(solver=:dp5, atol=1e-6, rtol=1e-6))
+reset!(sys)
+out_dp5 = simulate(sys, times)
+
+# DifferentialEquations.jl fallback (used automatically when AD is needed)
+sys2 = System(sir, pars; ode_control=ODEControl(solver=:diffeq, atol=1e-6, rtol=1e-6))
+reset!(sys2)
+out_diffeq = simulate(sys2, times)
+
+# Results should agree to solver tolerance
+maximum(abs.(out_dp5 .- out_diffeq))  # < 1e-4
+```
 
 ## SDIRK4 — Singly Diagonally Implicit Runge-Kutta
 
@@ -63,6 +99,24 @@ Features:
 - Systems where DP5 requires extremely small step sizes
 - When using the unfilter with gradient-based samplers on stiff models
 
+### Example: Stiff system
+
+```julia
+# Model with fast and slow dynamics
+stiff_model = @odin begin
+    deriv(x) = -1000 * (x - cos(time))
+    deriv(y) = x - y
+    initial(x) = 1.0
+    initial(y) = 0.0
+end
+
+pars = NamedTuple()
+ctrl = ODEControl(solver=:sdirk, atol=1e-8, rtol=1e-8, max_steps=50000)
+sys = System(stiff_model, pars; ode_control=ctrl)
+reset!(sys)
+out = simulate(sys, collect(0.0:0.01:1.0))
+```
+
 ## Workspace Reuse
 
 Both solvers use pre-allocated workspace objects to avoid repeated heap
@@ -75,6 +129,22 @@ result = sdirk_solve!(f!, u0, tspan, ws; atol=1e-6, rtol=1e-6)
 
 The workspaces are created automatically by [`System`](@ref) and
 cached on the [`DustSystem`](@ref) for reuse across time steps.
+
+## Performance Tips
+
+1. **Use DP5 for non-stiff models** — it's 2–10× faster than SDIRK and the
+   DifferentialEquations.jl fallback for typical epidemiological models.
+
+2. **Tighten tolerances for gradients** — when computing gradients via
+   ForwardDiff (e.g., for HMC/NUTS), use `atol=1e-8, rtol=1e-8` to avoid
+   noisy gradient estimates.
+
+3. **Increase `max_steps` for long simulations** — the default 10,000 steps
+   may not be sufficient for multi-year simulations with fine structure.
+
+4. **Watch for step-size warnings** — if the solver hits `max_steps`, the
+   solution may be inaccurate. This often indicates a stiff system that
+   should use `:sdirk`.
 
 ## Configuration
 
