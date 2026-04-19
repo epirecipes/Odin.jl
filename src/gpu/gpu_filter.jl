@@ -69,6 +69,8 @@ function gpu_dust_filter_create(
     backend::Symbol=:auto,
     save_trajectories::Bool=false,
 ) where {M, D}
+    n_particles > 0 || throw(ArgumentError("gpu_dust_filter_create: n_particles must be positive, got $n_particles"))
+    dt > 0 || throw(ArgumentError("gpu_dust_filter_create: dt must be positive, got $dt"))
     be = gpu_backend(; preferred=backend)
     _gpu_dust_filter_create(gen, data, be; n_particles=n_particles, dt=dt,
                             time_start=time_start, seed=seed,

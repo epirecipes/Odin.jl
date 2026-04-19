@@ -294,6 +294,7 @@ function sdirk_solve!(f!::F, u0::AbstractVector{T}, tspan::Tuple{T,T}, pars,
                       max_steps::Int=100000,
                       jac_fn::Union{Nothing, Function}=nothing,
                       autodiff::Bool=false) where {F, T<:AbstractFloat}
+    length(u0) > 0 || throw(ArgumentError("sdirk_solve!: cannot solve empty ODE system (length(u0) == 0)"))
     if ws === nothing
         w = SDIRKWorkspace(length(u0), T)
     else

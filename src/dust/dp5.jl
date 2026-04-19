@@ -95,6 +95,7 @@ function dp5_solve!(f!::F, u0::AbstractVector{T}, tspan::Tuple{T,T}, pars,
                     result::Union{Nothing, Matrix{T}}=nothing,
                     abstol::T=T(1e-6), reltol::T=T(1e-6),
                     max_steps::Int=100000) where {F, T<:AbstractFloat}
+    length(u0) > 0 || throw(ArgumentError("dp5_solve!: cannot solve empty ODE system (length(u0) == 0)"))
     if ws === nothing
         w = DP5Workspace(length(u0), T)
     else
@@ -279,7 +280,17 @@ function _dp5_dense_eval!(out::AbstractMatrix{T}, col::Int,
     return nothing
 end
 
-"""Estimate initial step size (Hairer, Norsett & Wanner, Solving ODEs I, II.4)."""
+"""
+    _dp5_initial_step(f!, u0, f0, pars, t0, tf, abstol, reltol, n, u1_buf, f1_buf)
+
+Estimate the initial step size for the DP5 integrator
+(Hairer, Norsett & Wanner, *Solving ODEs I*, II.4).
+
+`n` is the problem dimension and **must equal `length(u0)`**; it is passed
+explicitly to keep this function fully type-stable and allocation-free in
+performance-critical inner loops where the caller already has `n` in a local
+variable. Passing a mismatched `n` is undefined behaviour.
+"""
 function _dp5_initial_step(f!::F, u0::AbstractVector{T}, f0::AbstractVector{T},
                            pars::P, t0::T, tf::T,
                            abstol::T, reltol::T, n::Int,

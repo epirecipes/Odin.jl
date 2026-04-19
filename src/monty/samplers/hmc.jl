@@ -96,7 +96,18 @@ function _hmc_density_gradient(model::MontyModel, q_unconstrained::Vector{Float6
 end
 
 function step!(sampler::MontyHMCSampler, chain::ChainState, state::HMCState, model::MontyModel, rng::AbstractRNG)
-    model.gradient !== nothing || error("HMC requires a model with gradient")
+    model.gradient !== nothing || error("""
+    HMC requires a model with a gradient, but `model.gradient === nothing`.
+
+    Common fixes:
+      • If using a particle filter, switch to `dust_unfilter_create` (deterministic
+        ODE likelihood) — `dust_likelihood_monty(unfilter, packer)` produces a
+        gradient via ForwardDiff/adjoint.
+      • If wrapping a custom density, supply `gradient = θ -> ...` to `monty_model`
+        or rely on automatic differentiation.
+      • If gradients are unavailable, use a gradient-free sampler such as
+        `monty_sampler_random_walk` or `monty_sampler_adaptive`.
+    """)
 
     n = length(chain.pars)
     ε = sampler.epsilon

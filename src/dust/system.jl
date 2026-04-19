@@ -71,6 +71,8 @@ function dust_system_create(
     time::Float64=0.0,
     seed::Union{Nothing, Int}=nothing,
 ) where {M}
+    n_particles > 0 || throw(ArgumentError("dust_system_create: n_particles must be positive, got $n_particles"))
+    dt > 0 || throw(ArgumentError("dust_system_create: dt must be positive, got $dt"))
     model = gen.model
 
     # Merge parameter defaults with user pars + dt

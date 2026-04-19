@@ -344,7 +344,19 @@ function _collect_rate_params!(params::Set{Symbol}, expr)
     # Numbers are ignored
 end
 
-"""Compile an odin block expression through the standard pipeline."""
+"""
+    _compile_odin_block(block::Expr)
+
+Compile an odin block expression through the standard pipeline and `eval` the
+generated code into the `Odin` module.
+
+!!! warning "Internal use only"
+    This function calls `Core.eval` on generated code. It is **not safe to
+    invoke with untrusted user input**: any Julia expression embedded in
+    `block` will be executed with full module privileges. Only call from
+    internal categorical-composition code paths that build `block` from
+    validated odin DSL constructs.
+"""
 function _compile_odin_block(block::Expr)
     exprs = parse_odin_block(block)
     classification = classify_variables(exprs)

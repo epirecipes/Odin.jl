@@ -111,7 +111,17 @@ mutable struct NUTSState <: AbstractSamplerState
 end
 
 function initialise(sampler::MontyNUTSSampler, chain::ChainState, model::MontyModel, rng::AbstractRNG)
-    model.gradient !== nothing || error("NUTS requires a model with gradient")
+    model.gradient !== nothing || error("""
+    NUTS requires a model with a gradient, but `model.gradient === nothing`.
+
+    Common fixes:
+      • If using a particle filter, switch to `dust_unfilter_create` (deterministic
+        ODE likelihood) — `dust_likelihood_monty(unfilter, packer)` produces a
+        gradient via ForwardDiff/adjoint.
+      • If wrapping a custom density, supply `gradient = θ -> ...` to `monty_model`.
+      • If gradients are unavailable, use a gradient-free sampler such as
+        `monty_sampler_random_walk` or `monty_sampler_adaptive`.
+    """)
 
     n = length(chain.pars)
 

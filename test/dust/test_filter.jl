@@ -230,4 +230,73 @@ using Odin
         @test isfinite(good)
         @test good > bad
     end
+
+    @testset "Single-particle filter (n_particles=1)" begin
+        sir_discrete = @odin begin
+            update(S) = S - n_SI
+            update(I) = I + n_SI - n_IR
+            update(R) = R + n_IR
+            initial(S) = N - I0
+            initial(I) = I0
+            initial(R) = 0
+            p_SI = 1 - exp(-beta * I / N * dt)
+            p_IR = 1 - exp(-gamma * dt)
+            n_SI = Binomial(S, p_SI)
+            n_IR = Binomial(I, p_IR)
+            obs = data()
+            obs ~ Poisson(max(I, 1e-6))
+            N = parameter(1000)
+            I0 = parameter(10)
+            beta = parameter(0.3)
+            gamma = parameter(0.1)
+        end
+
+        pars = (N=1000.0, I0=10.0, beta=0.3, gamma=0.1)
+        sys = System(sir_discrete, pars; n_particles=1, dt=1.0, seed=11)
+        reset!(sys)
+        times = collect(1.0:1.0:5.0)
+        sim = simulate(sys, times)
+        data_vec = [(time=times[i], obs=max(1.0, sim[2, 1, i])) for i in eachindex(times)]
+        fdata = Odin.ObservedData(data_vec)
+
+        # n_particles = 1 should run without divide-by-zero or shape errors.
+        pf = Likelihood(sir_discrete, fdata; n_particles=1, dt=1.0, seed=42)
+        ll = loglik(pf, pars)
+        @test isfinite(ll)
+    end
+
+    @testset "Filter validates positive n_particles and dt" begin
+        sir_discrete = @odin begin
+            update(S) = S
+            update(I) = I
+            initial(S) = 100
+            initial(I) = 1
+            obs = data()
+            obs ~ Poisson(max(I, 1e-6))
+        end
+        fdata = Odin.ObservedData([(time=1.0, obs=1.0)])
+
+        @test_throws ArgumentError Likelihood(sir_discrete, fdata; n_particles=0, dt=1.0)
+        @test_throws ArgumentError Likelihood(sir_discrete, fdata; n_particles=-1, dt=1.0)
+        @test_throws ArgumentError Likelihood(sir_discrete, fdata; n_particles=8, dt=0.0)
+        @test_throws ArgumentError Likelihood(sir_discrete, fdata; n_particles=8, dt=-0.1)
+    end
+
+    @testset "Filter handles all -Inf log-weights without NaN" begin
+        # Force log-weight = -Inf by using a Poisson(0) observation model with
+        # positive observations: logpdf(Poisson(0), k>0) == -Inf for every particle.
+        sir_discrete = @odin begin
+            update(S) = S
+            update(I) = I
+            initial(S) = 100
+            initial(I) = 0
+            obs = data()
+            obs ~ Poisson(I)
+        end
+        fdata = Odin.ObservedData([(time=t, obs=5.0) for t in 1.0:1.0:3.0])
+        pf = Likelihood(sir_discrete, fdata; n_particles=16, dt=1.0, seed=7)
+        ll = loglik(pf, NamedTuple())
+        @test ll == -Inf            # correct log-likelihood
+        @test !isnan(ll)             # explicitly: not NaN (regression test)
+    end
 end

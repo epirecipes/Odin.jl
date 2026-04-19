@@ -45,21 +45,20 @@ end
     mvn_sample!(result, mean, chol_vcv, rng)
 
 Sample from a multivariate normal with given mean and Cholesky factor of VCV.
+
+Equivalent to `result = mean + chol_vcv * randn(n)` but allocation-free.
+Uses `LinearAlgebra.lmul!`, which dispatches to BLAS `trmv` for the in-place
+triangular multiply on `Float64` vectors.
 """
 function mvn_sample!(result::Vector{Float64}, mean::Vector{Float64}, chol_vcv::LowerTriangular{Float64}, rng::AbstractRNG)
     n = length(mean)
     @inbounds for i in 1:n
         result[i] = randn(rng)
     end
-    # result = chol_vcv * z (in-place: use result as both z and output)
-    # We need a temporary since mul! would overwrite z. Instead, do the
-    # triangular multiply manually to avoid allocation.
-    @inbounds for i in n:-1:1
-        s = 0.0
-        for j in 1:i
-            s += chol_vcv[i, j] * result[j]
-        end
-        result[i] = s + mean[i]
+    # result <- chol_vcv * result  (in-place, BLAS trmv)
+    lmul!(chol_vcv, result)
+    @inbounds for i in 1:n
+        result[i] += mean[i]
     end
     return nothing
 end

@@ -37,6 +37,8 @@ function dust_filter_create(
     seed::Union{Nothing, Int}=nothing,
     save_trajectories::Bool=false,
 ) where {M, D}
+    n_particles > 0 || throw(ArgumentError("dust_filter_create: n_particles must be positive, got $n_particles"))
+    dt > 0 || throw(ArgumentError("dust_filter_create: dt must be positive, got $dt"))
     return DustFilter{M, Float64, D}(gen, data, time_start, n_particles, dt, seed, save_trajectories, nothing,
                                        1, nothing, nothing, nothing)
 end
@@ -72,14 +74,9 @@ function dust_likelihood_run!(filter::DustFilter, pars::NamedTuple;
     else
         result = _filter_inner!(sys, sys.pars, filter.data, np, save_traj, save_snapshots)
     end
-    if result isa NamedTuple
-        filter._last_snapshots = get(result, :snapshots, nothing)
-        filter._last_trajectories = get(result, :trajectories, nothing)
-        return result.ll
-    end
-    filter._last_snapshots = nothing
-    filter._last_trajectories = nothing
-    return result
+    filter._last_snapshots = result.snapshots
+    filter._last_trajectories = result.trajectories
+    return result.ll
 end
 
 function dust_likelihood_run!(filter::DustFilter, pars_vec::AbstractVector{<:NamedTuple};
@@ -117,12 +114,16 @@ function _filter_inner!(sys::DustSystem{M,T}, pars::P, data::FilterData{D},
         target_time = data.times[t_idx]
         data_t = data.data[t_idx]
 
-        # Inline _run_discrete! to avoid re-reading sys fields
+        # Inline _run_discrete! to avoid re-reading sys fields.
+        # Tolerance `dt/2` guards against floating-point drift across many
+        # accumulated `+= dt` steps: stop when within half a step of target.
         while sys.time < target_time - dt / 2
             # Inline _apply_zero_every!
             if !isempty(zero_every)
                 @inbounds for entry in zero_every
                     period = entry.period
+                    # `dt/4` (< dt/2) classifies the current step as the
+                    # period boundary without double-firing on adjacent steps.
                     if period > 0 && abs(sys.time - round(sys.time / period) * period) < dt / 4
                         for p in 1:n_particles
                             for idx in entry.range
@@ -179,10 +180,7 @@ function _filter_inner!(sys::DustSystem{M,T}, pars::P, data::FilterData{D},
         end
     end
 
-    if trajectories !== nothing || snapshots !== nothing
-        return (; ll=log_likelihood, snapshots=snapshots, trajectories=trajectories)
-    end
-    return log_likelihood
+    return (; ll=log_likelihood, snapshots=snapshots, trajectories=trajectories)
 end
 
 """Type-stable threaded inner loop of the particle filter."""
@@ -232,6 +230,10 @@ function _filter_inner_threaded!(sys::DustSystem{M,T}, pars::P, data::FilterData
                 end
             end
 
+            # SAFETY (thread): `t_now` is captured BEFORE the parallel region
+            # so every thread reads a consistent value. `sys.time` must NOT be
+            # mutated inside this loop. The single mutation below happens
+            # after the implicit barrier at the end of `Threads.@threads`.
             t_now = sys.time
             Threads.@threads for p in 1:n_particles
                 tid = Threads.threadid()
@@ -249,7 +251,8 @@ function _filter_inner_threaded!(sys::DustSystem{M,T}, pars::P, data::FilterData
             sys.time += dt
         end
 
-        # Compute weights (threaded — each particle writes to its own index)
+        # Compute weights (threaded — each particle writes to its own index `p`,
+        # so there are no data races on `log_weights`).
         Threads.@threads for p in 1:n_particles
             tid = Threads.threadid()
             m = thread_models[tid]
@@ -284,10 +287,7 @@ function _filter_inner_threaded!(sys::DustSystem{M,T}, pars::P, data::FilterData
         end
     end
 
-    if trajectories !== nothing || snapshots !== nothing
-        return (; ll=log_likelihood, snapshots=snapshots, trajectories=trajectories)
-    end
-    return log_likelihood
+    return (; ll=log_likelihood, snapshots=snapshots, trajectories=trajectories)
 end
 
 """Get or create the cached system, resetting it for reuse."""
@@ -327,6 +327,9 @@ function dust_filter_create(
     seed::Union{Nothing, Int}=nothing,
     save_trajectories::Bool=false,
 ) where {M, D}
+    n_particles > 0 || throw(ArgumentError("dust_filter_create: n_particles must be positive, got $n_particles"))
+    dt > 0 || throw(ArgumentError("dust_filter_create: dt must be positive, got $dt"))
+    !isempty(group_data) || throw(ArgumentError("dust_filter_create: group_data must be non-empty"))
     n_groups = length(group_data)
     filt = DustFilter{M, Float64, D}(gen, group_data[1], time_start, n_particles, dt, seed,
                                       save_trajectories, nothing, n_groups, group_data,
@@ -351,13 +354,13 @@ function _run_grouped_filter!(filter::DustFilter, pars::NamedTuple;
         )
         dust_system_set_state_initial!(sys)
         np = filter.n_particles
-        ll = _filter_inner!(sys, sys.pars, gdata, np, filter.save_trajectories, save_snapshots)
-        if ll isa NamedTuple
-            total_ll += ll.ll
-            filter._last_snapshots = get(ll, :snapshots, nothing)
-            filter._last_trajectories = get(ll, :trajectories, nothing)
-        else
-            total_ll += ll
+        result = _filter_inner!(sys, sys.pars, gdata, np, filter.save_trajectories, save_snapshots)
+        total_ll += result.ll
+        if result.snapshots !== nothing
+            filter._last_snapshots = result.snapshots
+        end
+        if result.trajectories !== nothing
+            filter._last_trajectories = result.trajectories
         end
     end
     return total_ll
@@ -382,13 +385,13 @@ function _run_grouped_filter!(filter::DustFilter, pars_vec::AbstractVector{<:Nam
         )
         dust_system_set_state_initial!(sys)
         np = filter.n_particles
-        ll = _filter_inner!(sys, sys.pars, gdata, np, filter.save_trajectories, save_snapshots)
-        if ll isa NamedTuple
-            total_ll += ll.ll
-            filter._last_snapshots = get(ll, :snapshots, nothing)
-            filter._last_trajectories = get(ll, :trajectories, nothing)
-        else
-            total_ll += ll
+        result = _filter_inner!(sys, sys.pars, gdata, np, filter.save_trajectories, save_snapshots)
+        total_ll += result.ll
+        if result.snapshots !== nothing
+            filter._last_snapshots = result.snapshots
+        end
+        if result.trajectories !== nothing
+            filter._last_trajectories = result.trajectories
         end
     end
     return total_ll
