@@ -25,19 +25,6 @@ using Random
 using Statistics
 ```
 
-    Precompiling packages...
-       1261.8 ms  ✓ QuartoNotebookWorkerJSONExt (serial)
-      1 dependency successfully precompiled in 1 seconds
-    Precompiling packages...
-       2004.3 ms  ✓ QuartoNotebookWorkerLaTeXStringsExt (serial)
-      1 dependency successfully precompiled in 2 seconds
-    Precompiling packages...
-       1136.6 ms  ✓ QuartoNotebookWorkerTablesExt (serial)
-      1 dependency successfully precompiled in 1 seconds
-    Precompiling packages...
-       1357.4 ms  ✓ QuartoNotebookWorkerJSON3Ext (serial)
-      1 dependency successfully precompiled in 1 seconds
-
 ## Model definition
 
 ``` julia
@@ -155,7 +142,7 @@ grad_adjoint = loglik_gradient(lik, candidate_pars, packer; method=:adjoint)
 )
 ```
 
-    (loglik_forward = -106.25000075402961, loglik_adjoint = -106.25000075402961, gradient_forward = [2071.527663880288, -56.75873810040799, 1617.7644017915723, -49.19090633415651], gradient_adjoint = [2071.55694548687, -56.7648229304726, 1617.7873288564124, -49.196179873076254])
+    (loglik_forward = -106.25000075402961, loglik_adjoint = -106.25000075402961, gradient_forward = [2071.527663880288, -56.75873810040799, 1617.7644017915723, -49.19090633415651], gradient_adjoint = [2071.556956697429, -56.764823572687355, 1617.787310525903, -49.196180270874315])
 
 The forward and adjoint gradients agree closely on this compact
 deterministic problem, with the adjoint path giving the same derivative
@@ -221,7 +208,7 @@ benchmark_summary = (
 benchmark_summary
 ```
 
-    (simulation_ms = 1.2486045, likelihood_ms = 0.020167, forward_gradient_ms = 2.034937, adjoint_gradient_ms = 17.8094795, forward_over_likelihood = 100.90429910249418, adjoint_over_likelihood = 883.1000892547229)
+    (simulation_ms = 2.3876875, likelihood_ms = 0.0199165, forward_gradient_ms = 3.587917, adjoint_gradient_ms = 17.0810625, forward_over_likelihood = 180.14796776542062, adjoint_over_likelihood = 857.633745889087)
 
 ## DZA real-data slice
 
@@ -341,7 +328,7 @@ dza_adjoint = loglik_gradient(dza_lik, dza_pars, dza_packer; method=:adjoint)
 )
 ```
 
-    (loglik_forward = -8060.6208644317785, loglik_adjoint = -8060.6208644317785, gradient_forward = [-98666.92198857598, 225692.83842888684, -1395.1527263156295, 99.94176253249357], gradient_adjoint = [-96130.70119890431, 221230.30687803047, -1395.1527263156295, 99.936866475141])
+    (loglik_forward = -8060.6208644317785, loglik_adjoint = -8060.6208644317785, gradient_forward = [-98666.92198857598, 225692.83842888684, -1395.1527263156295, 99.94176253249357], gradient_adjoint = [-96129.82572786299, 221229.0627217178, -1395.1527263156295, 99.93686455002258])
 
 ``` julia
 dza_simulation_ms = bench_ms(() -> simulate(
@@ -364,7 +351,7 @@ dza_adjoint_ms = bench_ms(() -> loglik_gradient(dza_lik, dza_pars, dza_packer; m
 )
 ```
 
-    (simulation_ms = 1.666062, likelihood_ms = 0.0547705, forward_gradient_ms = 23.8689375, adjoint_gradient_ms = 106.3513545, forward_over_likelihood = 435.7991528286213, adjoint_over_likelihood = 1941.7634401730859)
+    (simulation_ms = 2.598229, likelihood_ms = 0.0525625, forward_gradient_ms = 25.778312, adjoint_gradient_ms = 104.491271, forward_over_likelihood = 490.43161950059454, adjoint_over_likelihood = 1987.9433246135552)
 
 ## DZA point fit
 
@@ -394,7 +381,7 @@ dza_fit = fit_logspace(dza_lik, dza_fit_packer, dza_fit_fixed, dza_fit_initial)
 )
 ```
 
-    (start_loglik = -2856.048657807718, final_loglik = -1378.8031724011814, fitted = (beta = 0.3813031155128044, case_scale = 1.55533873732452, death_scale = 2.7254190772293443), n_iterations = 40)
+    (start_loglik = -2856.048657807718, final_loglik = -1378.805775532576, fitted = (beta = 0.3813026036101985, case_scale = 1.5553437994787547, death_scale = 2.7254183082178907), n_iterations = 40)
 
 ``` julia
 dza_fit_ms = bench_ms(
@@ -408,7 +395,7 @@ dza_fit_ms = bench_ms(
 )
 ```
 
-    (point_fit_ms = 3225.87675, loglik_gain = 1477.2454854065365)
+    (point_fit_ms = 3012.666667, loglik_gain = 1477.242882275142)
 
 ## Summary
 
@@ -554,7 +541,7 @@ age_ll_ms = bench_ms(() -> loglik(age_lik, age_pars); samples=20)
 (; log_likelihood=age_ll, loglik_ms=age_ll_ms)
 ```
 
-    (log_likelihood = -303.7312781743081, loglik_ms = 0.0257915)
+    (log_likelihood = -303.7312781743081, loglik_ms = 0.025604)
 
 ``` julia
 age_packer = Packer([:beta, :case_scale, :death_scale])
@@ -579,7 +566,7 @@ age_adj_ms = bench_ms(
 )
 ```
 
-    (forward_gradient = [2131.226185339347, 4.1963196887688055, 23.73056942062135], adjoint_gradient = [2131.227608638021, 4.1963196887688055, 23.73056942062135], max_grad_diff = 0.001423298674126272, forward_ms = 0.4995625, adjoint_ms = 42.626604)
+    (forward_gradient = [2131.226185339347, 4.1963196887688055, 23.73056942062135], adjoint_gradient = [2131.2276075008035, 4.1963196887688055, 23.73056942062135], max_grad_diff = 0.0014221614565030904, forward_ms = 0.7214795, adjoint_ms = 43.94025)
 
 ### Point fit
 
@@ -606,7 +593,7 @@ age_fit = fit_logspace(age_lik, age_packer, age_fit_fixed, age_fit_initial;
 )
 ```
 
-    (start_loglik = -448.42079128178085, final_loglik = -215.0712182223021, fitted = (beta = 0.09811875994681864, case_scale = 3.529515032161769, death_scale = 8.560754349518385), improvement = 233.34957305947876, n_iterations = 30)
+    (start_loglik = -448.42079128178085, final_loglik = -215.07121849846297, fitted = (beta = 0.09811875985221367, case_scale = 3.5295150456914164, death_scale = 8.560754295707737), improvement = 233.34957278331788, n_iterations = 30)
 
 ## Full summary
 
