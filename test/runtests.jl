@@ -10,7 +10,16 @@ using Test
             string("include(\"", replace(testfile, "\\" => "\\\\"), "\")"),
         ), '\n')
         cmd = `$(Base.julia_cmd()) --project=$(dirname(@__DIR__)) -e $(code)`
-        @test success(cmd)
+        # Capture output so failures from subprocesses are visible
+        out = IOBuffer()
+        proc = run(pipeline(ignorestatus(cmd); stdout=out, stderr=out); wait=true)
+        ok = proc.exitcode == 0
+        if !ok
+            println(stderr, "── Subprocess output for ", relpath, " ──")
+            println(stderr, String(take!(out)))
+            println(stderr, "── end subprocess output ──")
+        end
+        @test ok
     end
 
     # Julia 1.12 can segfault in compiler/GC code when this whole suite runs in
